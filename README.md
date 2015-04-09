@@ -1,0 +1,2 @@
+# SuperiorMySQLpp
+SuperiorMySQL++
