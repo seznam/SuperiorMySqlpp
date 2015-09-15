@@ -1,0 +1,15 @@
+Source: libsuperiormysqlpp
+Section: unknown
+Priority: extra
+Maintainer: Tomas Nozicka, Seznam.cz
+Build-Depends: debhelper(>=7),
+               g++(>=4.9.2),
+               docker.io,
+               libmysqlclient-dev,
+               mysql-client
+Standards-Version: 3.7.2
+
+Package: libsuperiormysqlpp-dev
+Architecture: any
+Depends: libmysqlclient-dev
+Description: C++ mysql library development files
