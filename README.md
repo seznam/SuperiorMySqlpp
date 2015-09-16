@@ -5,10 +5,66 @@ Modern C++ wrapper for MySQL C API
 **Author**: [Tomas Nozicka](https://github.com/tnozicka), [*Seznam.cz*](https://github.com/seznam)
 
 
+#Installation
+
+
+##Requirements
+ - C++14 compatible compiler (tested GCC>=4.9)
+ - MySQL C API dev (libmysqlclient-dev)
+
+
+##Bootstrap
+ - We use git submodules for our dependencies and git requires you to initialize them manually
+```bash
+git submodule update --init --recursive
+```
+
+##Build
+ - This is header only library therefore no build step is required
+
+##Test
+ - Tests require docker(>=1.6.0) for running mysql instances with testing data
+```bash
+make -j32 test
+```
+ - You may (among other things) specify custom compiler and extra flags
+```bash
+make -j32 test CXX=/opt/szn/bin/g++ CXXEF=-Werror LDEF=-Wl,-rpath=/opt/szn/lib/gcc/x86_64-linux-gnu/current
+```
+
+##Install
+```bash
+make -j32 DESTDIR=/usr/local/ install
+```
+
+#Packages
+ - We support several packages to be build by default:
+  - Debian Jessie
+  - Fedora 22
+
+##dbuild (docker-build)
+ - This can build packages in completely clean environment using docker
+```bash
+make package-fedora-22-dbuild
+```
+```bash
+make package-debian-jessie-dbuild
+```
+##build
+ - classic packaging
+```bash
+make package-fedora-22-build
+```
+```bash
+make package-debian-jessie-build
+```
+
+
+
 # Features
  - Modern C++ (currently written in C++14)
  - Minimal overhead
- - Multi-statements queries
+ - Multi-statement queries
  - High performance conversions
  - Advanced prepared statements support with type checks and automatic, typesafe bindings
  - Configurable logging
@@ -19,14 +75,21 @@ Modern C++ wrapper for MySQL C API
  - Extensive and fully automated multi-platform tests (using Docker)
 
 # Status
-Currently, we have working library implementation internally at Seznam.cz. It is already used in production code with great results.
+Currently, it is already used at Seznam.cz in production code with great results.
 
-**We are commited to making this library opensource** as soon as we are able. There is still some work left on library documentation, refactoring code and decoupling tests and packaging from our internal architecture to fulfill the opensource and multi-platform requirements. 
+The library is thoroughly tested and all tests are fully automated.
 
-# ETA
-Rough estimate is May 2015.
+In future we are going to add more examples and documentation.
+
+Please help us out by reporting bugs. (https://github.com/seznam/SuperiorMySqlpp/issues)
+
+We appreciate your feedback!
 
 # Preview
+Until we create proper examples, you can see all functionality in action by looking at out tests (https://github.com/seznam/SuperiorMySqlpp/tree/master/tests).
+Please be aware that tests must validate all possible cases and syntax and should not be taken as reference in these matters.
+
+You can look at some basic examples below:
 
 ## Connection
 ```c++
@@ -50,6 +113,7 @@ connectionPool.startHealthCareJob();  // optional
 
 connectionSharedPtr = connectionPool.get();
 ```
+
 
 ## Queries
 ### Simple result
@@ -216,3 +280,6 @@ class MyLogger final : public Loggers::Base
 auto&& logger = std::make_shared<MyLogger>();
 DefaultLogger::setLoggerPtr(std::move(logger));
 ```
+
+#Current issues
+There are problems caused by MySQL C API's bad design which are solved by https://github.com/seznam/SuperiorMySqlpp/blob/master/include/superior_mysqlpp/low_level/mysql_hacks.hpp. This is causing problems with MariaDB which stripped down some symbols from their shared object that we use to fix this bug. (https://github.com/seznam/SuperiorMySqlpp/issues/2)
