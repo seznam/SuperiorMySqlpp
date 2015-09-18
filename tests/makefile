@@ -114,7 +114,7 @@ build: build-basic build-odr
 
 ifeq "$(shell docker info 2>&1 1>/dev/null | grep 'Error response from daemon: client and server don.t have same version' 1>/dev/null; echo $$?)" "0"
 /usr/local/bin/docker:
-	curl -L https://get.docker.com/builds/Linux/x86_64/docker-1.6.0 > /usr/local/bin/docker
+	curl -L https://get.docker.com/builds/Linux/x86_64/docker-1.5.0 > /usr/local/bin/docker
 	chmod +x /usr/local/bin/docker
 
 _enforce-compatible-docker-api: /usr/local/bin/docker

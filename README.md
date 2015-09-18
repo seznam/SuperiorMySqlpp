@@ -23,7 +23,7 @@ git submodule update --init --recursive
  - This is header only library therefore no build step is required
 
 ##Test
- - Tests require docker(>=1.6.0) for running mysql instances with testing data
+ - Tests require docker(>=1.5.0) for running mysql instances with testing data
 ```bash
 make -j32 test
 ```
