@@ -443,6 +443,7 @@ public:
         getLogger()->logSharedPtrPoolClearPool(id);
         Pool_t tmpPool{std::move(pool)};
         pool.clear();
+        poolIndex = 0;
         lock.unlock();  // unlock is essential in this place since dtor of tmpPool may take time
     }
 
