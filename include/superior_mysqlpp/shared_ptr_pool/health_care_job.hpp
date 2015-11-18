@@ -159,7 +159,7 @@ private:
                             try
                             {
                                 auto&& isHealthy = std::get<0>(result).get();
-                                typename Base::PoolItem_t checkedResource = std::get<1>(result);
+                                auto&& checkedResource = std::get<1>(result);
                                 if (!isHealthy)
                                 // health check has failed
                                 {
@@ -170,7 +170,27 @@ private:
                                 {
                                     if (Base::invalidateResourceOnAccess_)
                                     {
-                                        checkedResource.valid = true;
+                                        if (!checkedResource.valid)
+                                        {
+                                            // Resource has not been valid before health-check => we shall update valid flag.
+                                            using std::begin;
+                                            using std::end;
+
+                                            std::lock_guard<decltype(poolMutex)> lock{poolMutex};
+
+                                            auto it = std::find_if(begin(pool), end(pool), [&checkedResource](auto&& item){
+                                                return item.resource == checkedResource.resource;
+                                            });
+
+                                            if (it != end(pool))
+                                            {
+                                                it->valid = true;
+                                            }
+                                            else
+                                            {
+                                                // This is allowed to happen since user can clear pool while there are running health checks.
+                                            }
+                                        }
                                     }
 
                                     getBase().getLogger()->logSharedPtrPoolHealthCareJobLeavingHealthyResource(getBase().getId(), checkedResource.resource.get());
