@@ -1,6 +1,6 @@
 Name:           libsuperiormysqlpp-dev
 Version:        0.1.1
-Release:        development%{?dist}
+Release:        1%{?dist}
 Summary:        C++ mysql library development files
 
 License:        LGPLv3+
@@ -36,8 +36,8 @@ make -j clean package-fedora-22-clean
 /usr/include/*
 
 %changelog
-* Tue Sep 15 2015 Tomáš Nožička - 0.1.1-development
-- New development version 0.1.1
+* Tue Sep 15 2015 Tomáš Nožička - 0.1.1-1
+- New version 0.1.1
 
 * Tue Sep 15 2015 Tomáš Nožička - 0.1.0-1
 - Release version 0.1.0 (going open-source)
