@@ -28,9 +28,118 @@ auto makeSharedPtrConnection()
 }
 
 go_bandit([](){
+    using namespace std::chrono_literals;
+
     describe("Test connection pool", [&](){
         auto additionalTimeout = 10ms;
         auto& s = getSettingsRef();
+
+        it("can clear pool properly", [&](){
+            auto&& connectionPool = makeConnectionPool<true, true, true, true, true>([&](){
+                return std::async(std::launch::async, [&](){ return std::make_shared<Connection>(s.database, s.user, s.password, s.host, s.port); });
+            });
+            connectionPool.startHealthCareJob();
+
+            auto&& poolState = connectionPool.poolState();
+            AssertThat(poolState.size, Equals(0U));
+            AssertThat(poolState.available, Equals(0U));
+
+            connectionPool.clearPool();
+            poolState = connectionPool.poolState();
+            AssertThat(poolState.size, Equals(0U));
+            AssertThat(poolState.available, Equals(0U));
+
+            {
+                auto&& item = connectionPool.get();
+                poolState = connectionPool.poolState();
+                AssertThat(poolState.size, Equals(1U));
+                AssertThat(poolState.available, Equals(0U));
+            }
+
+            backoffSleep(10s, [&](){
+                auto&& poolState = connectionPool.poolState();
+                return poolState.size==1U && poolState.available==1U;
+            });
+
+            poolState = connectionPool.poolState();
+            AssertThat(poolState.size, Equals(1U));
+            AssertThat(poolState.available, Equals(1U));
+
+            connectionPool.clearPool();
+            poolState = connectionPool.poolState();
+            AssertThat(poolState.size, Equals(0U));
+            AssertThat(poolState.available, Equals(0U));
+            connectionPool.clearPool();
+            poolState = connectionPool.poolState();
+            AssertThat(poolState.size, Equals(0U));
+            AssertThat(poolState.available, Equals(0U));
+
+            {
+                auto&& item1 = connectionPool.get();
+                auto&& item2 = connectionPool.get();
+                poolState = connectionPool.poolState();
+                AssertThat(poolState.size, Equals(2U));
+                AssertThat(poolState.available, Equals(0U));
+
+                connectionPool.clearPool();
+                poolState = connectionPool.poolState();
+                AssertThat(poolState.size, Equals(0U));
+                AssertThat(poolState.available, Equals(0U));
+
+                connectionPool.get();
+
+                std::this_thread::sleep_for(2s);
+                poolState = connectionPool.poolState();
+                AssertThat(poolState.size, Equals(1U));
+                AssertThat(poolState.available, Equals(1U));
+            }
+
+            connectionPool.clearPool();
+
+            connectionPool.setMinSpare(5);
+            connectionPool.setMaxSpare(100);
+            connectionPool.setHealthCareJobSleepTime(500ms);
+            connectionPool.startResourceCountKeeper();
+            connectionPool.startHealthCareJob();
+
+            backoffSleep(10s, [&](){
+                auto&& poolState = connectionPool.poolState();
+                return poolState.size==5 && poolState.available==5;
+            });
+            poolState = connectionPool.poolState();
+            AssertThat(poolState.size, Equals(5U));
+            AssertThat(poolState.available, Equals(5U));
+
+            connectionPool.stopResourceCountKeeper();
+            while (connectionPool.isResourceCountKeeperThreadRunning()){
+                ;
+            }
+            connectionPool.clearPool();
+            connectionPool.startResourceCountKeeper();
+
+            backoffSleep(10s, [&](){
+                auto&& poolState = connectionPool.poolState();
+                return poolState.size==5 && poolState.available==5;
+            });
+            poolState = connectionPool.poolState();
+            AssertThat(poolState.size, Equals(5U));
+            AssertThat(poolState.available, Equals(poolState.size));
+
+            connectionPool.get();
+            backoffSleep(10s, [&](){
+                auto&& poolState = connectionPool.poolState();
+                return poolState.size==6U && poolState.available==6U;
+            });
+            poolState = connectionPool.poolState();
+            AssertThat(poolState.size, Equals(6U));
+            AssertThat(poolState.available, Equals(poolState.size));
+
+            connectionPool.clearPool();
+            poolState = connectionPool.poolState();
+            AssertThat(poolState.size, Equals(0U));
+            AssertThat(poolState.available, Equals(poolState.size));
+        });
+
         it("can spin default connections", [&](){
             auto connectionPool = makeConnectionPool([&](){
                 return std::async(std::launch::async, [&](){ return std::make_shared<Connection>(s.database, s.user, s.password, s.host, s.port); });
