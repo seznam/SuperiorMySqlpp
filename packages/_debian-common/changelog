@@ -1,3 +1,9 @@
+libsuperiormysqlpp (0.1.2) UNRELEASED; urgency=medium
+
+  * 
+
+ -- Tomas Nozicka <tomas.nozicka@firma.seznam.cz>  Wed, 18 Nov 2015 16:43:34 +0100
+
 libsuperiormysqlpp (0.1.1) unstable; urgency=medium
 
   * Fix updating valid flag when invalidateResourceOnAccess==true
