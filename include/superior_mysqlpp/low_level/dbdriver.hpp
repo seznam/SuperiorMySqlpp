@@ -202,7 +202,8 @@ namespace SuperiorMySqlpp { namespace LowLevel
             using namespace std::string_literals;
             if (mysql_change_user(getMysqlPtr(), user, password, database))
             {
-                throw MysqlInternalError("Failed to change user to '"s + user + "' on database '" + database + "'!", mysql_error(getMysqlPtr()));
+                throw MysqlInternalError("Failed to change user to '"s + user + "' on database '" + database + "'!",
+                    mysql_error(getMysqlPtr()), mysql_errno(getMysqlPtr()));
             }
         }
 
@@ -252,7 +253,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
                     message << socketName;
                 }
 
-                throw MysqlInternalError(message.str(), mysql_error(getMysqlPtr()));
+                throw MysqlInternalError(message.str(), mysql_error(getMysqlPtr()), mysql_errno(getMysqlPtr()));
             }
 
             connected = true;
@@ -454,7 +455,8 @@ namespace SuperiorMySqlpp { namespace LowLevel
             getLogger()->logMySqlQuery(id, StringView{queryString, length});
             if (mysql_real_query(getMysqlPtr(), queryString, length))
             {
-                throw MysqlInternalError("Failed to execute query!", mysql_error(getMysqlPtr()));
+                throw MysqlInternalError("Failed to execute query!",
+                    mysql_error(getMysqlPtr()), mysql_errno(getMysqlPtr()));
             }
         }
 
@@ -502,7 +504,8 @@ namespace SuperiorMySqlpp { namespace LowLevel
         {
             if (mysql_options(getMysqlPtr(), static_cast<mysql_option>(option), argumentPtr))
             {
-                throw MysqlInternalError("Failed to set option!", mysql_error(getMysqlPtr()));
+                throw MysqlInternalError("Failed to set option!",
+                    mysql_error(getMysqlPtr()), mysql_errno(getMysqlPtr()));
             }
         }
 
@@ -519,7 +522,8 @@ namespace SuperiorMySqlpp { namespace LowLevel
                 case -1:
                     return false;
                 default:
-                    throw MysqlInternalError("Failed to get next result!", mysql_error(getMysqlPtr()));
+                    throw MysqlInternalError("Failed to get next result!",
+                        mysql_error(getMysqlPtr()), mysql_errno(getMysqlPtr()));
             }
         }
 
@@ -528,7 +532,8 @@ namespace SuperiorMySqlpp { namespace LowLevel
             getLogger()->logMySqlPing(id);
             if (mysql_ping(getMysqlPtr()))
             {
-                throw MysqlInternalError("Failed to ping server!", mysql_error(getMysqlPtr()));
+                throw MysqlInternalError("Failed to ping server!",
+                    mysql_error(getMysqlPtr()), mysql_errno(getMysqlPtr()));
             }
         }
 
@@ -555,7 +560,8 @@ namespace SuperiorMySqlpp { namespace LowLevel
         {
             if (mysql_set_character_set(getMysqlPtr(), characterSetName))
             {
-                throw MysqlInternalError("Failed to set character set!", mysql_error(getMysqlPtr()));
+                throw MysqlInternalError("Failed to set character set!",
+                    mysql_error(getMysqlPtr()), mysql_errno(getMysqlPtr()));
             }
         }
 
@@ -570,7 +576,8 @@ namespace SuperiorMySqlpp { namespace LowLevel
         {
             if (mysql_set_server_option(getMysqlPtr(), static_cast<enum_mysql_set_option>(option)))
             {
-                throw MysqlInternalError("Failed to set server option!", mysql_error(getMysqlPtr()));
+                throw MysqlInternalError("Failed to set server option!",
+                    mysql_error(getMysqlPtr()), mysql_errno(getMysqlPtr()));
             }
         }
 
@@ -590,7 +597,8 @@ namespace SuperiorMySqlpp { namespace LowLevel
             auto statisticsPtr = mysql_stat(getMysqlPtr());
             if (statisticsPtr == nullptr)
             {
-                throw MysqlInternalError("Failed to get server statistics!", mysql_error(getMysqlPtr()));
+                throw MysqlInternalError("Failed to get server statistics!",
+                    mysql_error(getMysqlPtr()), mysql_errno(getMysqlPtr()));
             }
             return statisticsPtr;
         }
@@ -625,7 +633,8 @@ namespace SuperiorMySqlpp { namespace LowLevel
                     loggerPtr->logMySqlStmtClose(driverId, id);
                     if (mysql_stmt_close(statementPtr))
                     {
-                        throw MysqlInternalError("Failed to close statement!", mysql_stmt_error(statementPtr));
+                        throw MysqlInternalError("Failed to close statement!",
+                            mysql_stmt_error(statementPtr), mysql_stmt_errno(statementPtr));
                     }
                 }
             }
@@ -639,7 +648,8 @@ namespace SuperiorMySqlpp { namespace LowLevel
                 statementPtr = mysql_stmt_init(&mysql);
                 if (statementPtr == nullptr)
                 {
-                    throw MysqlInternalError("Could not initialize statement!", mysql_error(&mysql));
+                    throw MysqlInternalError("Could not initialize statement!",
+                        mysql_error(&mysql), mysql_errno(&mysql));
                 }
 
             }
@@ -685,7 +695,8 @@ namespace SuperiorMySqlpp { namespace LowLevel
                 loggerPtr->logMySqlStmtPrepare(driverId, id, StringView{query, length});
                 if (mysql_stmt_prepare(statementPtr, query, length))
                 {
-                    throw MysqlInternalError("Failed to prepare statement!", mysql_stmt_error(statementPtr));
+                    throw MysqlInternalError("Failed to prepare statement!",
+                        mysql_stmt_error(statementPtr), mysql_stmt_errno(statementPtr));
                 }
             }
 
@@ -698,7 +709,8 @@ namespace SuperiorMySqlpp { namespace LowLevel
             {
                 if (mysql_stmt_bind_param(statementPtr, bindingsArrayPtr))
                 {
-                    throw MysqlInternalError("Failed to bind statement's params!", mysql_stmt_error(statementPtr));
+                    throw MysqlInternalError("Failed to bind statement's params!",
+                        mysql_stmt_error(statementPtr), mysql_stmt_errno(statementPtr));
                 }
             }
 
@@ -707,7 +719,8 @@ namespace SuperiorMySqlpp { namespace LowLevel
                 loggerPtr->logMySqlStmtExecute(driverId, id);
                 if (mysql_stmt_execute(statementPtr))
                 {
-                    throw MysqlInternalError("Failed to execute statement!", mysql_stmt_error(statementPtr));
+                    throw MysqlInternalError("Failed to execute statement!",
+                        mysql_stmt_error(statementPtr), mysql_stmt_errno(statementPtr));
                 }
             }
 
@@ -731,7 +744,8 @@ namespace SuperiorMySqlpp { namespace LowLevel
                 auto resultPtr = mysql_stmt_result_metadata(statementPtr);
                 if (resultPtr == nullptr)
                 {
-                    throw MysqlInternalError("Could not get result statement metadata!", mysql_error(resultPtr->handle));
+                    throw MysqlInternalError("Could not get result statement metadata!",
+                        mysql_error(resultPtr->handle), mysql_errno(resultPtr->handle));
                 }
                 return Result{resultPtr};
             }
@@ -740,7 +754,8 @@ namespace SuperiorMySqlpp { namespace LowLevel
             {
                 if (mysql_stmt_bind_result(statementPtr, bindingsArrayPtr))
                 {
-                    throw MysqlInternalError("Failed to bind statement's result!", mysql_stmt_error(statementPtr));
+                    throw MysqlInternalError("Failed to bind statement's result!",
+                        mysql_stmt_error(statementPtr), mysql_stmt_errno(statementPtr));
                 }
             }
 
@@ -748,7 +763,8 @@ namespace SuperiorMySqlpp { namespace LowLevel
             {
                 if (mysql_stmt_store_result(statementPtr))
                 {
-                    throw MysqlInternalError("Failed to store statement's result!", mysql_stmt_error(statementPtr));
+                    throw MysqlInternalError("Failed to store statement's result!",
+                        mysql_stmt_error(statementPtr), mysql_stmt_errno(statementPtr));
                 }
             }
 
@@ -771,7 +787,8 @@ namespace SuperiorMySqlpp { namespace LowLevel
                         return FetchStatus::NoMoreData;
 
                     case 1:
-                        throw MysqlInternalError{"Could not fetch statement!", mysql_stmt_error(statementPtr)};
+                        throw MysqlInternalError{"Could not fetch statement!",
+                        mysql_stmt_error(statementPtr), mysql_stmt_errno(statementPtr)};
 
                     case MYSQL_DATA_TRUNCATED:
                         return FetchStatus::DataTruncated;
@@ -867,7 +884,8 @@ namespace SuperiorMySqlpp { namespace LowLevel
             {
                 if (mysql_stmt_send_long_data(statementPtr, paramNumber, data, length))
                 {
-                    throw MysqlInternalError("Failed to store statement's result!", mysql_stmt_error(statementPtr));
+                    throw MysqlInternalError("Failed to store statement's result!",
+                        mysql_stmt_error(statementPtr), mysql_stmt_errno(statementPtr));
                 }
             }
 
@@ -913,7 +931,8 @@ namespace SuperiorMySqlpp { namespace LowLevel
             {
                 if (mysql_stmt_attr_set(statementPtr, static_cast<enum_stmt_attr_type>(attribute), &argument))
                 {
-                    throw MysqlInternalError("Failed to set statement attribute!", mysql_stmt_error(statementPtr));
+                    throw MysqlInternalError("Failed to set statement attribute!",
+                        mysql_stmt_error(statementPtr), mysql_stmt_errno(statementPtr));
                 }
             }
 
@@ -922,7 +941,8 @@ namespace SuperiorMySqlpp { namespace LowLevel
             {
                 if (mysql_stmt_attr_get(statementPtr, static_cast<enum_stmt_attr_type>(attribute), &argument))
                 {
-                    throw MysqlInternalError("Failed to get statement attribute!", mysql_stmt_error(statementPtr));
+                    throw MysqlInternalError("Failed to get statement attribute!",
+                        mysql_stmt_error(statementPtr), mysql_stmt_errno(statementPtr));
                 }
             }
 
@@ -939,7 +959,8 @@ namespace SuperiorMySqlpp { namespace LowLevel
                     case -1:
                         return false;
                     default:
-                        throw MysqlInternalError("Failed to get next statement's result!", mysql_stmt_error(statementPtr));
+                        throw MysqlInternalError("Failed to get next statement's result!",
+                            mysql_stmt_error(statementPtr), mysql_stmt_errno(statementPtr));
                 }
             }
 
@@ -971,7 +992,8 @@ namespace SuperiorMySqlpp { namespace LowLevel
                 }
                 else
                 {
-                    throw MysqlInternalError("Failed to store result!", mysql_error(getMysqlPtr()));
+                    throw MysqlInternalError("Failed to store result!",
+                        mysql_error(getMysqlPtr()), mysql_errno(getMysqlPtr()));
                 }
             }
             return Result{result};
@@ -982,7 +1004,8 @@ namespace SuperiorMySqlpp { namespace LowLevel
             auto result = mysql_use_result(getMysqlPtr());
             if (result == nullptr)
             {
-                throw MysqlInternalError("Failed to use result!", mysql_error(getMysqlPtr()));
+                throw MysqlInternalError("Failed to use result!",
+                    mysql_error(getMysqlPtr()), mysql_errno(getMysqlPtr()));
             }
             return Result{result};
         }
