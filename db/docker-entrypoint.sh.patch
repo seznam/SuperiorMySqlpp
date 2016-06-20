@@ -1,0 +1,4 @@
+133c133
+< exec "$@"
+---
+> exec /usr/bin/supervisord
