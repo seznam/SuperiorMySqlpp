@@ -34,4 +34,5 @@ make %{_smp_mflags} clean package-fedora-22-clean
 
 %files 
 /usr/include/*
+/usr/lib/pkgconfig/*
 

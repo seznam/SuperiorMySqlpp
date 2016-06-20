@@ -15,4 +15,5 @@ debian/
 odr_program
 tester
 core
+libsuperiormysqlpp.pc
 
