@@ -20,13 +20,13 @@ C++ mysql library development files
 %build
 
 %check
-make -j -B test
+make %{_smp_mflags} -B test
 
 %install
-make -j install VERSION=%{version} DESTDIR=%{buildroot} prefix=/usr
+make %{_smp_mflags} install VERSION=%{version} DESTDIR=%{buildroot} prefix=/usr
 
 %clean
-make -j clean package-fedora-22-clean
+make %{_smp_mflags} clean package-fedora-22-clean
 
 %post
 

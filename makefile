@@ -106,6 +106,7 @@ package-$1-build:
         --define "_buildrootdir $(abspath ./)/packages/$1/rpmbuild/" \
         --define "_sourcedir $(abspath ./)" 
         --define "_rpmdir $(abspath ./)/packages/$1/" \
+        --define "_smp_mflags -j$(CONCURRENCY)" \
         --define "_srcrpmdir $(abspath ./)/packages/$1/" \
         --define "_specdir $(abspath ./)/packages/$1/" \
 	*.spec)
