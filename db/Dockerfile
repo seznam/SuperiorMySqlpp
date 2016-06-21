@@ -1,11 +1,13 @@
 FROM mysql:latest
-MAINTAINER Tomas Nozicka, Seznam.cz
+MAINTAINER Seznam.cz a.s.
 
 WORKDIR /
 ENV MYSQL_ROOT_PASSWORD password
 
-RUN apt-get update
-RUN apt-get install -y supervisor
+RUN \
+apt-get update && apt-get install -y \
+    supervisor \
+&& rm -rf /var/lib/apt/lists/*
 
 RUN sed -i -e 's/exec "$@"/exec \/usr\/bin\/supervisord -n/' /entrypoint.sh
 
