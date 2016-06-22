@@ -234,6 +234,20 @@ while (preparedStatement.fetch())
 }
 ```
 
+## RowStreamAdapter
+Syntactic sugar is provided for extracting values from `Row` using a familiar stream operator.
+When a NULL value is encountered, value is default-constructed.
+Extracting non-existent values is undefined behaviour.
+```c++
+auto row = ...
+std::string s;
+int i = 0;
+Extras::RowStreamAdapter {row}
+    >> s
+    >> i
+    ;
+```
+
 ## Transactions
 Library automatically detects exceptions and does commit or rollback as appropriate.
 
