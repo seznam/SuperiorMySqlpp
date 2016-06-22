@@ -56,10 +56,20 @@ test:
 	+$(MAKE) -C ./tests/ test
 
 
+libsuperiormysqlpp.pc: libsuperiormysqlpp.pc.in makefile
+	sed \
+         -e 's,@VERSION@,$(VERSION),' \
+         -e 's,@PREFIX@,$(prefix),' \
+         libsuperiormysqlpp.pc.in > $@
+
+
 install: $(DESTDIR)$(libdir)/.
 install: $(DESTDIR)$(includedir)/.
+install: libsuperiormysqlpp.pc
 install:
 	$(call recursive-install,$(INSTALL_INCLUDE),./include,*.hpp,$(DESTDIR)$(includedir)/)
+	$(INSTALL) -d $(DESTDIR)/$(libdir)/pkgconfig
+	$(INSTALL) -t $(DESTDIR)/$(libdir)/pkgconfig libsuperiormysqlpp.pc
 
 
 
