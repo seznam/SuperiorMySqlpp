@@ -19,4 +19,3 @@
 #include <superior_mysqlpp/types/datetime.hpp>
 #include <superior_mysqlpp/master_slave_connection_pools.hpp>
 #include <superior_mysqlpp/logging.hpp>
-#include <superior_mysqlpp/row_stream.hpp>
