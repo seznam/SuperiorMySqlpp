@@ -103,4 +103,17 @@ CREATE TABLE `simple_null` (
     `string` VARCHAR(100) NULL DEFAULT ""
 )  ENGINE=INNODB DEFAULT CHARSET=UTF8;
 
+DROP TABLE IF EXISTS `row_stream_adapter`;
+CREATE TABLE `row_stream_adapter` (
+    `int_value_1` INT(11) NOT NULL,
+    `int_value_2` INT(11),
+    `string_value_1` VARCHAR(100) NOT NULL,
+    `string_value_2` VARCHAR(100)
+)  ENGINE=INNODB DEFAULT CHARSET=UTF8;
+INSERT INTO `row_stream_adapter`(
+    `int_value_1`,
+    `int_value_2`,
+    `string_value_1`,
+    `string_value_2`)
+VALUES (42, NULL, 'answer', NULL);
 
