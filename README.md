@@ -44,11 +44,12 @@ make -j32 DESTDIR=/usr/local/ install
 
 ##dbuild (docker-build)
  - This can build packages in completely clean environment using docker
+ - You might want to lower the `CONCURRENCY` in case you run out of memory
 ```bash
-make package-fedora-22-dbuild
+make CONCURRENCY=32 package-fedora-22-dbuild
 ```
 ```bash
-make package-debian-jessie-dbuild
+make CONCURRENCY=32 package-debian-jessie-dbuild
 ```
 ##build
  - classic packaging
