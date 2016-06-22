@@ -147,18 +147,6 @@ while (auto row = result.fetchRow())
 }
 ```
 
-### Process row
-You may use `Row` directly or use a `RowStream` adapter, for example:
-```c++
-auto row = ...
-std::string s;
-int i = 0;
-RowStream {row}
-    >> s
-    >> i
-    ;
-```
-
 ### Escaping
 To escape variable manually you may use method connection.escapeString. Preferred way is using query stream manipulators:
 ```c++
@@ -244,6 +232,20 @@ while (preparedStatement.fetch())
 {
     // do something with id
 }
+```
+
+## RowStreamAdapter
+Syntactic sugar is provided for extracting values from `Row` using a familiar stream operator.
+When a NULL value is encountered, value is default-constructed.
+Extracting non-existent values is undefined behaviour.
+```c++
+auto row = ...
+std::string s;
+int i = 0;
+Extras::RowStreamAdapter {row}
+    >> s
+    >> i
+    ;
 ```
 
 ## Transactions
