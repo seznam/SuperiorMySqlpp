@@ -147,6 +147,18 @@ while (auto row = result.fetchRow())
 }
 ```
 
+### Process row
+You may use `Row` directly or use a `RowStream` adapter, for example:
+```c++
+auto row = ...
+std::string s;
+int i = 0;
+RowStream {row}
+    >> s
+    >> i
+    ;
+```
+
 ### Escaping
 To escape variable manually you may use method connection.escapeString. Preferred way is using query stream manipulators:
 ```c++
