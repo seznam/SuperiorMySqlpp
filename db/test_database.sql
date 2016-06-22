@@ -103,4 +103,11 @@ CREATE TABLE `simple_null` (
     `string` VARCHAR(100) NULL DEFAULT ""
 )  ENGINE=INNODB DEFAULT CHARSET=UTF8;
 
+DROP TABLE IF EXISTS `row_stream`;
+CREATE TABLE `row_stream` (
+    `int_value_1` INT(11) NOT NULL,
+    `int_value_2` INT(11),
+    `string_value_1` VARCHAR(100) NOT NULL,
+    `string_value_2` VARCHAR(100)
+)  ENGINE=INNODB DEFAULT CHARSET=UTF8;
 
