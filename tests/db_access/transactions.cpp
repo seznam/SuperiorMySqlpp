@@ -54,11 +54,11 @@ go_bandit([](){
         });
 
         it("dispatches valid query for different parameters", [&](){
-            { Transaction transaction{connection, TransactionCharacteristics::WithConsistantSnapshot}; }
+            { Transaction transaction{connection, TransactionCharacteristics::WithConsistentSnapshot}; }
             { Transaction transaction{connection, TransactionCharacteristics::ReadOnly}; }
             { Transaction transaction{connection, TransactionCharacteristics::ReadWrite}; }
-            { Transaction transaction{connection, IsolationLevel::ReadUncommited}; }
-            { Transaction transaction{connection, IsolationLevel::ReadCommited}; }
+            { Transaction transaction{connection, IsolationLevel::ReadUncommitted}; }
+            { Transaction transaction{connection, IsolationLevel::ReadCommitted}; }
             { Transaction transaction{connection, IsolationLevel::RepeatableRead}; }
             { Transaction transaction{connection, IsolationLevel::Serializable}; }
         });
