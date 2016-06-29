@@ -1,6 +1,6 @@
 Name:           libsuperiormysqlpp-dev
-Version:        0.1.2
-Release:        development%{?dist}
+Version:        0.2.0
+Release:        1%{?dist}
 Summary:        C++ mysql library development files
 
 License:        LGPLv3+
