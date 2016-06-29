@@ -1,3 +1,12 @@
+libsuperiormysqlpp (0.2.0) unstable; urgency=medium
+
+  * Add error code to MysqlInternalError
+  * Add support for RowStreamAdapter
+  * Add libsuperiormysqlpp.pc
+  * Fix transactions
+
+ -- Daniel Pernis <daniel.pernis@firma.seznam.cz>  Wed, 29 Jun 2016 10:01:36 +0200
+
 libsuperiormysqlpp (0.1.1) unstable; urgency=medium
 
   * Fix updating valid flag when invalidateResourceOnAccess==true

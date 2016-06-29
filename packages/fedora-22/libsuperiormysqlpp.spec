@@ -1,5 +1,5 @@
 Name:           libsuperiormysqlpp-dev
-Version:        0.1.1
+Version:        0.2.0
 Release:        1%{?dist}
 Summary:        C++ mysql library development files
 
@@ -20,13 +20,13 @@ C++ mysql library development files
 %build
 
 %check
-make -j -B test
+make %{_smp_mflags} -B test
 
 %install
-make -j install VERSION=%{version} DESTDIR=%{buildroot} prefix=/usr
+make %{_smp_mflags} install VERSION=%{version} DESTDIR=%{buildroot} prefix=/usr
 
 %clean
-make -j clean package-fedora-22-clean
+make %{_smp_mflags} clean package-fedora-22-clean
 
 %post
 
@@ -34,10 +34,5 @@ make -j clean package-fedora-22-clean
 
 %files 
 /usr/include/*
+/usr/lib/pkgconfig/*
 
-%changelog
-* Tue Sep 15 2015 Tomáš Nožička - 0.1.1-1
-- New version 0.1.1
-
-* Tue Sep 15 2015 Tomáš Nožička - 0.1.0-1
-- Release version 0.1.0 (going open-source)

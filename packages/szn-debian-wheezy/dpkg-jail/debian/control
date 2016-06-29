@@ -4,8 +4,7 @@ Priority: extra
 Maintainer: Tomas Nozicka <tomas.nozicka@firma.seznam.cz>
 Build-Depends: debhelper(>=7),
                szn-g++(>=4.9.2),
-               lxc-docker,
-               szn-docker-conf, 
+               docker-engine,
                libmysqlclient-dev,
                mysql-client
 Standards-Version: 3.7.2

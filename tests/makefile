@@ -110,36 +110,8 @@ build-basic: $(program)
 
 build: build-basic build-odr
 
-
-
-ifeq "$(shell docker info 2>&1 1>/dev/null | grep 'Error response from daemon: client and server don.t have same version' 1>/dev/null; echo $$?)" "0"
-/usr/local/bin/docker:
-	curl -L https://get.docker.com/builds/Linux/x86_64/docker-1.5.0 > /usr/local/bin/docker
-	chmod +x /usr/local/bin/docker
-
-_enforce-compatible-docker-api: /usr/local/bin/docker
-
-DOCKER =/usr/bin/env docker
-else
-_enforce-compatible-docker-api:
-	
-endif
-
-
-_build-db: _enforce-compatible-docker-api
-	$(docker_build) -t $(IMAGE_PREFIX)superiormysqlpp-test-mysql ../db
-
-
-mysql-run: _build-db _enforce-compatible-docker-api
-	$(DOCKER) rm -f $(IMAGE_PREFIX)superiormysqlpp-testdb 1>/dev/null 2>&1 || true
-	$(DOCKER) run -d -P --name $(IMAGE_PREFIX)superiormysqlpp-testdb $(IMAGE_PREFIX)superiormysqlpp-test-mysql 1>/dev/null
-
-
-ARGS :=
-REPORTER :=spec
-test-basic: mysql-run build-basic _enforce-compatible-docker-api
-	$(PRE)./$(program) $(shell docker inspect --format='{{ .NetworkSettings.IPAddress }}' $(IMAGE_PREFIX)superiormysqlpp-testdb) 3306 $(IMAGE_PREFIX)superiormysqlpp-testdb --reporter=$(REPORTER) $(ARGS)
-	$(DOCKER) rm -f $(IMAGE_PREFIX)superiormysqlpp-testdb 2>&1 1>/dev/null
+test-basic: tester
+	./runtest.sh
 
 test: test-basic build-odr 
 

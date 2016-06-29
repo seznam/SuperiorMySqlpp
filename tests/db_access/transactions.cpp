@@ -52,6 +52,16 @@ go_bandit([](){
 
             AssertThat(getRowsCount(connection), Equals(2));
         });
+
+        it("dispatches valid query for different parameters", [&](){
+            { Transaction transaction{connection, TransactionCharacteristics::WithConsistentSnapshot}; }
+            { Transaction transaction{connection, TransactionCharacteristics::ReadOnly}; }
+            { Transaction transaction{connection, TransactionCharacteristics::ReadWrite}; }
+            { Transaction transaction{connection, IsolationLevel::ReadUncommitted}; }
+            { Transaction transaction{connection, IsolationLevel::ReadCommitted}; }
+            { Transaction transaction{connection, IsolationLevel::RepeatableRead}; }
+            { Transaction transaction{connection, IsolationLevel::Serializable}; }
+        });
     });
 });
 

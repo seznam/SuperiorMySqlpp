@@ -44,11 +44,12 @@ make -j32 DESTDIR=/usr/local/ install
 
 ##dbuild (docker-build)
  - This can build packages in completely clean environment using docker
+ - You might want to lower the `CONCURRENCY` in case you run out of memory
 ```bash
-make package-fedora-22-dbuild
+make CONCURRENCY=32 package-fedora-22-dbuild
 ```
 ```bash
-make package-debian-jessie-dbuild
+make CONCURRENCY=32 package-debian-jessie-dbuild
 ```
 ##build
  - classic packaging
@@ -231,6 +232,20 @@ while (preparedStatement.fetch())
 {
     // do something with id
 }
+```
+
+## RowStreamAdapter
+Syntactic sugar is provided for extracting values from `Row` using a familiar stream operator.
+When a NULL value is encountered, value is default-constructed.
+Extracting non-existent values is undefined behaviour.
+```c++
+auto row = ...
+std::string s;
+int i = 0;
+Extras::RowStreamAdapter {row}
+    >> s
+    >> i
+    ;
 ```
 
 ## Transactions

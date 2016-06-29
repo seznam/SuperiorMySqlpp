@@ -24,10 +24,21 @@ namespace SuperiorMySqlpp
     public:
         using SuperiorMySqlppError::SuperiorMySqlppError;
 
-        MysqlInternalError(const std::string& message, const char* mysqlError)
-            : MysqlInternalError(message + "\nMysql error: " + std::string(mysqlError))
+        MysqlInternalError(const std::string& message,
+                           const char* mysqlError,
+                           unsigned errorCode_)
+            : SuperiorMySqlppError(message + "\nMysql error: " + std::string(mysqlError))
+            , errorCode{errorCode_}
         {
         }
+
+        unsigned getErrorCode() const
+        {
+            return errorCode;
+        }
+
+    private:
+        const unsigned errorCode {0};
     };
 
     class MysqlDataTruncatedError: public SuperiorMySqlppError

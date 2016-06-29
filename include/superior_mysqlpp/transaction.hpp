@@ -15,15 +15,15 @@ namespace SuperiorMySqlpp
 {
     enum class IsolationLevel
     {
-        ReadUncommited,
-        ReadCommited,
+        ReadUncommitted,
+        ReadCommitted,
         RepeatableRead,
         Serializable
     };
 
     enum class TransactionCharacteristics
     {
-        WithConsistantSnapshot,
+        WithConsistentSnapshot,
         ReadOnly,
         ReadWrite
     };
@@ -35,11 +35,11 @@ namespace SuperiorMySqlpp
         {
             switch (isolationLevel)
             {
-                case IsolationLevel::ReadUncommited:
-                    return "READ UNCOMMITED";
+                case IsolationLevel::ReadUncommitted:
+                    return "READ UNCOMMITTED";
 
-                case IsolationLevel::ReadCommited:
-                    return "READ COMMITED";
+                case IsolationLevel::ReadCommitted:
+                    return "READ COMMITTED";
 
                 case IsolationLevel::RepeatableRead:
                     return "REPEATABLE READ";
@@ -47,14 +47,15 @@ namespace SuperiorMySqlpp
                 case IsolationLevel::Serializable:
                     return "SERIALIZABLE";
             }
+            assert(false);
         }
 
         inline const char* toQueryString(TransactionCharacteristics transactionCharacteristics)
         {
             switch (transactionCharacteristics)
             {
-                case TransactionCharacteristics::WithConsistantSnapshot:
-                    return "WITH CONSISTANT SNAPSHOT";
+                case TransactionCharacteristics::WithConsistentSnapshot:
+                    return "WITH CONSISTENT SNAPSHOT";
 
                 case TransactionCharacteristics::ReadOnly:
                     return "READ ONLY";
@@ -62,6 +63,7 @@ namespace SuperiorMySqlpp
                 case TransactionCharacteristics::ReadWrite:
                     return "READ WRITE";
             }
+            assert(false);
         }
     }
 
