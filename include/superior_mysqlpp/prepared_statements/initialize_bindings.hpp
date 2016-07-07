@@ -206,6 +206,7 @@ namespace SuperiorMySqlpp
         inline void initializeResultBinding(MYSQL_BIND& binding, T& nullable)
         {
             initializeNullable(binding, nullable);
+            nullable.engage();
             initializeResultBinding(binding, *nullable);
         }
 

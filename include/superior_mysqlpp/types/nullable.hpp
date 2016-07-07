@@ -326,6 +326,11 @@ public:
     /*
      * Modifiers
      */
+    void engage()
+    {
+        engaged = true;
+    }
+
     void disengage() noexcept(noexcept(destroyPayloadIfEngaged()))
     {
         destroyPayloadIfEngaged();

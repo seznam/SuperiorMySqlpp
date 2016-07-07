@@ -227,6 +227,46 @@ go_bandit([](){
             preparedStatement.bindResult(0, id);
             AssertThrows(OutOfRange, preparedStatement.bindResult(1, id));
         });
+        
+        it("can validate nullable value", [&](){
+            int id = 666;
+            std::string name{"Diablo"};
+
+            {
+                auto preparedStatement = connection.makeDynamicPreparedStatement(
+                    "INSERT INTO `test_superior_sqlpp`.`nullable` VALUES (?,?)"
+                    );
+
+                preparedStatement.bindParam(0, id);
+                preparedStatement.bindParam(1, name);
+                preparedStatement.updateParamBindings();
+                preparedStatement.execute();
+            }
+
+            {
+                auto preparedStatement = connection.makeDynamicPreparedStatement(
+                    "SELECT `nullable_id`,`nullable_name` FROM `test_superior_sqlpp`.`nullable` WHERE `nullable_id` = ?"
+                    );
+                preparedStatement.bindParam(0, id);
+                preparedStatement.updateParamBindings();
+                
+                preparedStatement.execute();
+
+                Nullable<Sql::Int> nullable_id;
+                Nullable<Sql::String> nullable_name;
+                preparedStatement.bindResult(0, nullable_id);
+                preparedStatement.bindResult(1, nullable_name);
+                preparedStatement.updateResultBindings();
+
+                AssertThat(preparedStatement.fetch(), IsTrue());
+                
+                AssertThat(nullable_id.isValid(), IsTrue());
+                AssertThat(nullable_id.value(), Equals(id));
+                
+                AssertThat(nullable_name.isValid(), IsTrue());
+                AssertThat(nullable_name.value(), Equals(name));
+            }
+        });
     });
 });
 
