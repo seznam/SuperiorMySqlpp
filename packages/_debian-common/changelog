@@ -1,8 +1,9 @@
 libsuperiormysqlpp (0.2.1) UNRELEASED; urgency=medium
 
-  *
+  * Fix nullable not engaged when using dynamicPreparedStatement and
+    bindResult
 
- -- Daniel Pernis <daniel.pernis@firma.seznam.cz>  Wed, 29 Jun 2016 10:59:30 +0200
+ -- Stanislav Raclavsky <stanislav.raclavsky@firma.seznam.cz>  Wed, 29 Jun 2016 10:59:30 +0200
 
 libsuperiormysqlpp (0.2.0) unstable; urgency=medium
 
