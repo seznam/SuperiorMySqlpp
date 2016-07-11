@@ -291,7 +291,10 @@ public:
 
     constexpr const StoredType& value() const
     {
-        return isValid()? payload : throw BadNullableAccess{"Attempt to access value of a invalid nullable object!"};
+        if(!isValid()){
+            throw BadNullableAccess{"Attempt to access value of a invalid nullable object!"};
+        }
+        return payload;
     }
 
     StoredType& value()
