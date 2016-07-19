@@ -117,3 +117,8 @@ INSERT INTO `row_stream_adapter`(
     `string_value_2`)
 VALUES (42, NULL, 'answer', NULL);
 
+DROP TABLE IF EXISTS `nullable`;
+CREATE TABLE `nullable` (
+    `nullable_id` INT(11),
+    `nullable_name` VARCHAR(50) NULL
+)  ENGINE=INNODB DEFAULT CHARSET=UTF8;
