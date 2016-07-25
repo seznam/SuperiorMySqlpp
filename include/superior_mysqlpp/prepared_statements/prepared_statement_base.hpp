@@ -13,7 +13,7 @@
 #include <superior_mysqlpp/metadata.hpp>
 #include <superior_mysqlpp/prepared_statements/validate_metadata_modes.hpp>
 #include <superior_mysqlpp/prepared_statements/get_binding_type.hpp>
-
+#include <superior_mysqlpp/types/nullable.hpp>
 
 namespace SuperiorMySqlpp
 {
@@ -95,6 +95,13 @@ namespace SuperiorMySqlpp
         template<bool storeResult, ValidateMetadataMode validateMode, ValidateMetadataMode warnMode>
         class PreparedStatementBase : public StoreOrUseResultBase<storeResult>//, public ValidateResult<validateMetadataMode>
         {
+        protected:
+            /**
+             * Collection of Nullables which needs to be engaged after
+             * successful fetch. Must be filled by inherited class.
+             */
+            std::vector<NullableBase*> nullableBindings;
+
         public:
             using size_t = unsigned long long;
 
@@ -103,6 +110,21 @@ namespace SuperiorMySqlpp
 
         private:
             Optional<ResultMetadata> resultMetadata;
+
+            /**
+             * Why we need this method? When Nullable type is created and
+             * initialised using operator* in dynamic prepared statement
+             * its internal flag engaged is NOT set to true. This leads to
+             * buggy behavior of isValid method in Nullable class.
+             */
+            void engageNullables()
+            {
+                for(auto* nullable : nullableBindings) {
+                    if (!nullable->isNull()) {
+                        nullable->engage();
+                    }
+                }
+            }
 
         public:
 
@@ -122,17 +144,36 @@ namespace SuperiorMySqlpp
 
             auto fetchWithStatus()
             {
-                return this->statement.fetchWithStatus();
+                auto status = this->statement.fetchWithStatus();
+
+                if (status == LowLevel::DBDriver::Statement::FetchStatus::Ok) {
+                    engageNullables();
+                }
+
+                return status;
             }
 
             auto fetch()
             {
-                return this->statement.fetch();
+                auto ok = this->statement.fetch();
+
+                if (ok) {
+                    engageNullables();
+                }
+
+                return ok;
             }
 
+            /**
+             * TODO: Statement.fetchColumn is void and can throw
+             * -> do we need bool as a return value here?
+             * @return
+             */
             bool fetchColumn()
             {
-                return this->statement.fetchColumn();
+                this->statement.fetchColumn();
+                engageNullables();
+                return true;
             }
 
             auto sendLongData(unsigned int paramNumber, const char* data, unsigned long length)
