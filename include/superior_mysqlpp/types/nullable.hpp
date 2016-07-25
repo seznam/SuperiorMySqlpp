@@ -65,11 +65,17 @@ protected:
     bool engaged;
     bool null;
 
-public:
-    NullableBase() : engaged(false), null(true)
+    constexpr NullableBase()
+        : engaged(false), null(true)
     {
     }
 
+    constexpr NullableBase(bool engaged, bool null)
+        : engaged(engaged), null(null)
+    {
+    }
+
+public:
     void engage()
     {
         engaged = true;
@@ -139,43 +145,31 @@ public:
     }
 
     Nullable(const Nullable& other)
+        : NullableBase(other.engaged, other.null)
     {
         if (other.engaged)
         {
             constructPayload(other.payload);
         }
-        else
-        {
-            engaged = false;
-        }
-        null = other.null;
     }
 
     Nullable(Nullable&& other)
+        : NullableBase(other.engaged, other.null)
     {
         if (other.engaged)
         {
             constructPayload(std::move(other.payload));
         }
-        else
-        {
-            engaged = false;
-        }
-        null = other.null;
     }
 
-    Nullable(const StoredType& value)
-        : payload{value}
+    constexpr Nullable(const StoredType& value)
+        : NullableBase(true, false), payload{value}
     {
-        engaged = true;
-        null = false;
     }
 
-    Nullable(StoredType&& value) noexcept(std::is_nothrow_move_constructible<StoredType>())
-        : payload{std::move(value)}
+    constexpr Nullable(StoredType&& value) noexcept(std::is_nothrow_move_constructible<StoredType>())
+        : NullableBase(true, false), payload{std::move(value)}
     {
-        engaged = true;
-        null = false;
     }
 
     Nullable& operator=(DisengagedOption) noexcept(noexcept(std::declval<Nullable>().destroyPayload()))
@@ -186,20 +180,16 @@ public:
     }
 
     template<typename... Args>
-    explicit Nullable(InPlace, Args&&... args)
-        : payload{std::forward<Args>(args)...}
+    constexpr explicit Nullable(InPlace, Args&&... args)
+        : NullableBase(true, false), payload{std::forward<Args>(args)...}
     {
-        engaged = true;
-        null = false;
     }
 
     template<typename U, typename... Args,
              std::enable_if_t<std::is_constructible<StoredType, std::initializer_list<U>&, Args&&...>::value, int>...>
-    explicit Nullable(InPlace, std::initializer_list<U> initializerList, Args&&... args)
-        : payload{initializerList, std::forward<Args>(args)...}
+    constexpr explicit Nullable(InPlace, std::initializer_list<U> initializerList, Args&&... args)
+        : NullableBase(true, false), payload{initializerList, std::forward<Args>(args)...}
     {
-        engaged = true;
-        null = false;
     }
 
 

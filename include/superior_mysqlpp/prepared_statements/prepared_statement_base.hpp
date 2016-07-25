@@ -96,6 +96,10 @@ namespace SuperiorMySqlpp
         class PreparedStatementBase : public StoreOrUseResultBase<storeResult>//, public ValidateResult<validateMetadataMode>
         {
         protected:
+            /**
+             * Collection of Nullables which needs to be engaged after
+             * successful fetch. Must be filled by inherited class.
+             */
             std::vector<NullableBase*> nullableBindings;
 
         public:
