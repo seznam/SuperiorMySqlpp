@@ -12,7 +12,6 @@
 #include <superior_mysqlpp/types/decimal_data.hpp>
 #include <superior_mysqlpp/types/nullable.hpp>
 
-
 namespace SuperiorMySqlpp
 {
     namespace detail

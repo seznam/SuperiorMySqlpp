@@ -16,11 +16,11 @@
 #include <cinttypes>
 
 #include <superior_mysqlpp/prepared_statements/initialize_bindings.hpp>
+#include <superior_mysqlpp/prepared_statements/binding_types.hpp>
 #include <superior_mysqlpp/prepared_statements/prepared_statement_base.hpp>
 #include <superior_mysqlpp/low_level/dbdriver.hpp>
 #include <superior_mysqlpp/connection_def.hpp>
-
-
+#include <superior_mysqlpp/types/nullable.hpp>
 
 namespace SuperiorMySqlpp
 {
@@ -33,6 +33,17 @@ namespace SuperiorMySqlpp
 
         std::vector<MYSQL_BIND> paramsBindings;
         std::vector<MYSQL_BIND> resultBindings;
+
+        template<typename T>
+        void bindResultInternal(unsigned int index, T& value)
+        {
+            throwIfStatementNotExecuted();
+            if (index >= resultBindings.size())
+            {
+                throw OutOfRange("Param result index " + std::to_string(index) + " >= bindings size " + std::to_string(resultBindings.size()));
+            }
+            detail::initializeResultBinding(resultBindings[index], value);
+        }
 
         void throwIfStatementNotExecuted() const
         {
@@ -93,12 +104,14 @@ namespace SuperiorMySqlpp
         template<typename T>
         void bindResult(unsigned int index, T& value)
         {
-            throwIfStatementNotExecuted();
-            if (index >= resultBindings.size())
-            {
-                throw OutOfRange("Param result index " + std::to_string(index) + " >= bindings size " + std::to_string(resultBindings.size()));
-            }
-            detail::initializeResultBinding(resultBindings[index], value);
+            bindResultInternal(index, value);
+        }
+
+        template<typename T>
+        void bindResult(unsigned int index, Nullable<T>& value)
+        {
+            bindResultInternal(index, value);
+            this->nullableBindings.push_back(&value);
         }
 
         void updateParamBindings()
@@ -133,6 +146,8 @@ namespace SuperiorMySqlpp
             }
 
             this->storeOrUse();
+
+            this->nullableBindings.clear();
         }
 
         bool nextResult()
