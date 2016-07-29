@@ -569,7 +569,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
         enum class ServerOptions
         {
               multiStatementsOn = MYSQL_OPTION_MULTI_STATEMENTS_ON,
-              multistatementsOff = MYSQL_OPTION_MULTI_STATEMENTS_OFF,
+              multiStatementsOff = MYSQL_OPTION_MULTI_STATEMENTS_OFF,
         };
 
         void setServerOption(ServerOptions option)
