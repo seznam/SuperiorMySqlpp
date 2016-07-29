@@ -307,7 +307,7 @@ public:
         return isValid();
     }
 
-    constexpr const StoredType& value() const
+    /* constexpr */ const StoredType& value() const
     {
         if (!isValid()) {
             throw BadNullableAccess{"Attempt to access value of a invalid nullable object!"};
