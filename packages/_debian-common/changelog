@@ -1,3 +1,11 @@
+libsuperiormysqlpp (0.2.1) unstable; urgency=medium
+
+  * Fix engaged not set in nullable when using dynamic prepared statement
+  * Fix ternary operator bug in nullable
+  * Fix compound-statement in constexpr function
+
+ -- Daniel Pernis <daniel.pernis@firma.seznam.cz>  Fri, 29 Jul 2016 09:56:04 +0200
+
 libsuperiormysqlpp (0.2.0) unstable; urgency=medium
 
   * Add error code to MysqlInternalError

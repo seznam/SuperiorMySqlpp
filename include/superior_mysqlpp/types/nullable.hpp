@@ -60,9 +60,37 @@ struct InPlace
 };
 constexpr InPlace inPlace{};
 
+namespace detail {
+    class NullableBase {
+    protected:
+        bool engaged;
+        bool null;
+
+        constexpr NullableBase()
+            : engaged(false), null(true)
+        {
+        }
+
+        constexpr NullableBase(bool engaged, bool null)
+            : engaged(engaged), null(null)
+        {
+        }
+
+    public:
+        void engage()
+        {
+            engaged = true;
+        }
+
+        bool isNull()
+        {
+            return null;
+        }
+    };
+}
 
 template<typename T>
-class Nullable
+class Nullable : public detail::NullableBase
 {
 public:
     using StoredType = std::remove_const_t<T>;
@@ -74,8 +102,6 @@ protected:
         Empty empty;
         StoredType payload;
     };
-    bool engaged;
-    bool null;
 
 protected:
     void destroyPayload() noexcept(std::is_nothrow_destructible<StoredType>())
@@ -111,7 +137,7 @@ public:
      * Member functions
      */
     constexpr Nullable() noexcept
-        : empty{}, engaged{false}, null{true}
+        : empty{}
     {
     }
 
@@ -121,38 +147,30 @@ public:
     }
 
     Nullable(const Nullable& other)
+        : NullableBase(other.engaged, other.null)
     {
         if (other.engaged)
         {
             constructPayload(other.payload);
         }
-        else
-        {
-            engaged = false;
-        }
-        null = other.null;
     }
 
     Nullable(Nullable&& other)
+        : NullableBase(other.engaged, other.null)
     {
         if (other.engaged)
         {
             constructPayload(std::move(other.payload));
         }
-        else
-        {
-            engaged = false;
-        }
-        null = other.null;
     }
 
     constexpr Nullable(const StoredType& value)
-        : payload{value}, engaged{true}, null{false}
+        : NullableBase(true, false), payload{value}
     {
     }
 
     constexpr Nullable(StoredType&& value) noexcept(std::is_nothrow_move_constructible<StoredType>())
-        : payload{std::move(value)}, engaged{true}, null{false}
+        : NullableBase(true, false), payload{std::move(value)}
     {
     }
 
@@ -165,14 +183,14 @@ public:
 
     template<typename... Args>
     constexpr explicit Nullable(InPlace, Args&&... args)
-        : payload{std::forward<Args>(args)...}, engaged{true}, null{false}
+        : NullableBase(true, false), payload{std::forward<Args>(args)...}
     {
     }
 
     template<typename U, typename... Args,
              std::enable_if_t<std::is_constructible<StoredType, std::initializer_list<U>&, Args&&...>::value, int>...>
     constexpr explicit Nullable(InPlace, std::initializer_list<U> initializerList, Args&&... args)
-        : payload{initializerList, std::forward<Args>(args)...}, engaged{true}, null{false}
+        : NullableBase(true, false), payload{initializerList, std::forward<Args>(args)...}
     {
     }
 
@@ -289,9 +307,12 @@ public:
         return isValid();
     }
 
-    constexpr const StoredType& value() const
+    /* constexpr */ const StoredType& value() const
     {
-        return isValid()? payload : throw BadNullableAccess{"Attempt to access value of a invalid nullable object!"};
+        if (!isValid()) {
+            throw BadNullableAccess{"Attempt to access value of a invalid nullable object!"};
+        }
+        return payload;
     }
 
     StoredType& value()
@@ -404,7 +425,6 @@ public:
     {
         return null;
     }
-
 };
 
 
