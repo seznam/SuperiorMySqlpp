@@ -17,6 +17,7 @@
 
 struct Setting
 {
+    std::string socket{""};
     std::string host{""};
     std::string user{"root"};
     std::string password{"password"};
