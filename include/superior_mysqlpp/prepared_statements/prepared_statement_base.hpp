@@ -92,7 +92,7 @@ namespace SuperiorMySqlpp
         };
 
 
-        template<bool storeResult, ValidateMetadataMode validateMode, ValidateMetadataMode warnMode>
+        template<bool storeResult, ValidateMetadataMode validateMode, ValidateMetadataMode warnMode, bool ignoreNullable>
         class PreparedStatementBase : public StoreOrUseResultBase<storeResult>//, public ValidateResult<validateMetadataMode>
         {
         protected:
@@ -276,7 +276,7 @@ namespace SuperiorMySqlpp
                     }
 
                     // We cannot read nullable value into non-nullable one
-                    if (resultMetadata.isNullable() && binding.is_null == nullptr)
+                    if (resultMetadata.isNullable() && binding.is_null == nullptr && !ignoreNullable)
                     {
                         if (validateMode != ValidateMetadataMode::Disabled)
                         {

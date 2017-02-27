@@ -18,12 +18,14 @@ namespace SuperiorMySqlpp
              bool storeResult,
              ValidateMetadataMode validateMode,
              ValidateMetadataMode warnMode,
+             bool ignoreNullable,
              typename... Args>
     PreparedStatement<RBindings,
                       ParamBindings<std::decay_t<Args>...>,
                       storeResult,
                       validateMode,
-                      warnMode
+                      warnMode,
+                      ignoreNullable
                       > Connection::makePreparedStatement(const std::string& query, Args&&... args) &
     {
         return {*this, query, std::forward<Args>(args)...};
@@ -34,13 +36,15 @@ namespace SuperiorMySqlpp
              bool storeResult,
              ValidateMetadataMode validateMode,
              ValidateMetadataMode warnMode,
+             bool ignoreNullable,
              template<typename...> class RArgsTuple, template<typename...> class PArgsTuple,
              typename... RArgs, typename... PArgs>
     PreparedStatement<RBindings,
                       ParamBindings<std::decay_t<PArgs>...>,
                       storeResult,
                       validateMode,
-                      warnMode
+                      warnMode,
+                      ignoreNullable
                       > Connection::makePreparedStatement(const std::string& query,
                                                           FullInitTag tag, RArgsTuple<RArgs...>&& resultArgs,
                                                           PArgsTuple<PArgs...>&& paramArgs) &
@@ -49,8 +53,8 @@ namespace SuperiorMySqlpp
     }
 
 
-    template<bool storeResult, ValidateMetadataMode validateMode, ValidateMetadataMode warnMode>
-    DynamicPreparedStatement<storeResult, validateMode, warnMode> Connection::makeDynamicPreparedStatement(const std::string& query) &
+    template<bool storeResult, ValidateMetadataMode validateMode, ValidateMetadataMode warnMode, bool ignoreNullable>
+    DynamicPreparedStatement<storeResult, validateMode, warnMode, ignoreNullable> Connection::makeDynamicPreparedStatement(const std::string& query) &
     {
         return {*this, query};
     }
