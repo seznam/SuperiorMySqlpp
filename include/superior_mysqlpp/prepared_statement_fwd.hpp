@@ -38,6 +38,11 @@ namespace SuperiorMySqlpp
                 return ValidateMetadataMode::Same;
             }
 
+            /**
+             * Returns default value for prepared statement flag ignoreNullable.
+             * Usually nullable should not be ignored.
+             * @return always false
+             */
             constexpr auto getIgnoreNullable()
             {
                 return false;
