@@ -12,6 +12,7 @@ namespace SuperiorMySqlpp
 {
     template<bool storeResult=detail::PreparedStatementsDefault::getStoreResult(),
              ValidateMetadataMode validateMode=detail::PreparedStatementsDefault::getValidateMode(),
-             ValidateMetadataMode warnMode=detail::PreparedStatementsDefault::getWarnMode()>
+             ValidateMetadataMode warnMode=detail::PreparedStatementsDefault::getWarnMode(),
+             bool ignoreNullable=detail::PreparedStatementsDefault::getIgnoreNullable()>
     class DynamicPreparedStatement;
 }

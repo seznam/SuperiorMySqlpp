@@ -92,7 +92,32 @@ namespace SuperiorMySqlpp
         };
 
 
-        template<bool storeResult, ValidateMetadataMode validateMode, ValidateMetadataMode warnMode>
+        /**
+         * Base class for prepared statements.
+         * Contains mostly low level methods communicating directly with underlying mysql C library.
+         * Also takes care for prepared statement's argument validation according to PreparedStatement settings.
+         *
+         * Settings itself are templated, so for different settings, different classes will be created.
+         *
+         * @tparam storeResult    flag - when true, mysql store result is used
+         * @tparam validateMode   enum - says how params or results will be validated (more in {@link ValidateMetadataMode}).
+         *                        When params or results doesn't comply with rules set by this option, exception will
+         *                        be thrown.
+         * @tparam warnMode       enum - says when user will be warned. These is same enum as {@param validateMode}.
+         *                        When params or results doesn't comply with rules set by this option a debug message
+         *                        will be issued with description, which rule was broken.
+         * @tparam ignoreNullable flag - says if {@link #validateResultMetadata()) ignores null value.
+         *                        (Feasible only for prepare statement results.)
+         *                        In mysql every data type can be also set to null. In C++ this is not the case.
+         *                        At least not for primitive types. Usually when we read data from mysql, we also need
+         *                        to set some "null" flag. In this library we can easily do it by mapping mysql data
+         *                        type to Nullable<T> type, which is simple wrapper (for any data type), that can store
+         *                        this "null flag". During result validation, this is also one of the checks - if we are
+         *                        able to store this "null flag". Sometimes however we just want to ignore null flag
+         *                        (binded result memory then will be not set, where null was sent), that is what this flag
+         *                        is for.
+         */
+        template<bool storeResult, ValidateMetadataMode validateMode, ValidateMetadataMode warnMode, bool ignoreNullable>
         class PreparedStatementBase : public StoreOrUseResultBase<storeResult>//, public ValidateResult<validateMetadataMode>
         {
         protected:
@@ -275,8 +300,12 @@ namespace SuperiorMySqlpp
                         );
                     }
 
-                    // We cannot read nullable value into non-nullable one
-                    if (resultMetadata.isNullable() && binding.is_null == nullptr)
+                    // We usually don't want to read nullable value into non-nullable one
+                    // However it is possible, because mysql doesn't need to write this flag, to user provided place
+                    // (see in mysql_stmt_bind_result(...) definition in file "libmysql.c".
+                    // In this case however the result value is not set. We only ignore possible null value and we do
+                    // it only when we explicitly want to.
+                    if (resultMetadata.isNullable() && binding.is_null == nullptr && !ignoreNullable)
                     {
                         if (validateMode != ValidateMetadataMode::Disabled)
                         {

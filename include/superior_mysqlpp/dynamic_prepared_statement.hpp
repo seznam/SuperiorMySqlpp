@@ -24,8 +24,8 @@
 
 namespace SuperiorMySqlpp
 {
-    template<bool storeResult, ValidateMetadataMode validateMode, ValidateMetadataMode warnMode>
-    class DynamicPreparedStatement : public detail::PreparedStatementBase<storeResult, validateMode, warnMode>
+    template<bool storeResult, ValidateMetadataMode validateMode, ValidateMetadataMode warnMode, bool ignoreNullable>
+    class DynamicPreparedStatement : public detail::PreparedStatementBase<storeResult, validateMode, warnMode, ignoreNullable>
     {
     private:
         unsigned int paramsCount = 0;
@@ -55,7 +55,7 @@ namespace SuperiorMySqlpp
 
     public:
         DynamicPreparedStatement(LowLevel::DBDriver& driver, const std::string& query)
-            : detail::PreparedStatementBase<storeResult, validateMode, warnMode>{driver.makeStatement()}
+            : detail::PreparedStatementBase<storeResult, validateMode, warnMode, ignoreNullable>{driver.makeStatement()}
         {
             this->statement.prepare(query);
 

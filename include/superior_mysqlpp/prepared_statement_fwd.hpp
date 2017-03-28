@@ -37,13 +37,24 @@ namespace SuperiorMySqlpp
             {
                 return ValidateMetadataMode::Same;
             }
+
+            /**
+             * Returns default value for prepared statement flag ignoreNullable.
+             * Usually nullable should not be ignored.
+             * @return always false
+             */
+            constexpr auto getIgnoreNullable()
+            {
+                return false;
+            }
         }
     }
 
     template<typename ResultBindings, typename ParamBindings,
              bool storeResult=detail::PreparedStatementsDefault::getStoreResult(),
              ValidateMetadataMode validateMode=detail::PreparedStatementsDefault::getValidateMode(),
-             ValidateMetadataMode warnMode=detail::PreparedStatementsDefault::getWarnMode()>
+             ValidateMetadataMode warnMode=detail::PreparedStatementsDefault::getWarnMode(),
+             bool ignoreNullable=detail::PreparedStatementsDefault::getIgnoreNullable()>
     class PreparedStatement;
 }
 
