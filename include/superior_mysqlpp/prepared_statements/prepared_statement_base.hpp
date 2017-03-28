@@ -114,7 +114,7 @@ namespace SuperiorMySqlpp
          *                        type to Nullable<T> type, which is simple wrapper (for any data type), that can store
          *                        this "null flag". During result validation, this is also one of the checks - if we are
          *                        able to store this "null flag". Sometimes however we just want to ignore null flag
-         *                        (result can then contain unspecified data, but we don't care), that is what this flag
+         *                        (binded result memory then will be not set, where null was sent), that is what this flag
          *                        is for.
          */
         template<bool storeResult, ValidateMetadataMode validateMode, ValidateMetadataMode warnMode, bool ignoreNullable>
