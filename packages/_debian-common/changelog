@@ -1,11 +1,11 @@
-libsuperiormysqlpp (0.2.2) UNRELEASED; urgency=medium
+libsuperiormysqlpp (0.2.2) unstable; urgency=medium
 
   * Add optional settings for prepared statements "ignoreNullable", that
     when set, will not require Nullable<T> value for result. Null value
     will be ignored and result data will be not set, when set null value is sent from
     database.
 
- -- Daniel Pernis <daniel.pernis@firma.seznam.cz>  Fri, 29 Jul 2016 11:20:07 +0200
+ -- Michal Fizek <michal.fizek@firma.seznam.cz>  Wed, 29 Mar 2017 14:20:07 +0200
 
 libsuperiormysqlpp (0.2.1) unstable; urgency=medium
 
