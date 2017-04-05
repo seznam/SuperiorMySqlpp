@@ -1,6 +1,6 @@
 libsuperiormysqlpp (0.2.3) UNRELEASED; urgency=medium
 
-  *
+  * Make Transaction dtor noexcept(false) (commit query may throw an exception)
 
  -- Daniel Pernis <daniel.pernis@firma.seznam.cz>  Fri, 29 Jul 2016 11:20:07 +0200
 
