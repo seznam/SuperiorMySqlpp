@@ -128,7 +128,7 @@ namespace SuperiorMySqlpp
         Transaction& operator=(const Transaction&) = default;
         Transaction& operator=(Transaction&&) = default;
 
-        ~Transaction()
+        ~Transaction() noexcept(false)
         {
             if (uncaughtExceptionCounter.isNewUncaughtException())
             {
