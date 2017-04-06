@@ -1,3 +1,9 @@
+libsuperiormysqlpp (0.2.3) UNRELEASED; urgency=medium
+
+  *
+
+ -- Daniel Pernis <daniel.pernis@firma.seznam.cz>  Fri, 29 Jul 2016 11:20:07 +0200
+
 libsuperiormysqlpp (0.2.2) unstable; urgency=medium
 
   * Add optional settings for prepared statements "ignoreNullable", that
