@@ -1,3 +1,9 @@
+libsuperiormysqlpp (0.3.1) UNRELEASED; urgency=medium
+
+  *
+
+ -- Daniel Pernis <daniel.pernis@firma.seznam.cz>  Thu, 06 Apr 2017 16:44:52 +0200
+
 libsuperiormysqlpp (0.3.0) unstable; urgency=medium
 
   * Make Transaction dtor noexcept(false) (commit query may throw an exception)
