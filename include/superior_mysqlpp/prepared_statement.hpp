@@ -72,8 +72,8 @@ namespace SuperiorMySqlpp
     using ResultBindings = Bindings<false, Types...>;
 
 
-    template<typename ResultBindings, typename ParamBindings, bool storeResult, ValidateMetadataMode validateMode, ValidateMetadataMode warnMode>
-    class PreparedStatement : public detail::PreparedStatementBase<storeResult, validateMode, warnMode>
+    template<typename ResultBindings, typename ParamBindings, bool storeResult, ValidateMetadataMode validateMode, ValidateMetadataMode warnMode, bool ignoreNullable>
+    class PreparedStatement : public detail::PreparedStatementBase<storeResult, validateMode, warnMode, ignoreNullable>
     {
     private:
         ResultBindings resultBindings;
@@ -93,7 +93,7 @@ namespace SuperiorMySqlpp
                           std::index_sequence<RI...>,
                           ParamArgsTuple&& paramArgsTuple,
                           std::index_sequence<PI...>)
-            : detail::PreparedStatementBase<storeResult, validateMode, warnMode>{driver.makeStatement()},
+            : detail::PreparedStatementBase<storeResult, validateMode, warnMode, ignoreNullable>{driver.makeStatement()},
               resultBindings{std::get<RI>(std::forward<ResultArgsTuple>(resultArgsTuple))...},
               paramsBindings{std::get<PI>(std::forward<ParamArgsTuple>(paramArgsTuple))...}
         {

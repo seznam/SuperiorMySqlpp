@@ -1,3 +1,12 @@
+libsuperiormysqlpp (0.2.2) unstable; urgency=medium
+
+  * Add optional settings for prepared statements "ignoreNullable", that
+    when set, will not require Nullable<T> value for result. Null value
+    will be ignored and result data will be not set, when set null value is sent from
+    database.
+
+ -- Michal Fizek <michal.fizek@firma.seznam.cz>  Wed, 29 Mar 2017 14:20:07 +0200
+
 libsuperiormysqlpp (0.2.1) unstable; urgency=medium
 
   * Fix engaged not set in nullable when using dynamic prepared statement

@@ -124,24 +124,28 @@ namespace SuperiorMySqlpp
                  bool storeResult=detail::PreparedStatementsDefault::getStoreResult(),
                  ValidateMetadataMode validateMode=detail::PreparedStatementsDefault::getValidateMode(),
                  ValidateMetadataMode warnMode=detail::PreparedStatementsDefault::getWarnMode(),
+                 bool ignoreNullable=detail::PreparedStatementsDefault::getIgnoreNullable(),
                  typename... Args>
         PreparedStatement<RBindings,
                           ParamBindings<std::decay_t<Args>...>,
                           storeResult,
                           validateMode,
-                          warnMode
+                          warnMode,
+                          ignoreNullable
                           > makePreparedStatement(const std::string&, Args&&...) && = delete;
 
         template<typename RBindings=ResultBindings<>,
                  bool storeResult=detail::PreparedStatementsDefault::getStoreResult(),
                  ValidateMetadataMode validateMode=detail::PreparedStatementsDefault::getValidateMode(),
                  ValidateMetadataMode warnMode=detail::PreparedStatementsDefault::getWarnMode(),
+                 bool ignoreNullable=detail::PreparedStatementsDefault::getIgnoreNullable(),
                  typename... Args>
         PreparedStatement<RBindings,
                           ParamBindings<std::decay_t<Args>...>,
                           storeResult,
                           validateMode,
-                          warnMode
+                          warnMode,
+                          ignoreNullable
                           > makePreparedStatement(const std::string&, Args&&...) &;
 
 
@@ -150,6 +154,7 @@ namespace SuperiorMySqlpp
                  bool storeResult=detail::PreparedStatementsDefault::getStoreResult(),
                  ValidateMetadataMode validateMode=detail::PreparedStatementsDefault::getValidateMode(),
                  ValidateMetadataMode warnMode=detail::PreparedStatementsDefault::getWarnMode(),
+                 bool ignoreNullable=detail::PreparedStatementsDefault::getIgnoreNullable(),
                  template<typename...> class RArgsTuple, template<typename...> class PArgsTuple,
                  typename... RArgs, typename... PArgs
                  >
@@ -157,7 +162,8 @@ namespace SuperiorMySqlpp
                           ParamBindings<std::decay_t<PArgs>...>,
                           storeResult,
                           validateMode,
-                          warnMode
+                          warnMode,
+                          ignoreNullable
                           > makePreparedStatement(
                 const std::string&, FullInitTag, RArgsTuple<RArgs...>&&, PArgsTuple<PArgs...>&&) && = delete;
 
@@ -165,6 +171,7 @@ namespace SuperiorMySqlpp
                  bool storeResult=detail::PreparedStatementsDefault::getStoreResult(),
                  ValidateMetadataMode validateMode=detail::PreparedStatementsDefault::getValidateMode(),
                  ValidateMetadataMode warnMode=detail::PreparedStatementsDefault::getWarnMode(),
+                 bool ignoreNullable=detail::PreparedStatementsDefault::getIgnoreNullable(),
                  template<typename...> class RArgsTuple, template<typename...> class PArgsTuple,
                  typename... RArgs, typename... PArgs
                  >
@@ -172,7 +179,8 @@ namespace SuperiorMySqlpp
                           ParamBindings<std::decay_t<PArgs>...>,
                           storeResult,
                           validateMode,
-                          warnMode
+                          warnMode,
+                          ignoreNullable
                           > makePreparedStatement(
                 const std::string&, FullInitTag, RArgsTuple<RArgs...>&&, PArgsTuple<PArgs...>&&) &;
 
@@ -181,13 +189,15 @@ namespace SuperiorMySqlpp
 
         template<bool storeResult=detail::PreparedStatementsDefault::getStoreResult(),
                  ValidateMetadataMode validateMode=detail::PreparedStatementsDefault::getValidateMode(),
-                 ValidateMetadataMode warnMode=detail::PreparedStatementsDefault::getWarnMode()>
-        DynamicPreparedStatement<storeResult, validateMode, warnMode> makeDynamicPreparedStatement(const std::string& query) && = delete;
+                 ValidateMetadataMode warnMode=detail::PreparedStatementsDefault::getWarnMode(),
+                 bool ignoreNullable=detail::PreparedStatementsDefault::getIgnoreNullable()>
+        DynamicPreparedStatement<storeResult, validateMode, warnMode, ignoreNullable> makeDynamicPreparedStatement(const std::string& query) && = delete;
 
         template<bool storeResult=detail::PreparedStatementsDefault::getStoreResult(),
                  ValidateMetadataMode validateMode=detail::PreparedStatementsDefault::getValidateMode(),
-                 ValidateMetadataMode warnMode=detail::PreparedStatementsDefault::getWarnMode()>
-        DynamicPreparedStatement<storeResult, validateMode, warnMode> makeDynamicPreparedStatement(const std::string& query) &;
+                 ValidateMetadataMode warnMode=detail::PreparedStatementsDefault::getWarnMode(),
+                 bool ignoreNullable=detail::PreparedStatementsDefault::getIgnoreNullable()>
+        DynamicPreparedStatement<storeResult, validateMode, warnMode, ignoreNullable> makeDynamicPreparedStatement(const std::string& query) &;
 
 
         template<typename... Args>
