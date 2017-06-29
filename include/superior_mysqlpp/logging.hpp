@@ -226,9 +226,9 @@ namespace SuperiorMySqlpp {
             virtual void logMySqlClose(std::uint_fast64_t /*connectionId*/) const noexcept override {}
             virtual void logMySqlPing(std::uint_fast64_t /*connectionId*/) const noexcept override {}
             virtual void logMySqlQuery(std::uint_fast64_t /*connectionId*/, const StringView& /*query*/) const noexcept override {}
-            virtual void logMySqlStartTransaction(std::uint_fast64_t /*connectionId*/) const noexcept {};
-            virtual void logMySqlCommitTransaction(std::uint_fast64_t /*connectionId*/) const noexcept {};
-            virtual void logMySqlRollbackTransaction(std::uint_fast64_t /*connectionId*/) const noexcept {};
+            virtual void logMySqlStartTransaction(std::uint_fast64_t /*connectionId*/) const noexcept override {};
+            virtual void logMySqlCommitTransaction(std::uint_fast64_t /*connectionId*/) const noexcept override {};
+            virtual void logMySqlRollbackTransaction(std::uint_fast64_t /*connectionId*/) const noexcept override {};
             virtual void logMySqlStmtPrepare(std::uint_fast64_t /*connectionId*/, std::uint_fast64_t /*id*/, const StringView& /*query*/) const noexcept override {}
             virtual void logMySqlStmtExecute(std::uint_fast64_t /*connectionId*/, std::uint_fast64_t /*id*/) const noexcept override {}
             virtual void logMySqlStmtMetadataWarning(
@@ -283,7 +283,7 @@ namespace SuperiorMySqlpp {
                     std::uint_fast64_t connectionId,
                     std::uint_fast64_t id,
                     std::size_t index
-            ) const noexcept
+            ) const noexcept override
             {
                 std::cerr << stringify("Connection [", connectionId, "]: PS [", id, "]: ")
                     << "Result types at index " << index << " don't match!\n"

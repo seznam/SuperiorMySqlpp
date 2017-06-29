@@ -11,11 +11,21 @@ Q :=@
 program :=tester
 odr :=odr_program
 
-CXX :=g++
+CXX ?=g++
+
+HAVE_CLANG := 0
+ifeq ($(shell $(CC) -v 2>&1 | grep -c "clang version"), 1)
+    HAVE_CLANG := 1
+endif
 
 CXXFLAGS += -std=c++14
 CXXFLAGS += -pedantic-errors
-CXXFLAGS += -Wall -Wextra -Wswitch-enum -Wnarrowing -Wabi-tag
+CXXFLAGS += -Wall -Wextra -Wswitch-enum -Wnarrowing
+ifneq ($(HAVE_CLANG),1)
+    CXXFLAGS += -Wabi-tag
+else
+    CXXFLAGS += -DHAVE_CLANG
+endif
 CXXFLAGS += -Werror
 CXXFLAGS += -fPIC
 CXXFLAGS += -fsanitize=address
