@@ -16,8 +16,10 @@ using namespace std::string_literals;
 
 
 
+#ifndef HAVE_CLANG
 #pragma GCC push_options
 #pragma GCC optimize ("O0")
+#endif
 go_bandit([](){
     describe("Test ConcatIterator", [&](){
         it("can work on empty vectors", [&](){
@@ -161,4 +163,6 @@ go_bandit([](){
         });
     });
 });
+#ifndef HAVE_CLANG
 #pragma GCC pop_options
+#endif
