@@ -6,7 +6,6 @@
 
 
 #include <cinttypes>
-#include <cmath>
 #include <utility>
 #include <limits>
 #include <stdexcept>
@@ -16,13 +15,18 @@ namespace SuperiorMySqlpp { namespace Converters
 {
     namespace detail
     {
+        template <class T>
+        inline constexpr T pow(T const& x, std::size_t n) {
+            return n > 0 ? x * pow(x, n - 1) : 1;
+        }
+
         template<typename T, int length, bool validate>
         struct ToIntegerParserImpl
         {
             static_assert(std::numeric_limits<T>::digits10, "length > digits10");
             static inline void call(T& result, const char*& str) noexcept(validate)
             {
-                static constexpr T base = std::pow(10, length-1);
+                static constexpr T base = pow(10, length-1);
                 char c = *str;
                 if (validate)
                 {

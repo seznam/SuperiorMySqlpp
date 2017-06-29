@@ -76,12 +76,12 @@ namespace SuperiorMySqlpp
             return array.begin();
         }
 
-        const auto begin() const
+        auto begin() const
         {
             return array.begin();
         }
 
-        const auto cbegin() const
+        auto cbegin() const
         {
             return array.cbegin();
         }
@@ -91,12 +91,12 @@ namespace SuperiorMySqlpp
             return begin() + count();
         }
 
-        const auto end() const
+        auto end() const
         {
             return cbegin() + count();
         }
 
-        const auto cend() const
+        auto cend() const
         {
             return cbegin() + count();
         }
@@ -106,12 +106,12 @@ namespace SuperiorMySqlpp
             return array.end();
         }
 
-        const auto endOfStorage() const
+        auto endOfStorage() const
         {
             return array.end();
         }
 
-        const auto cendOfStorage() const
+        auto cendOfStorage() const
         {
             return array.cend();
         }
@@ -121,7 +121,7 @@ namespace SuperiorMySqlpp
             return array.data();
         }
 
-        constexpr const auto data() const
+        constexpr auto data() const
         {
             return array.data();
         }
