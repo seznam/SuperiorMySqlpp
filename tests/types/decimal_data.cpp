@@ -82,6 +82,18 @@ go_bandit([](){
             AssertThat(sdd.getStringView(), Equals("-159417.844800"));
             AssertThat(static_cast<double>(sdd), Equals(d));
             AssertThat(sdd.to<double>(), Equals(d));
+
+            int64_t i64 = 9223372036854775807L;
+            DecimalData sdi64{i64};
+            AssertThat(sdi64.getStringView(), Equals("9223372036854775807"));
+            AssertThat(static_cast<int64_t>(sdi64), Equals(i64));
+            AssertThat(sdi64.to<int64_t>(), Equals(i64));
+
+            uint64_t u64 = 18446744073709551615UL;
+            DecimalData sdu64{u64};
+            AssertThat(sdu64.getStringView(), Equals("18446744073709551615"));
+            AssertThat(static_cast<uint64_t>(sdu64), Equals(u64));
+            AssertThat(sdu64.to<uint64_t>(), Equals(u64));
         });
     });
 });
