@@ -26,7 +26,7 @@ namespace SuperiorMySqlpp { namespace Converters
             static_assert(std::numeric_limits<T>::digits10, "length > digits10");
             static inline void call(T& result, const char*& str) noexcept(validate)
             {
-                static constexpr T base = pow(10, length-1);
+                static constexpr T base = pow(10UL, length-1);
                 char c = *str;
                 if (validate)
                 {
