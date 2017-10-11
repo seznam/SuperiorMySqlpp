@@ -87,7 +87,7 @@ Please help us out by reporting bugs. (https://github.com/seznam/SuperiorMySqlpp
 We appreciate your feedback!
 
 # Preview
-Until we create proper examples, you can see all functionality in action by looking at out tests (https://github.com/seznam/SuperiorMySqlpp/tree/master/tests).
+Until we create proper examples, you can see all functionality in action by looking at our tests (https://github.com/seznam/SuperiorMySqlpp/tree/master/tests).
 Please be aware that tests must validate all possible cases and syntax and should not be taken as reference in these matters.
 
 You can look at some basic examples below:
@@ -151,7 +151,7 @@ while (auto row = result.fetchRow())
 To escape variable manually you may use method connection.escapeString. Preferred way is using query stream manipulators:
 ```c++
 auto query = connection.makeQuery();
-query << escape << "ab'cd";  // escape - next argument will be escaped 
+query << escape << "ab'cd";  // escape - next argument will be escaped
 
 ```
 
@@ -198,7 +198,7 @@ while (preparedStatement.fetch())
     Sql::Int id, money;
     std::tie(id, money) = preparedStatement.getResult();
 
-    // or directly use e.g. id as: 
+    // or directly use e.g. id as:
     preparedStatement.getResult().get<0>()
 }
 ```
@@ -280,15 +280,15 @@ class MyLogger final : public Loggers::Base
 {
     using Base::Base;
     virtual ~MyLogger() override
-    { 
-        // do something 
+    {
+        // do something
     }
 
     virtual void logWarning(const std::string& message) const override
     {
-        // do something 
+        // do something
     }
-    
+
     // a lot of logging methods like: logMySqlConnecting, logMySqlConnected, logMySqlClose, logMySqlCommit, ...
 }
 
