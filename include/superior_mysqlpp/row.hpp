@@ -104,12 +104,12 @@ namespace SuperiorMySqlpp
         {
             if (first)
             {
-                os << item;
+                os << item.getStringView();
                 first = false;
             }
             else
             {
-                os << ", " << item;
+                os << ", " << item.getStringView();
             }
         }
         os << "]";

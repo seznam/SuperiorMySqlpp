@@ -122,3 +122,13 @@ CREATE TABLE `nullable` (
     `nullable_id` INT(11),
     `nullable_name` VARCHAR(50) NULL
 )  ENGINE=INNODB DEFAULT CHARSET=UTF8;
+
+DROP TABLE IF EXISTS `row`;
+CREATE TABLE `row` (
+    `id` INT(11) NOT NULL,
+    `nullable_value` VARCHAR(100) NULL
+)  ENGINE=INNODB DEFAULT CHARSET=UTF8;
+INSERT INTO `row`(
+    `id`,
+    `nullable_value`)
+VALUES (1, 'value'), (2, NULL);
