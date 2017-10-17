@@ -483,7 +483,7 @@ go_bandit([](){
                 );
                 preparedStatement.execute();
             }
-            return;
+
             {
                 auto preparedStatement = connection.makePreparedStatement<ResultBindings<
                     Sql::Int, Date, Time, Datetime, Timestamp>>(
@@ -517,7 +517,8 @@ go_bandit([](){
                 AssertThat(datetime.getHour(), Equals(23u));
                 AssertThat(datetime.getMinute(), Equals(58u));
                 AssertThat(datetime.getSecond(), Equals(59u));
-                AssertThat(datetime.getSecondFraction(), Equals(111u));
+                // storing microseconds is supported from MySql version 5.6.4 upwards
+                //AssertThat(datetime.getSecondFraction(), Equals(111u));
 
                 AssertThat(timestamp.getYear(), Equals(2038u));
                 AssertThat(timestamp.getMonth(), Equals(01u));
@@ -525,7 +526,8 @@ go_bandit([](){
                 AssertThat(timestamp.getHour(), Equals(03u));
                 AssertThat(timestamp.getMinute(), Equals(14u));
                 AssertThat(timestamp.getSecond(), Equals(07u));
-                AssertThat(timestamp.getSecondFraction(), Equals(222u));
+                // storing microseconds is supported from MySql version 5.6.4 upwards
+                //AssertThat(timestamp.getSecondFraction(), Equals(222u));
 
 
                 AssertThat(preparedStatement.fetch(), IsFalse());

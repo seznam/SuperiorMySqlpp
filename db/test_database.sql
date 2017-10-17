@@ -85,9 +85,9 @@ DROP TABLE IF EXISTS `time`;
 CREATE TABLE `time` (
     `id` INT(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
     `date` DATE NOT NULL,
-    `time` TIME NOT NULL,
-    `datetime` DATETIME NOT NULL,
-    `timestamp` TIMESTAMP NOT NULL
+    `time` TIME(3) NOT NULL,
+    `datetime` DATETIME(3) NOT NULL,
+    `timestamp` TIMESTAMP(3) NOT NULL
 )  ENGINE=INNODB DEFAULT CHARSET=UTF8;
 
 DROP TABLE IF EXISTS `trucation_table`;
