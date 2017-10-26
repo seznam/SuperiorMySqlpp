@@ -22,6 +22,14 @@ git submodule update --init --recursive
 ## Build
  - This is header only library therefore no build step is required
 
+## Compiler flags
+Because MariaDB has some nuances from MySQL behavior, you may need pass some additional compiler flags:
+
+- `TIMESTAMP_UNSIGNED_BINARY_TYPE`
+	- It changes internal representation of TIMESTAMP type from BINARY (MySQL) to UNSIGNED BINARY (MariaDB)
+- `TIMESTAMP_IGNORE_SIGN_VALIDATION`
+	- It disables unsigned/signed validation for TIMESTAMP type only
+
 ## Test
  - Tests require docker(>=1.5.0) for running mysql instances with testing data
 ```bash
@@ -29,7 +37,7 @@ make -j32 test
 ```
  - You may (among other things) specify custom compiler and extra flags
 ```bash
-make -j32 test CXX=/opt/szn/bin/g++ CXXEF=-Werror LDEF=-Wl,-rpath=/opt/szn/lib/gcc/x86_64-linux-gnu/current
+make -j32 test CXX=/opt/szn/bin/g++ CXXEF=-Werror LDEF=-Wl,-rpath=/opt/szn/lib/gcc/x86_64-linux-gnu/current MARIADB_CXXEF=-DTIMESTAMP_IGNORE_SIGN_VALIDATION
 ```
 
 ## Install
@@ -78,7 +86,7 @@ make package-debian-jessie-build
 # Status
 Currently, it is already used at Seznam.cz in production code with great results.
 
-The library is thoroughly tested and all tests are fully automated.
+The library is thoroughly tested on MySQL and MariaDB servers and all tests are fully automated.
 
 In future we are going to add more examples and documentation.
 
