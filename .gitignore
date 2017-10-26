@@ -13,7 +13,8 @@ debian/
 *.o
 
 odr_program
-tester
+tester-mysql
+tester-mariadb
 core
 libsuperiormysqlpp.pc
 

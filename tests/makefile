@@ -8,8 +8,9 @@ include ../common.mk
 # like this: $ make Q=
 Q := @
 
-program :=tester
-odr :=odr_program
+program_mysql := tester-mysql
+program_mariadb := tester-mariadb
+odr := odr_program
 
 CXX ?=g++
 
@@ -40,6 +41,9 @@ CXXFLAGS += -DDEBUG
 CXXFLAGS += -O0
 CXXFLAGS += $(CXXEF)
 
+# additional compiler flags for MariaDB tester
+MARIADB_CXXEF = -DTIMESTAMP_UNSIGNED_BINARY_TYPE -DTIMESTAMP_IGNORE_SIGN_VALIDATION
+
 LDFLAGS += -fuse-linker-plugin
 LDFLAGS += -Wl,--no-undefined
 LDFLAGS += -Wl,--warn-common
@@ -60,9 +64,10 @@ odr_source_files :=./odr/main.odr.cpp $(foreach i,1 2,$(foreach header_file,$(od
 odr_object_files :=$(odr_source_files:.cpp=.o)
 odr_dependency_files :=$(odr_object_files:.o=.d)
 
-source_files :=$(sort $(shell find ./ -name "*.cpp" -not -name "*.odr.cpp"))
-object_files :=$(source_files:.cpp=.o)
-dependency_files :=$(object_files:.o=.d)
+source_files := $(sort $(shell find ./ -name "*.cpp" -not -name "*.odr.cpp"))
+object_files_mysql := $(source_files:.cpp=.o)
+object_files_mariadb := $(source_files:.cpp=.mariadb.o)
+dependency_files := $(object_files:.o=.d)
 
 # =====================
 # === compile rules ===
@@ -74,6 +79,7 @@ print-variables:
 .SUFFIXES:
 .PHONY: all build test clean build-library build-odr-test test-basic
 .PRECIOUS: ./odr/. $(odr_source_files)
+.NOTPARALLEL: test-basic
 
 # rule for all dirs (makefile does not get "%/:")
 %/.:
@@ -94,12 +100,18 @@ odr/main.odr.cpp: $(filter-out $(wildcard ./odr/.), ./odr/.)
 	$(Q)$(strip $(COMPILE.cpp) -MMD $(OUTPUT_OPTION) $<)
 $(foreach file,$(odr_dependency_files),$(eval -include $(file)))
 
+%.mariadb.o: %.cpp
+	$(strip $(COMPILE.cpp) $(MARIADB_CXXEF) -MMD $(OUTPUT_OPTION) $<)
+
 %.o: %.cpp
 	$(strip $(COMPILE.cpp) -MMD $(OUTPUT_OPTION) $<)
 $(foreach file,$(dependency_files),$(eval -include $(file)))
 
 
-$(program): $(object_files)
+$(program_mysql): $(object_files_mysql)
+	$(strip $(LINK.cpp) $^ $(LOADLIBES) $(LDLIBS) -o $@)
+
+$(program_mariadb): $(object_files_mariadb)
 	$(strip $(LINK.cpp) $^ $(LOADLIBES) $(LDLIBS) -o $@)
 
 $(odr): $(odr_object_files)
@@ -112,19 +124,25 @@ all: build
 
 
 build-odr: $(odr)
-build-basic: $(program)
+build-basic: $(program_mysql) $(program_mariadb)
 
 build: build-basic build-odr
 
-test-basic: $(program)
-	./runtest.sh
+test-mysql: $(program_mysql)
+	./runtest.sh mysql
+
+test-mariadb: $(program_mariadb)
+	./runtest.sh mariadb
+
+test-basic: test-mysql test-mariadb
 
 test: test-basic build-odr
 
 clean-files =find ./ -type f -path "$1" -exec $(RM) {} \;
 
 clean:
-	$(RM) $(program) $(odr)
+	$(RM) $(program_mysql) $(program_mariadb) $(odr)
 	$(RM) -fR ./odr/
 	$(call clean-files,*.d)
 	$(call clean-files,*.o)
+

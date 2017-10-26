@@ -1,4 +1,5 @@
-FROM mysql:latest
+# Contains same content as Dockerfile.mysql except the base image - MariaDB in this case.
+FROM mariadb:latest
 MAINTAINER Seznam.cz a.s.
 
 WORKDIR /
