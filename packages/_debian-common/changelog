@@ -4,6 +4,11 @@ libsuperiormysqlpp (0.3.1) UNRELEASED; urgency=medium
   * Fix ostream operator for null values in Row
   * noexcept Statement::close will not throw MysqlInternalError anymore,
     error message is logged and std::terminate is called instead
+  * Support for MariaDB's TIMESTAMP type as UNSINGED BINARY - pass
+    -DTIMESTAMP_UNSIGNED_BINARY_TYPE to compiler.
+  * Option to turn-off TIMESTAMP type validation - pass
+    -DTIMESTAMP_IGNORE_SIGN_VALIDATION to compiler.
+  * Perform tests on MySQL and MariaDB servers when building a package.
 
   [ Peter Opatril ]
   * Fix incorrect Clang detection in test makefile
