@@ -131,6 +131,9 @@ namespace SuperiorMySqlpp
     template<>
     inline bool isCompatible<ValidateMetadataMode::Same>(FieldTypes from, bool from_is_unsigned, FieldTypes to, bool to_is_unsigned)
     {
+#ifdef TIMESTAMP_IGNORE_SIGN_VALIDATION
+        if (from != FieldTypes::Timestamp || to != from)
+#endif
         if (from_is_unsigned != to_is_unsigned)
         {
             return false;

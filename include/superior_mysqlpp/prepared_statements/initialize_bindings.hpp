@@ -107,6 +107,9 @@ namespace SuperiorMySqlpp
         {
             binding.buffer = &timestamp.detail_getBufferRef();
             binding.buffer_type = detail::toMysqlEnum(FieldTypes::Timestamp);
+#ifdef TIMESTAMP_UNSIGNED_BINARY_TYPE
+            binding.is_unsigned = true;
+#endif
         }
 
         inline void initializeParamBinding(MYSQL_BIND& binding, const char*& string)
@@ -199,6 +202,9 @@ namespace SuperiorMySqlpp
         {
             binding.buffer = &timestamp.detail_getBufferRef();
             binding.buffer_type = detail::toMysqlEnum(FieldTypes::Timestamp);
+#ifdef TIMESTAMP_UNSIGNED_BINARY_TYPE
+            binding.is_unsigned = true;
+#endif
         }
 
         template<typename T, typename std::enable_if<CanBindAsResult<BindingTypes::Nullable, T>::value, int>::type=0>
