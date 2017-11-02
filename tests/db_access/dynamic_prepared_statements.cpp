@@ -268,7 +268,18 @@ go_bandit([](){
                 AssertThat(nullable_name.value(), Equals(name));
             }
         });
+
+        it("can validate that all results are binded", [&](){
+            auto preparedStatement = connection.makeDynamicPreparedStatement(
+                "SELECT `id`,`uid` FROM `test_superior_sqlpp`.`xuser_datatypes`"
+            );
+
+            preparedStatement.execute();
+
+            int id;
+            preparedStatement.bindResult(0, id);
+
+            preparedStatement.updateResultBindings();
+        });
     });
 });
-
-
