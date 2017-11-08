@@ -381,6 +381,14 @@ namespace SuperiorMySqlpp
                     auto&& binding = *bindingsIt;
                     auto&& resultMetadata = *metadataIt;
 
+                    // It's needed to check buffer and length pointers to detect uninitialized binds.
+                    // Buffer may point to nullptr in case bind is initialized as ArrayBase of zero length
+                    // but the `length` will point to variable with buffer length in such case.
+                    if (bindingsIt->buffer == nullptr && bindingsIt->length == nullptr)
+                    {
+                        throw PreparedStatementBindError("Uninitialized bind for result at index " + std::to_string(index) + "!");
+                    }
+
                     auto&& bindingType = toFieldType(binding.buffer_type);
                     bool bindingIsUnsigned = binding.is_unsigned;
                     auto&& resultType = resultMetadata.getFieldType();
@@ -453,6 +461,7 @@ namespace SuperiorMySqlpp
                     throw PreparedStatementTypeError(message.str());
                 };
 
+                // not all bindings were processed
                 if (bindingsIt != bindingsEndIt)
                 {
                     auto distance = std::distance(bindingsIt, bindingsEndIt);
@@ -467,6 +476,7 @@ namespace SuperiorMySqlpp
                     } while (bindingsIt!=bindingsEndIt);
                     throwError(bindingsSize, metadataSize, excessiveTypes);
                 }
+                // not all metadata were processed
                 else if (metadataIt != metadataEndIt)
                 {
                     auto distance = std::distance(metadataIt, metadataEndIt);

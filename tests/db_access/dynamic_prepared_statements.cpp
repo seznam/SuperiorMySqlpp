@@ -279,7 +279,7 @@ go_bandit([](){
             int id;
             preparedStatement.bindResult(0, id);
 
-            preparedStatement.updateResultBindings();
+            AssertThrows(PreparedStatementBindError, preparedStatement.updateResultBindings());
         });
     });
 });
