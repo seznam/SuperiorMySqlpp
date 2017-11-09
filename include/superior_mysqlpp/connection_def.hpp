@@ -16,21 +16,12 @@
 #include <superior_mysqlpp/low_level/dbdriver.hpp>
 #include <superior_mysqlpp/types/tags.hpp>
 #include <superior_mysqlpp/types/optional.hpp>
+#include <superior_mysqlpp/config.hpp>
 
 
 namespace SuperiorMySqlpp
 {
     class Query;
-
-    struct SslConfiguration
-    {
-        const char* keyPath = nullptr;
-        const char* certificatePath = nullptr;
-        const char* certificationAuthorityPath = nullptr;
-        const char* trustedCertificateDirPath = nullptr;
-        const char* allowableCiphers = nullptr;
-    };
-
 
     using ConnectionOptions = LowLevel::DBDriver::DriverOptions;
 
@@ -39,6 +30,13 @@ namespace SuperiorMySqlpp
     {
     protected:
         LowLevel::DBDriver driver;
+
+    protected:
+        inline void setSslConfiguration(const SslConfiguration& sslConfig) noexcept
+        {
+            driver.setSsl(sslConfig.keyPath, sslConfig.certificatePath, sslConfig.certificationAuthorityPath,
+                          sslConfig.trustedCertificateDirPath, sslConfig.allowableCiphers);
+        }
 
     public:
         template<typename... OptionTuples>
@@ -60,8 +58,7 @@ namespace SuperiorMySqlpp
             : driver{std::move(loggerPtr)}
         {
             setOptions(std::move(optionTuples));
-            driver.setSsl(sslConfig.keyPath, sslConfig.certificatePath, sslConfig.certificationAuthorityPath,
-                          sslConfig.trustedCertificateDirPath, sslConfig.allowableCiphers);
+            setSslConfiguration(sslConfig);
             driver.connect(host.c_str(), user.c_str(), password.c_str(), database.c_str(), port, nullptr);
         }
 
@@ -83,9 +80,31 @@ namespace SuperiorMySqlpp
             : driver{std::move(loggerPtr)}
         {
             setOptions(std::move(optionTuples));
-            driver.setSsl(sslConfig.keyPath, sslConfig.certificatePath, sslConfig.certificationAuthorityPath,
-                          sslConfig.trustedCertificateDirPath, sslConfig.allowableCiphers);
+            setSslConfiguration(sslConfig);
             driver.connect(nullptr, user.c_str(), password.c_str(), database.c_str(), 0, socketPath.c_str());
+        }
+
+        template<typename... OptionTuples>
+        Connection(ConnectionConfiguration config,
+                   std::tuple<OptionTuples...> optionTuples=std::make_tuple(),
+                   Loggers::SharedPointer_t loggerPtr=DefaultLogger::getLoggerPtr())
+            : driver{std::move(loggerPtr)}
+        {
+            setOptions(std::move(optionTuples));
+
+            if (config.sslConfig)
+            {
+                setSslConfiguration(config.sslConfig.value());
+            }
+
+            if (config.usingSocket)
+            {
+                driver.connect(nullptr, config.user.c_str(), config.password.c_str(), config.database.c_str(), 0, config.target.c_str());
+            }
+            else
+            {
+                driver.connect(config.target.c_str(), config.user.c_str(), config.password.c_str(), config.database.c_str(), config.port, nullptr);
+            }
         }
 
 
