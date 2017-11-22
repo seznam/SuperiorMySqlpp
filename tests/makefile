@@ -14,7 +14,7 @@ odr :=odr_program
 CXX ?=g++
 
 HAVE_CLANG := 0
-ifeq ($(shell $(CC) -v 2>&1 | grep -c "clang version"), 1)
+ifeq ($(shell $(CXX) -v 2>&1 | grep -c "clang version"), 1)
     HAVE_CLANG := 1
 endif
 
