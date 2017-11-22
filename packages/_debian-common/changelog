@@ -5,6 +5,7 @@ libsuperiormysqlpp (0.3.1) UNRELEASED; urgency=medium
 
   [ Peter Opatril ]
   * Fix incorrect Clang detection in test makefile
+  * Removed redundant zeroing memsets for std::vector, memsets for std::array made redundant by the use of initializer
 
  -- Daniel Pernis <daniel.pernis@firma.seznam.cz>  Thu, 06 Apr 2017 16:44:52 +0200
 
