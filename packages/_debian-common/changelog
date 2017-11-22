@@ -3,6 +3,9 @@ libsuperiormysqlpp (0.3.1) UNRELEASED; urgency=medium
   [ Radek Smejdir ]
   * Fix ostream operator for null values in Row
 
+  [ Peter Opatril ]
+  * Fix incorrect Clang detection in test makefile
+
  -- Daniel Pernis <daniel.pernis@firma.seznam.cz>  Thu, 06 Apr 2017 16:44:52 +0200
 
 libsuperiormysqlpp (0.3.0) unstable; urgency=medium
