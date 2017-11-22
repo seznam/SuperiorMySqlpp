@@ -40,16 +40,13 @@ namespace SuperiorMySqlpp
 
 
     public:
+        /* Note: using just 'bindings{}' triggers (premature) warning in GCC 4.9.2,
+         * see discussion at https://stackoverflow.com/questions/31271975/why-can-i-initialize-a-regular-array-from-but-not-a-stdarray */
         template<typename... Args>
         Bindings(Args&&... args)
-            : data{std::forward<Args>(args)...}
+            : data{std::forward<Args>(args)...}, bindings{{}}
         {
             static_assert(sizeof...(Args) == 0 || sizeof...(Args) == sizeof...(Types), "You shall initialize all bindings data or none of them!");
-            if (bindings.size() > 0)
-            {
-                std::memset(bindings.data(), 0, sizeof(bindings));
-            }
-
             update();
         }
 
