@@ -21,9 +21,7 @@ endif
 CXXFLAGS += -std=c++14
 CXXFLAGS += -pedantic-errors
 CXXFLAGS += -Wall -Wextra -Wswitch-enum -Wnarrowing
-ifneq ($(HAVE_CLANG),1)
-    CXXFLAGS += -Wabi-tag
-else
+ifeq ($(HAVE_CLANG),1)
     CXXFLAGS += -DHAVE_CLANG
 endif
 CXXFLAGS += -Werror
