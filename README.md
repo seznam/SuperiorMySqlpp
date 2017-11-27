@@ -5,24 +5,24 @@ Modern C++ wrapper for MySQL C API
 **Author**: [Tomas Nozicka](https://github.com/tnozicka), [*Seznam.cz*](https://github.com/seznam)
 
 
-#Installation
+# Installation
 
 
-##Requirements
+## Requirements
  - C++14 compatible compiler (tested GCC>=4.9)
  - MySQL C API dev (libmysqlclient-dev)
 
 
-##Bootstrap
+## Bootstrap
  - We use git submodules for our dependencies and git requires you to initialize them manually
 ```bash
 git submodule update --init --recursive
 ```
 
-##Build
+## Build
  - This is header only library therefore no build step is required
 
-##Test
+## Test
  - Tests require docker(>=1.5.0) for running mysql instances with testing data
 ```bash
 make -j32 test
@@ -32,17 +32,17 @@ make -j32 test
 make -j32 test CXX=/opt/szn/bin/g++ CXXEF=-Werror LDEF=-Wl,-rpath=/opt/szn/lib/gcc/x86_64-linux-gnu/current
 ```
 
-##Install
+## Install
 ```bash
 make -j32 DESTDIR=/usr/local/ install
 ```
 
-#Packages
+# Packages
  - We support several packages to be build by default:
   - Debian Jessie
   - Fedora 22
 
-##dbuild (docker-build)
+## dbuild (docker-build)
  - This can build packages in completely clean environment using docker
  - You might want to lower the `CONCURRENCY` in case you run out of memory
 ```bash
@@ -51,7 +51,7 @@ make CONCURRENCY=32 package-fedora-22-dbuild
 ```bash
 make CONCURRENCY=32 package-debian-jessie-dbuild
 ```
-##build
+## build
  - classic packaging
 ```bash
 make package-fedora-22-build
@@ -87,7 +87,7 @@ Please help us out by reporting bugs. (https://github.com/seznam/SuperiorMySqlpp
 We appreciate your feedback!
 
 # Preview
-Until we create proper examples, you can see all functionality in action by looking at out tests (https://github.com/seznam/SuperiorMySqlpp/tree/master/tests).
+Until we create proper examples, you can see all functionality in action by looking at our tests (https://github.com/seznam/SuperiorMySqlpp/tree/master/tests).
 Please be aware that tests must validate all possible cases and syntax and should not be taken as reference in these matters.
 
 You can look at some basic examples below:
@@ -151,7 +151,7 @@ while (auto row = result.fetchRow())
 To escape variable manually you may use method connection.escapeString. Preferred way is using query stream manipulators:
 ```c++
 auto query = connection.makeQuery();
-query << escape << "ab'cd";  // escape - next argument will be escaped 
+query << escape << "ab'cd";  // escape - next argument will be escaped
 
 ```
 
@@ -198,7 +198,7 @@ while (preparedStatement.fetch())
     Sql::Int id, money;
     std::tie(id, money) = preparedStatement.getResult();
 
-    // or directly use e.g. id as: 
+    // or directly use e.g. id as:
     preparedStatement.getResult().get<0>()
 }
 ```
@@ -280,15 +280,15 @@ class MyLogger final : public Loggers::Base
 {
     using Base::Base;
     virtual ~MyLogger() override
-    { 
-        // do something 
+    {
+        // do something
     }
 
     virtual void logWarning(const std::string& message) const override
     {
-        // do something 
+        // do something
     }
-    
+
     // a lot of logging methods like: logMySqlConnecting, logMySqlConnected, logMySqlClose, logMySqlCommit, ...
 }
 
@@ -296,5 +296,5 @@ auto&& logger = std::make_shared<MyLogger>();
 DefaultLogger::setLoggerPtr(std::move(logger));
 ```
 
-#Current issues
+# Current issues
 There are problems caused by MySQL C API's bad design which are solved by https://github.com/seznam/SuperiorMySqlpp/blob/master/include/superior_mysqlpp/low_level/mysql_hacks.hpp. This is causing problems with MariaDB which stripped down some symbols from their shared object that we use to fix this bug. (https://github.com/seznam/SuperiorMySqlpp/issues/2)
