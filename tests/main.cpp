@@ -35,7 +35,7 @@ public:
 
 void printUsage()
 {
-    std::cerr << "Usage: ./tester <MySqlIpAddress> <MySqlPort> [bandit-options...]" << std::endl;
+    std::cerr << "Usage: ./tester <MySqlIpAddress> <MySqlPort> <MySqlContainerId> [bandit-options...]" << std::endl;
 }
 
 int main(int argc, char* argv[])
