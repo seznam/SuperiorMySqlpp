@@ -631,10 +631,11 @@ namespace SuperiorMySqlpp { namespace LowLevel
                 if (statementPtr != nullptr)
                 {
                     loggerPtr->logMySqlStmtClose(driverId, id);
+                    MYSQL* mysql = statementPtr->mysql;
                     if (mysql_stmt_close(statementPtr))
                     {
-                        throw MysqlInternalError("Failed to close statement!",
-                            mysql_stmt_error(statementPtr), mysql_stmt_errno(statementPtr));
+                        loggerPtr->logMySqlStmtCloseError(driverId, id, StringView{mysql_error(mysql)});
+                        std::terminate();
                     }
                 }
             }
