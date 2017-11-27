@@ -2,6 +2,8 @@ libsuperiormysqlpp (0.3.1) UNRELEASED; urgency=medium
 
   [ Radek Smejdir ]
   * Fix ostream operator for null values in Row
+  * noexcept Statement::close will not throw MysqlInternalError anymore,
+    error message is logged and std::terminate is called instead
 
  -- Daniel Pernis <daniel.pernis@firma.seznam.cz>  Thu, 06 Apr 2017 16:44:52 +0200
 
