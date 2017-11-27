@@ -56,7 +56,7 @@ namespace SuperiorMySqlpp {
          */
 
         /*
-         * You are to choose to derive either from class Interface or class Empty
+         * You are to choose to derive either from class Interface or class Base
          * so you shall either implement all logging functions or only those you want.
          */
 
