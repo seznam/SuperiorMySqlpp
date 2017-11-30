@@ -5,8 +5,8 @@ initial_variables :=$(.VARIABLES)
 include ../common.mk
 
 # set this to empty string to see all executed commands
-# like tis: $ make Q=
-Q :=@
+# like this: $ make Q=
+Q := @
 
 program :=tester
 odr :=odr_program
@@ -67,9 +67,6 @@ dependency_files :=$(object_files:.o=.d)
 # =====================
 # === compile rules ===
 # =====================
-# for debugging
-Q :=@
-
 print-variables:
 	$(foreach v,$(filter-out $(initial_variables) initial_variables,$(.VARIABLES)),$(info $(v)=$($(v))))
 
@@ -114,16 +111,15 @@ $(odr): $(odr_object_files)
 all: build
 
 
-
 build-odr: $(odr)
 build-basic: $(program)
 
 build: build-basic build-odr
 
-test-basic: tester
+test-basic: $(program)
 	./runtest.sh
 
-test: test-basic build-odr 
+test: test-basic build-odr
 
 clean-files =find ./ -type f -path "$1" -exec $(RM) {} \;
 
