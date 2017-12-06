@@ -98,17 +98,17 @@ clean:
 clean-all: clean packages-clean-all
 
 
-deb_packages :=szn-debian-wheezy debian-jessie
-rpm_packages :=fedora-22
-packages :=$(rpm_packages) $(deb_packages)
+deb_packages := debian-stretch debian-jessie szn-debian-wheezy
+rpm_packages := fedora-22
+packages := $(deb_packages) $(rpm_packages)
 
 define deb-package
 package-$1-build:
 	+cd packages/$1/dpkg-jail/ && dpkg-buildpackage -j$(CONCURRENCY) -B -us -uc
-	
+
 package-$1-build-install-dependencies:
-	cd packages/$1/dpkg-jail/ && mk-build-deps -i -r -t 'apt-get -f -y --force-yes'
-	
+	cd packages/$1/dpkg-jail/ && mk-build-deps -i -r -t 'apt-get -f -y'
+
 package-$1-clean:
 	+$(if $(shell which dh_clean 2>&1 2>/dev/null),cd packages/$1/dpkg-jail/ && dh_clean,)
 
@@ -136,10 +136,10 @@ package-$1-build:
         --define "_srcrpmdir $(abspath ./)/packages/$1/" \
         --define "_specdir $(abspath ./)/packages/$1/" \
 	*.spec)
-	
+
 package-$1-build-install-dependencies:
 	cd packages/$1/ && dnf builddep -y *.spec
-	
+
 package-$1-clean:
 	$(RM) -R $(abspath ./)/packages/$1/rpmbuild/
 
@@ -158,10 +158,11 @@ ifneq "$(CONCURRENCY)" ""
 docker_run_concurrency :=-e "CONCURRENCY=$(CONCURRENCY)"
 endif
 
+# LeakSanitizer (lsan) needs ptrace and by default docker denies it
 define any-package
 package-$1-dbuild:
 	cd packages/$1/ && $(docker_build) --tag=package-$1-dbuild .
-	docker run --name $(IMAGE_PREFIX)dbuild-$1 -t  -v /var/run/docker.sock:/var/run/docker.sock -v `pwd`:/dbuild/sources $(docker_run_concurrency) package-$1-dbuild
+	docker run --name $(IMAGE_PREFIX)dbuild-$1 -t -v /var/run/docker.sock:/var/run/docker.sock -v `pwd`:/dbuild/sources $(docker_run_concurrency) --cap-add SYS_PTRACE package-$1-dbuild
 	docker rm $(IMAGE_PREFIX)dbuild-$1 2>&1 1>/dev/null
 
 .PHONY: package-$1-dbuild
@@ -171,13 +172,13 @@ $(eval $(foreach package,$(packages),$(call any-package,$(package))))
 
 
 packages-clean: $(foreach package,$(packages),package-$(package)-clean )
-	
+
 
 packages-clean-all: $(foreach package,$(packages),package-$(package)-clean-all )
 	$(RM) libsuperiormysqlpp-*.tar.*
 
 packages-build: $(foreach package,$(packages),package-$(package)-build )
-	
+
 packages-dbuild: $(foreach package,$(packages),package-$(package)-dbuild )
 
 

@@ -1,0 +1,16 @@
+Source: libsuperiormysqlpp
+Section: unknown
+Priority: extra
+Maintainer: Radek Smejdir, Seznam.cz
+Build-Depends: debhelper,
+               clang-5.0,
+               docker-ce,
+               libmysqlclient-dev,
+               libboost-system-dev (>= 1.49.0)
+Standards-Version: 3.7.2
+
+Package: libsuperiormysqlpp-dev
+Architecture: any
+Depends: libmysqlclient-dev
+Suggests: libboost-system-dev (>= 1.49.0)
+Description: C++ MySql library development files

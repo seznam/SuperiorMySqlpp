@@ -124,6 +124,10 @@ namespace SuperiorMySqlpp { namespace LowLevel { namespace detail { namespace My
      */
     inline void setup()
     {
+        // mysql_hacks are useless from MySQL 5.7.9 (50709) upwards,
+        // but still needed for older versions of MySQL or for MariaDB
+#if MYSQL_VERSION_ID < 50709 || defined(MARIADB_VERSION_ID)
         thread_local Cleanup cleanup{};
+#endif
     }
 }}}}
