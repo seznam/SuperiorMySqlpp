@@ -10,6 +10,8 @@ Q := @
 
 program :=tester
 odr :=odr_program
+runtest-path ?=.
+PRE ?= # command to run before test execution (good place for sudo)
 
 CXX ?=g++
 
@@ -52,11 +54,14 @@ LDLIBS += -lmysqlclient
 
 mangle-path =$(subst /,-_-,$1)
 demangle-path =$(subst -_-,/,$1)
-library_header_files :=$(sort $(patsubst ../include/%,%,$(shell find ../include/ -name "*.hpp")))
-odr_library_header_files :=$(filter-out superior_mysqlpp/dnsa_connection_pool.hpp,$(library_header_files))
-odr_source_files :=./odr/main.odr.cpp $(foreach i,1 2,$(foreach header_file,$(odr_library_header_files),./odr/$(call mangle-path,$(header_file:.hpp=.$(i).odr.cpp))))
-odr_object_files :=$(odr_source_files:.cpp=.o)
-odr_dependency_files :=$(odr_object_files:.o=.d)
+
+# following files are used only for extended tests
+extended_functionality_header_files := superior_mysqlpp/dnsa_connection_pool.hpp
+all_library_header_files := $(sort $(patsubst ../include/%,%,$(shell find ../include/ -name "*.hpp")))
+odr_library_header_files ?= $(filter-out $(extended_functionality_header_files),$(all_library_header_files))
+odr_source_files := ./odr/main.odr.cpp $(foreach i,1 2,$(foreach header_file,$(odr_library_header_files),./odr/$(call mangle-path,$(header_file:.hpp=.$(i).odr.cpp))))
+odr_object_files := $(odr_source_files:.cpp=.o)
+odr_dependency_files := $(odr_object_files:.o=.d)
 
 source_files :=$(sort $(shell find ./ -name "*.cpp" -not -name "*.odr.cpp"))
 object_files :=$(source_files:.cpp=.o)
@@ -115,7 +120,7 @@ build-basic: $(program)
 build: build-basic build-odr
 
 test-basic: $(program)
-	./runtest.sh
+	$(PRE) $(runtest-path)/runtest.sh
 
 test: test-basic build-odr
 
