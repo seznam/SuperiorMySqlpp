@@ -742,7 +742,13 @@ namespace SuperiorMySqlpp {
         }
 
     public:
+        [[deprecated("Typo in method name; Use isDestroyed() method instead.")]]
         static bool isDestoyed()
+        {
+            return isDestroyed();
+        }
+
+        static bool isDestroyed()
         {
             return getInstanceUnsafe().destroyed;
         }
