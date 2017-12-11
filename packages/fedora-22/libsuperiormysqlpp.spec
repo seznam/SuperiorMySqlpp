@@ -7,10 +7,12 @@ License:        LGPLv3+
 URL:            http://ftp.gnu.org/gnu/%{name}
 Source0:        http://ftp.gnu.org/gnu/%{name}/%{name}-%{version}.tar.gz
 
-BuildRequires:  docker, gcc-c++, community-mysql-devel, hostname, libasan, libubsan, tree
+BuildRequires:  docker, gcc-c++, community-mysql-devel, hostname, libasan, libubsan, tree, boost-devel
       
 Requires(post): info
 Requires(preun): info
+
+Suggests: boost-devel
 
 %description 
 C++ mysql library development files
