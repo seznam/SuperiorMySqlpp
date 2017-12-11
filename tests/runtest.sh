@@ -5,7 +5,7 @@ PREFIX="`hostname`-`id -u`-`echo $$`-"
 IMAGE_NAME="${PREFIX}superiormysqlpp-test-mysql"
 CONTAINER_NAME="${PREFIX}superiormysqlpp-testdb"
 docker build --pull -t ${IMAGE_NAME} ../db
-docker rm -f ${CONTAINER_NAME} 2>&1 >/dev/null || true
+docker rm -f ${CONTAINER_NAME} >/dev/null 2>&1 || true
 docker run -d -P --name ${CONTAINER_NAME} ${IMAGE_NAME} #1>/dev/null
 MYSQL_HOST=`docker inspect --format='{{.NetworkSettings.IPAddress}}' ${CONTAINER_NAME}`
 set +e
