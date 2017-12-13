@@ -4,6 +4,7 @@ libsuperiormysqlpp (0.3.1) UNRELEASED; urgency=medium
   * Fix ostream operator for null values in Row
   * noexcept Statement::close will not throw MysqlInternalError anymore,
     error message is logged and std::terminate is called instead
+  * Remove -Wabi-tag from CXXFLAGS, see README.md for more details
 
   [ Peter Opatril ]
   * Fix incorrect Clang detection in test makefile
