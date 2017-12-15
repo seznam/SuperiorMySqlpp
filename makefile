@@ -22,6 +22,7 @@ INSTALL_INCLUDE =$(INSTALL) -m 644
 
 
 .PHONY: _print-variables test install clean clean-all packages-clean packages-clean-all packages-build packages-dbuild
+.PHONY: package-tar.gz package-tar.xz
 
 
 collapse-slashes =$(if $(findstring //,$1),$(call collapse-slashes,$(subst //,/,$1)),$(subst //,/,$1))
@@ -101,7 +102,6 @@ package-$1-clean-packages:
 package-$1-clean-all: package-$1-clean package-$1-clean-packages
 
 .PHONY: package-$1-build package-$1-build-install-dependencies package-$1-dbuild package-$1-clean package-$1-clean-packages package-$1-clean-all
-.PHONY: package-tar.gz package-tar.xz
 
 endef
 $(eval $(foreach package,$(deb_packages),$(call deb-package,$(package))))
