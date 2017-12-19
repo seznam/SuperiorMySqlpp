@@ -32,7 +32,6 @@ CXXFLAGS += -fsanitize=undefined
 CXXFLAGS += -g3
 CXXFLAGS += -I../include/
 CXXFLAGS += -I../third_party/bandit/
-CXXFLAGS += -DDEBUG
 CXXFLAGS += -O0
 CXXFLAGS += $(CXXEF)
 
