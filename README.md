@@ -298,3 +298,17 @@ DefaultLogger::setLoggerPtr(std::move(logger));
 
 # Current issues
 There are problems caused by MySQL C API's bad design which are solved by https://github.com/seznam/SuperiorMySqlpp/blob/master/include/superior_mysqlpp/low_level/mysql_hacks.hpp. This is causing problems with MariaDB which stripped down some symbols from their shared object that we use to fix this bug. (https://github.com/seznam/SuperiorMySqlpp/issues/2)
+
+## ABI tag warnings
+GCC supports `-Wabi-tag` that should warn when a type with ABI tag is used in context that not have that ABI tag (https://gcc.gnu.org/onlinedocs/gcc-6.4.0/gcc/C_002b_002b-Dialect-Options.html#C_002b_002b-Dialect-Options). This warning should be used only for building shared libraries.
+
+Mentioned compiler warning informs about situations where library may be theoretically successfully linked with another one built with incompatible ABI. For more info on this topic, see
+ - https://developers.redhat.com/blog/2015/02/05/gcc5-and-the-c11-abi/
+ - https://gcc.gnu.org/onlinedocs/libstdc++/manual/using_dual_abi.html
+
+This warning is triggered many times in this library, for example for each function where `std::string` is returned from the function or for each structure that contains `std::string` -- generally, in each case where the type is not part of the resulting mangled name for given symbol.
+Unfortunately, the only way to resolve this warning properly is explicitly put `abi_tag` attribute to every single affected symbol, which seems excessive and does not help readability.
+ABI tag incompatibility is transitive to descendants -- that means when you build own library using *SuperiorMySqlpp* you shouldn't use `-Wabi-tag` either.
+
+Notably, our internet research seem to suggest that this issue (linking code built with old and new ABI) is almost never occurring in practice, as all packages for given OS are by convention built with the same version.
+Judging from the relative lack of related problems, tutorials or general discussion about this topic, `-Wabi-tag` seems to be generally unused by now.
