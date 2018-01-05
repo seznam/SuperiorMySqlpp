@@ -6,7 +6,6 @@ Build-Depends: debhelper(>=9),
                szn-g++(>=4.9.2),
                docker-engine,
                libmysqlclient-dev,
-               mysql-client,
                libboost-system-dev(>=1.49.0)
 Standards-Version: 3.7.2
 
