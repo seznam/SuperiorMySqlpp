@@ -207,6 +207,18 @@ namespace SuperiorMySqlpp
         {
             return resultBindings.data;
         }
+        
+        template <typename... Args>
+        void tieResult(Args&... args)
+        {
+            std::tie(args...) = resultBindings.data;
+        }
+        
+        template <typename... Args>
+        void tieResult(Args&... args) const
+        {
+            std::tie(args...) = resultBindings.data;
+        }
 
         template<typename... Args>
         void setParams(Args&&... args)
