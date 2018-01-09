@@ -90,7 +90,9 @@ go_bandit([](){
 
             for (int i=13; i!=17; ++i)
             {
-                std::get<0>(preparedStatement.getParams()) = i;
+                preparedStatement.setParams(i);
+                // Note - you may also use more verbose form, like
+                // std::get<0>(preparedStatement.getParams()) = i;
                 preparedStatement.execute();
             }
         });
@@ -111,7 +113,7 @@ go_bandit([](){
                 AssertThat(preparedStatement.fetch(), Equals(true));
 
                 int id;
-                std::tie(id) = preparedStatement.getResult();
+                preparedStatement.tieResult(id);
 
                 AssertThat(id, Equals(i));
             }
@@ -132,6 +134,9 @@ go_bandit([](){
             {
                 int id;
                 Nullable<StringDataBase<42>> sname;
+                
+                preparedStatement.tieResult(id, sname);
+                // Note - you can also use following more verbose form
                 std::tie(id, sname) = preparedStatement.getResult();
 
                 std::string name{};
@@ -172,30 +177,30 @@ go_bandit([](){
             Nullable<StringDataBase<42>> nullable{inPlace, "---------------------------------"};
 
             AssertThat(preparedStatement.fetch(), IsTrue());
-            std::tie(id, nullable) = preparedStatement.getResult();
+            preparedStatement.tieResult(id, nullable);
             AssertThat(id, Equals(42));
             AssertThat(nullable.isValid(), IsFalse());
 
             AssertThat(preparedStatement.fetch(), IsTrue());
-            std::tie(id, nullable) = preparedStatement.getResult();
+            preparedStatement.tieResult(id, nullable);
             AssertThat(id, Equals(43));
             AssertThat(nullable.isValid(), IsTrue());
             AssertThat(*nullable, Equals("neco"));
 
             AssertThat(preparedStatement.fetch(), IsTrue());
-            std::tie(id, nullable) = preparedStatement.getResult();
+            preparedStatement.tieResult(id, nullable);
             AssertThat(id, Equals(52));
             AssertThat(nullable.isValid(), IsTrue());
             AssertThat(*nullable, Equals("aaaa"));
 
             AssertThat(preparedStatement.fetch(), IsTrue());
-            std::tie(id, nullable) = preparedStatement.getResult();
+            preparedStatement.tieResult(id, nullable);
             AssertThat(id, Equals(53));
             AssertThat(nullable.isValid(), IsTrue());
             AssertThat(*nullable, Equals("bbbbbbb"));
 
             AssertThat(preparedStatement.fetch(), IsTrue());
-            std::tie(id, nullable) = preparedStatement.getResult();
+            preparedStatement.tieResult(id, nullable);
             AssertThat(id, Equals(60));
             AssertThat(nullable.isValid(), IsFalse());
         });
@@ -226,17 +231,17 @@ go_bandit([](){
             Nullable<StringData> sname{};
 
             AssertThat(preparedStatement.fetch(), IsTrue());
-            std::tie(id, sname) = preparedStatement.getResult();
+            preparedStatement.tieResult(id, sname);
             AssertThat(id, Equals(1));
             AssertThat(sname->getString(), Equals("Kokot"));
 
             AssertThat(preparedStatement.fetch(), IsTrue());
-            std::tie(id, sname) = preparedStatement.getResult();
+            preparedStatement.tieResult(id, sname);
             AssertThat(id, Equals(2));
             AssertThat(sname.isValid(), IsFalse());
 
             AssertThat(preparedStatement.fetch(), IsTrue());
-            std::tie(id, sname) = preparedStatement.getResult();
+            preparedStatement.tieResult(id, sname);
             AssertThat(id, Equals(3));
             AssertThat(sname->getString(), Equals("aaa"));
         });
@@ -268,17 +273,17 @@ go_bandit([](){
             std::string name{};
 
             AssertThat(preparedStatement.fetch(), IsTrue());
-            std::tie(id, sname) = preparedStatement.getResult();
+            preparedStatement.tieResult(id, sname);
             AssertThat(id, Equals(142));
             AssertThat(sname->getString(), Equals("Kokot"));
 
             AssertThat(preparedStatement.fetch(), IsTrue());
-            std::tie(id, sname) = preparedStatement.getResult();
+            preparedStatement.tieResult(id, sname);
             AssertThat(id, Equals(143));
             AssertThat(sname->getString(), Equals("aaa"));
 
             AssertThat(preparedStatement.fetch(), IsTrue());
-            std::tie(id, sname) = preparedStatement.getResult();
+            preparedStatement.tieResult(id, sname);
             AssertThat(id, Equals(144));
             AssertThat(sname->getString(), Equals(""));
         });
@@ -304,7 +309,7 @@ go_bandit([](){
             {
                 int id;
                 Nullable<StringData> sname;
-                std::tie(id, sname) = preparedStatement.getResult();
+                preparedStatement.tieResult(id, sname);
 
                 std::string name{};
                 if (sname)
@@ -421,7 +426,7 @@ go_bandit([](){
                 BlobData blob{}, binary{}, varbinary{};
 
                 AssertThat(preparedStatement.fetch(), IsTrue());
-                std::tie(id, blob, binary, varbinary) = preparedStatement.getResult();
+                preparedStatement.tieResult(id, blob, binary, varbinary);
                 AssertThat(id, Equals(42));
                 AssertThat(blob.size(), Equals(5u));
                 AssertThat(binary.size(), Equals(10u));
@@ -431,7 +436,7 @@ go_bandit([](){
                 AssertThat(varbinary.getStringView(), Equals("ij\0kl"s));
 
                 AssertThat(preparedStatement.fetch(), IsTrue());
-                std::tie(id, blob, binary, varbinary) = preparedStatement.getResult();
+                preparedStatement.tieResult(id, blob, binary, varbinary);
                 AssertThat(id, Equals(43));
                 AssertThat(blob.size(), Equals(0u));
                 AssertThat(binary.size(), Equals(10u));
@@ -460,7 +465,7 @@ go_bandit([](){
                 while (preparedStatement.fetch())
                 {
                     DecimalData sd{}, sd_2{}, sd_5{}, sd_5_1{}, sd_6_3{};
-                    std::tie(sd, sd_2, sd_5, sd_5_1, sd_6_3) = preparedStatement.getResult();
+                    preparedStatement.tieResult(sd, sd_2, sd_5, sd_5_1, sd_6_3);
 
                     AssertThat(sd.getStringView(), Equals("42"));
                     AssertThat(sd_2.getStringView(), Equals("42"));
@@ -499,7 +504,7 @@ go_bandit([](){
                 Time time{};
                 Datetime datetime{};
                 Timestamp timestamp{};
-                std::tie(id, date, time, datetime, timestamp) = preparedStatement.getResult();
+                preparedStatement.tieResult(id, date, time, datetime, timestamp);
 
                 AssertThat(id, Equals(1));
 
