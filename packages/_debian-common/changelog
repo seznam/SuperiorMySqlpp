@@ -10,6 +10,7 @@ libsuperiormysqlpp (0.3.1) UNRELEASED; urgency=medium
   * Fix incorrect Clang detection in test makefile
   * Replace outdated std::string_view::to_string method with string constructor, because
     mentioned method was removed by C++17 standard.
+  * Removed redundant zeroing memsets for std::vector, memsets for std::array made redundant by the use of initializer
 
  -- Daniel Pernis <daniel.pernis@firma.seznam.cz>  Thu, 06 Apr 2017 16:44:52 +0200
 
