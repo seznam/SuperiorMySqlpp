@@ -14,20 +14,20 @@ Modern C++ wrapper for MySQL C API
 
 
 ## Bootstrap
- - We use git submodules for our dependencies and git requires you to initialize them manually
+We use git submodules for our dependencies and git requires you to initialize them manually.
 ```bash
 git submodule update --init --recursive
 ```
 
 ## Build
- - This is header only library therefore no build step is required
+This is header only library therefore no build step is required.
 
 ## Test
- - Tests require docker(>=1.5.0) for running mysql instances with testing data
+Tests require docker(>=1.5.0) for running mysql instances with testing data.
 ```bash
 make -j32 test
 ```
- - You may (among other things) specify custom compiler and extra flags
+You may (among other things) specify custom compiler and extra flags.
 ```bash
 make -j32 test CXX=/opt/szn/bin/g++ CXXEF=-Werror LDEF=-Wl,-rpath=/opt/szn/lib/gcc/x86_64-linux-gnu/current
 ```
@@ -38,13 +38,13 @@ make -j32 DESTDIR=/usr/local/ install
 ```
 
 # Packages
- - We support several packages to be build by default:
-  - Debian Jessie
-  - Fedora 22
+We support several packages to be build by default:
+ - Debian Jessie
+ - Fedora 22
 
 ## dbuild (docker-build)
- - This can build packages in completely clean environment using docker
- - You might want to lower the `CONCURRENCY` in case you run out of memory
+This can build packages in completely clean environment using docker.
+You might want to lower the `CONCURRENCY` in case you run out of memory.
 ```bash
 make CONCURRENCY=32 package-fedora-22-dbuild
 ```
@@ -52,7 +52,7 @@ make CONCURRENCY=32 package-fedora-22-dbuild
 make CONCURRENCY=32 package-debian-jessie-dbuild
 ```
 ## build
- - classic packaging
+Classic packaging.
 ```bash
 make package-fedora-22-build
 ```
@@ -76,7 +76,7 @@ make package-debian-jessie-build
  - Extensive and fully automated multi-platform tests (using Docker)
 
 # Status
-Currently, it is already used at Seznam.cz in production code with great results.
+Currently, it is already used at *Seznam.cz* in production code with great results.
 
 The library is thoroughly tested and all tests are fully automated.
 
