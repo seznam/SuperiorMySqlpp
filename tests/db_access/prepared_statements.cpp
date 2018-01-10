@@ -534,7 +534,7 @@ go_bandit([](){
 
         it("can detect truncation errors", [&](){
             auto preparedStatement = connection.makePreparedStatement<ResultBindings<StringDataBase<0>>>(
-                "SELECT `data` FROM `test_superior_sqlpp`.`trucation_table`"
+                "SELECT `data` FROM `test_superior_sqlpp`.`truncation_table`"
             );
             preparedStatement.execute();
             AssertThrows(MysqlDataTruncatedError, preparedStatement.fetch());
@@ -544,7 +544,7 @@ go_bandit([](){
             // 1. method - store result and allocate buffers before fetch
             {
                 auto preparedStatement = connection.makePreparedStatement<ResultBindings<StringDataBase<10>>>(
-                    "SELECT `data` FROM `test_superior_sqlpp`.`trucation_table`"
+                    "SELECT `data` FROM `test_superior_sqlpp`.`truncation_table`"
                 );
                 preparedStatement.setUpdateMaxLengthOnStore(true);
                 AssertThat(preparedStatement.getUpdateMaxLengthOnStore(), IsTrue());
