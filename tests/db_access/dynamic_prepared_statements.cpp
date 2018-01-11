@@ -148,6 +148,7 @@ go_bandit([](){
             int count = 0;
             while (preparedStatement.fetch())
             {
+                AssertThat(sname.isValid(), IsTrue());
                 auto name = sname->getString();
 
                 AssertThat(id, Equals(12));
