@@ -17,6 +17,9 @@ libsuperiormysqlpp (0.3.3) UNRELEASED; urgency=medium
   [ Michal Merc ]
   * fix: crash when destructing moved DBDriver
 
+  [ Peter Opatril ]
+  * Avoid calling memcpy for zero sized ArrayBase.
+
  -- Adam Stepan <adam.stepan@firma.seznam.cz>  Thu, 16 Aug 2018 09:09:37 +0200
 
 libsuperiormysqlpp (0.3.2) unstable; urgency=medium
