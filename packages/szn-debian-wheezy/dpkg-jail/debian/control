@@ -7,7 +7,7 @@ Build-Depends: debhelper(>=7),
                docker-engine,
                libmysqlclient-dev,
                mysql-client,
-               libboost-system-dev
+               libboost-system-dev(>=1.49.0)
 Standards-Version: 3.7.2
 
 Package: libsuperiormysqlpp-dev

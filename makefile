@@ -20,6 +20,8 @@ INSTALL :=install
 INSTALL_LIB =$(INSTALL) -m 644
 INSTALL_INCLUDE =$(INSTALL) -m 644
 
+# Test for presence of boost_system. Currently, only actually needed part is Asio
+# that is used in extended tests and this seems to be reasonably efficient way to detect it.
 BOOST_LIB_PATHS = $(shell /sbin/ldconfig -p | grep 'libboost_system')
 ifneq ($(BOOST_LIB_PATHS),)
 	HAVE_BOOST_SYSTEM = 1
