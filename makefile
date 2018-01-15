@@ -20,10 +20,18 @@ INSTALL :=install
 INSTALL_LIB =$(INSTALL) -m 644
 INSTALL_INCLUDE =$(INSTALL) -m 644
 
+# Test for presence of boost_system. Currently, only actually needed part is Asio
+# that is used in extended tests and this seems to be reasonably efficient way to detect it.
+BOOST_LIB_PATHS = $(shell /sbin/ldconfig -p | grep 'libboost_system')
+ifneq ($(BOOST_LIB_PATHS),)
+	HAVE_BOOST_SYSTEM = 1
+else
+	HAVE_BOOST_SYSTEM = 0
+endif
 
-.PHONY: _print-variables test install clean clean-all packages-clean packages-clean-all packages-build packages-dbuild
+.PHONY: _print-variables test test-basic test-extended install clean clean-all packages-clean packages-clean-all packages-build packages-dbuild
 .PHONY: package-tar.gz package-tar.xz
-
+.NOTPARALLEL: test
 
 collapse-slashes =$(if $(findstring //,$1),$(call collapse-slashes,$(subst //,/,$1)),$(subst //,/,$1))
 list-directories =$(filter-out $(call collapse-slashes,$(dir $1/)),$(dir $(wildcard $(call collapse-slashes,$1/*/))))
@@ -53,10 +61,18 @@ _print-variables:
 	mkdir -p $@
 
 
-test:
+test-basic:
 	+$(MAKE) -C ./tests/ test
+test-extended:
+ifeq ($(HAVE_BOOST_SYSTEM),1)
+	+$(MAKE) -C ./tests-extended/ test
+else
+	$(error Extended tests skipped - Boost (libboost_system) is required and wasn't detected)
+endif
 
+test: test-basic test-extended
 
+	
 libsuperiormysqlpp.pc: libsuperiormysqlpp.pc.in makefile
 	sed \
          -e 's,@VERSION@,$(VERSION),' \
