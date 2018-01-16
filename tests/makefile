@@ -23,9 +23,6 @@ endif
 CXXFLAGS += -std=c++14
 CXXFLAGS += -pedantic-errors
 CXXFLAGS += -Wall -Wextra -Wswitch-enum -Wnarrowing
-ifeq ($(HAVE_CLANG),1)
-    CXXFLAGS += -DHAVE_CLANG
-endif
 CXXFLAGS += -Werror
 CXXFLAGS += -fPIC
 CXXFLAGS += -fsanitize=address
@@ -35,7 +32,6 @@ CXXFLAGS += -fsanitize=undefined
 CXXFLAGS += -g3
 CXXFLAGS += -I../include/
 CXXFLAGS += -I../third_party/bandit/
-CXXFLAGS += -DDEBUG
 CXXFLAGS += -O0
 CXXFLAGS += $(CXXEF)
 
