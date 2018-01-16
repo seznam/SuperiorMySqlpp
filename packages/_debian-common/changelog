@@ -5,6 +5,7 @@ libsuperiormysqlpp (0.3.1) UNRELEASED; urgency=medium
   * noexcept Statement::close will not throw MysqlInternalError anymore,
     error message is logged and std::terminate is called instead
   * Remove -Wabi-tag from CXXFLAGS, see README.md for more details
+  * Debian Stretch packaging support
 
   [ Peter Opatril ]
   * Fix incorrect Clang detection in test makefile

@@ -2,7 +2,7 @@ Source: libsuperiormysqlpp
 Section: unknown
 Priority: extra
 Maintainer: Tomas Nozicka, Seznam.cz
-Build-Depends: debhelper(>=7),
+Build-Depends: debhelper(>=9),
                g++(>=4.9.2),
                docker.io,
                libmysqlclient-dev,

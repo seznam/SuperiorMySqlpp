@@ -7,7 +7,6 @@ Modern C++ wrapper for MySQL C API
 
 # Installation
 
-
 ## Requirements
  - C++14 compatible compiler (tested GCC>=4.9)
  - MySQL C API dev (libmysqlclient-dev)
@@ -39,6 +38,7 @@ make -j32 DESTDIR=/usr/local/ install
 
 # Packages
 We support several packages to be build by default:
+ - Debian Stretch
  - Debian Jessie
  - Fedora 22
 
@@ -46,20 +46,26 @@ We support several packages to be build by default:
 This can build packages in completely clean environment using docker.
 You might want to lower the `CONCURRENCY` in case you run out of memory.
 ```bash
-make CONCURRENCY=32 package-fedora-22-dbuild
+make CONCURRENCY=32 package-debian-stretch-dbuild
 ```
 ```bash
 make CONCURRENCY=32 package-debian-jessie-dbuild
 ```
+```bash
+make CONCURRENCY=32 package-fedora-22-dbuild
+```
+
 ## build
 Classic packaging.
 ```bash
-make package-fedora-22-build
+make package-debian-stretch-build
 ```
 ```bash
 make package-debian-jessie-build
 ```
-
+```bash
+make package-fedora-22-build
+```
 
 
 # Features
@@ -75,6 +81,7 @@ make package-debian-jessie-build
     - DNS change checking
  - Extensive and fully automated multi-platform tests (using Docker)
 
+
 # Status
 Currently, it is already used at *Seznam.cz* in production code with great results.
 
@@ -85,6 +92,7 @@ In future we are going to add more examples and documentation.
 Please help us out by reporting bugs. (https://github.com/seznam/SuperiorMySqlpp/issues)
 
 We appreciate your feedback!
+
 
 # Preview
 Until we create proper examples, you can see all functionality in action by looking at our tests (https://github.com/seznam/SuperiorMySqlpp/tree/master/tests).
@@ -170,6 +178,7 @@ do {} while (query.nextResult());
 Prepared statements **by default automatically check bound types and query metadata** and issue warnings or exceptions if you bound any incompatible types. All C API prepared statements variables types are supported and bindings are set using C++ type system.
 
 These are in fact relatively simple examples. There are a lot of configurations for prepared statement including how strictly do you want to check metadata, allowing some types of implicit conversion and so on.
+
 ### Param bindings
 ```c++
 // type of prepared statements parameters is deduced automatically from arguments
@@ -295,6 +304,7 @@ class MyLogger final : public Loggers::Base
 auto&& logger = std::make_shared<MyLogger>();
 DefaultLogger::setLoggerPtr(std::move(logger));
 ```
+
 
 # Current issues
 There are problems caused by MySQL C API's bad design which are solved by https://github.com/seznam/SuperiorMySqlpp/blob/master/include/superior_mysqlpp/low_level/mysql_hacks.hpp. This is causing problems with MariaDB which stripped down some symbols from their shared object that we use to fix this bug. (https://github.com/seznam/SuperiorMySqlpp/issues/2)

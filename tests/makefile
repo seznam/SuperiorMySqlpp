@@ -36,7 +36,6 @@ CXXFLAGS += -g3
 CXXFLAGS += -I../include/
 CXXFLAGS += -I../third_party/bandit/
 CXXFLAGS += -DDEBUG
-#CXXFLAGS += -O3 -flto -Werror
 CXXFLAGS += -O0
 CXXFLAGS += $(CXXEF)
 
