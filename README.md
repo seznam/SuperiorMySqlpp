@@ -11,7 +11,6 @@ Modern C++ wrapper for MySQL C API
  - C++14 compatible compiler (tested GCC>=4.9)
  - MySQL C API dev (libmysqlclient-dev)
 
-
 ## Bootstrap
 We use git submodules for our dependencies and git requires you to initialize them manually.
 ```bash
@@ -35,6 +34,7 @@ make -j32 test CXX=/opt/szn/bin/g++ CXXEF=-Werror LDEF=-Wl,-rpath=/opt/szn/lib/g
 ```bash
 make -j32 DESTDIR=/usr/local/ install
 ```
+
 
 # Packages
 We support several packages to be build by default:
@@ -122,7 +122,6 @@ connectionPool.startHealthCareJob();  // optional
 
 connectionSharedPtr = connectionPool.get();
 ```
-
 
 ## Queries
 ### Simple result
@@ -322,3 +321,11 @@ ABI tag incompatibility is transitive to descendants -- that means when you buil
 
 Notably, our internet research seem to suggest that this issue (linking code built with old and new ABI) is almost never occurring in practice, as all packages for given OS are by convention built with the same version.
 Judging from the relative lack of related problems, tutorials or general discussion about this topic, `-Wabi-tag` seems to be generally unused by now.
+
+## MariaDB compatibility
+MariaDB connector/C 10.2 upwards can be used instead of MySQL connector/C.
+
+Older versions are not supported due to some issues, for instance:
+- memory leaks when ConnectionPool is used and cannot be handled by `mysql_hacks.hpp` because missing symbols
+- missing `MARIADB_VERSION_ID` -- we are not able detect whether MariaDB is used
+- failing truncation detection test (depending on used version)

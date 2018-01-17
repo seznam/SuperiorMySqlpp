@@ -26,6 +26,13 @@
 #include <superior_mysqlpp/low_level/mysql_hacks.hpp>
 
 
+// MariaDB connector/C is supported since version 10.2.
+// MARIADB_VERSION_ID doesn't exist in older versions, MARIADB_PACKAGE_VERSION is used to detect MariaDB presence instead.
+#if defined(MARIADB_PACKAGE_VERSION) && (!defined(MARIADB_VERSION_ID) || MARIADB_VERSION_ID < 100200)
+    #error Older versions of MariaDB connector/C are not supported upto version 10.2 (see README.md for details).
+#endif
+
+
 namespace SuperiorMySqlpp { namespace LowLevel
 {
     namespace detail
