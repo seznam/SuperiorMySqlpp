@@ -12,6 +12,9 @@
 
 namespace SuperiorMySqlpp
 {
+    /**
+     * Base class for all array based SQL types
+     */
     template<std::size_t N>
     class ArrayBase
     {
