@@ -16,52 +16,82 @@ namespace SuperiorMySqlpp
 {
     namespace detail
     {
+        /**
+         * Mapping of native C++ types to fitting MySQL field type.
+         * @return FieldType enumeration of matching type.
+         * @remark This code is not completely portable - SQL types have exact size, C++ ones are architecture dependent.
+         */
         template<typename T>
         inline constexpr FieldTypes getBindingType() = delete;
 
+        /**
+         * @remark Specialization for signed char, see generic version.
+         */
         template<>
         inline constexpr FieldTypes getBindingType<signed char>()
         {
             return FieldTypes::Tiny;
         }
 
+        /**
+         * @remark Specialization for short, see generic version.
+         */
         template<>
         inline constexpr FieldTypes getBindingType<short int>()
         {
             return FieldTypes::Short;
         }
 
+        /**
+         * @remark Specialization for int, see generic version.
+         */
         template<>
         inline constexpr FieldTypes getBindingType<int>()
         {
             return FieldTypes::Long;
         }
 
+        /**
+         * @remark Specialization for long int, see generic version.
+         */
         template<>
         inline constexpr FieldTypes getBindingType<long int>()
         {
             return FieldTypes::LongLong;
         }
 
+        /**
+         * @remark Specialization for long long, see generic version.
+         */
         template<>
         inline constexpr FieldTypes getBindingType<long long int>()
         {
             return FieldTypes::LongLong;
         }
 
+        /**
+         * @remark Specialization for float, see generic version.
+         */
         template<>
         inline constexpr FieldTypes getBindingType<float>()
         {
             return FieldTypes::Float;
         }
 
+        /**
+         * @remark Specialization for double, see generic version.
+         */
         template<>
         inline constexpr FieldTypes getBindingType<double>()
         {
             return FieldTypes::Double;
         }
 
-
+        /**
+         * Returns name of given field type.
+         * @param fieldType Enumeration of type #FieldTypes.
+         * @return C string of stringified field type.
+         */
         inline const char* getBindingTypeName(FieldTypes fieldType)
         {
             switch (fieldType)
@@ -146,6 +176,10 @@ namespace SuperiorMySqlpp
             }
         }
 
+        /**
+         * Returns name of given field type including the signedness.
+         * @return C string of stringified field type.
+         */
         inline const char* getBindingTypeFullName(FieldTypes fieldType, bool isUnsigned)
         {
             switch (fieldType)
