@@ -19,52 +19,43 @@ namespace SuperiorMySqlpp
         /**
          * Mapping of native C++ types to fitting MySQL field type.
          * @return FieldType enumeration of matching type.
-         * @remark This code is not completely portable - SQL types have exact size, C++ ones are architecture dependent.
+         * Specializations for various matching arithmetic types exist.
          */
         template<typename T>
         inline constexpr FieldTypes getBindingType() = delete;
 
         /**
-         * @remark Specialization for signed char, see generic version.
+         * @remark Specialization for int8_t, see generic version.
          */
         template<>
-        inline constexpr FieldTypes getBindingType<signed char>()
+        inline constexpr FieldTypes getBindingType<int8_t>()
         {
             return FieldTypes::Tiny;
         }
 
         /**
-         * @remark Specialization for short, see generic version.
+         * @remark Specialization for int16_t, see generic version.
          */
         template<>
-        inline constexpr FieldTypes getBindingType<short int>()
+        inline constexpr FieldTypes getBindingType<int16_t>()
         {
             return FieldTypes::Short;
         }
 
         /**
-         * @remark Specialization for int, see generic version.
+         * @remark Specialization for int32_t, see generic version.
          */
         template<>
-        inline constexpr FieldTypes getBindingType<int>()
+        inline constexpr FieldTypes getBindingType<int32_t>()
         {
             return FieldTypes::Long;
         }
 
         /**
-         * @remark Specialization for long int, see generic version.
+         * @remark Specialization for int64_t, see generic version.
          */
         template<>
-        inline constexpr FieldTypes getBindingType<long int>()
-        {
-            return FieldTypes::LongLong;
-        }
-
-        /**
-         * @remark Specialization for long long, see generic version.
-         */
-        template<>
-        inline constexpr FieldTypes getBindingType<long long int>()
+        inline constexpr FieldTypes getBindingType<int64_t>()
         {
             return FieldTypes::LongLong;
         }

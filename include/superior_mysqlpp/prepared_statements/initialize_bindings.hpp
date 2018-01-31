@@ -11,6 +11,7 @@
 #include <superior_mysqlpp/types/string_data.hpp>
 #include <superior_mysqlpp/types/decimal_data.hpp>
 #include <superior_mysqlpp/types/nullable.hpp>
+#include <superior_mysqlpp/utils.hpp>
 
 namespace SuperiorMySqlpp
 {
@@ -60,7 +61,7 @@ namespace SuperiorMySqlpp
         constexpr inline std::enable_if_t<std::is_integral<T>::value>
         initializeParamBinding(MYSQL_BIND& binding, T& value)
         {
-            using PureType_t = std::decay_t<T>;
+            using PureType_t = to_fixed_width_int_t<std::decay_t<T>>;
             using Signed_t = std::make_signed_t<PureType_t>;
 
             binding.buffer = &value;
