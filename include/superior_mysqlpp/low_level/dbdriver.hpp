@@ -580,7 +580,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
              *
              * @return The current offset of the row cursor.
              */
-            auto tellRowOffset() noexcept
+            MYSQL_ROW_OFFSET tellRowOffset() noexcept
             {
                 return mysql_row_tell(resultPtr);
             }
@@ -1512,7 +1512,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
              *
              * @return The current offset of the row cursor.
              */
-            auto tellRowOffset() noexcept
+            MYSQL_ROW_OFFSET tellRowOffset() noexcept
             {
                 return mysql_stmt_row_tell(statementPtr);
             }
