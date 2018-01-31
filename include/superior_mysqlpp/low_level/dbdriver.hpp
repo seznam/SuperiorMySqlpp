@@ -104,9 +104,6 @@ namespace SuperiorMySqlpp { namespace LowLevel
         MYSQL mysql;
         /** Logger instance pointer. */
         Loggers::SharedPointer_t loggerPtr;
-
-        using size_t = unsigned long long;
-
     private:
         /**
          * Internal thread-safe ID counter.
@@ -203,6 +200,11 @@ namespace SuperiorMySqlpp { namespace LowLevel
 
         DBDriver& operator=(DBDriver&&) = delete;
 
+        /**
+         * Type for indexing rows.
+         * Underlying type inferred from usage in C MySQL client.
+         */
+        using RowIndex = unsigned long long;
 
         /**
          * Returns current logger instance.
@@ -533,7 +535,6 @@ namespace SuperiorMySqlpp { namespace LowLevel
                 freeResult();
             }
 
-
             /**
              * Seeks to an arbitrary row in a query result set.
              * @see https://dev.mysql.com/doc/refman/5.7/en/mysql-data-seek.html
@@ -541,7 +542,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
              *
              * @param index Row number in a result set.
              */
-            void seekRow(size_t index) noexcept
+            void seekRow(SuperiorMySqlpp::LowLevel::DBDriver::RowIndex index) noexcept
             {
                 mysql_data_seek(resultPtr, index);
             }
@@ -1466,7 +1467,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
              *
              * @param index Row number in a result set.
              */
-            void seekRow(size_t index) noexcept
+            void seekRow(RowIndex index) noexcept
             {
                 mysql_stmt_data_seek(statementPtr, index);
             }
