@@ -74,12 +74,8 @@ namespace SuperiorMySqlpp
             /**
              * Seeks to an arbitrary row in a statement result set.
              * @param index Row number of seeked target.
-             * @remark This function is templated, however single implementation
-             *        with std::size_t would suffice.
-             * EDIT: Reason why this function is templated is because private DBDriver::size_t is actually used.
              */
-            template<typename T>
-            void seekRow(T index)
+            void seekRow(LowLevel::DBDriver::RowIndex_t index)
             {
                 statement.seekRow(index);
             }
