@@ -265,11 +265,20 @@ namespace SuperiorMySqlpp
                 return ok;
             }
 
-            bool fetchColumn()
+        protected:
+            /**
+             * Fetches single column from current row
+             * @remark Note that the current row must be already fetched and successive calls with same
+             *         row (without calling another fetch()) do not change the result.
+             * @param binding Pointer to sigle binding structure describing storage of result.
+             * @param column Index of selected column.
+             * @param offset Columns can be fetched in chunks. Offset is the offset within the data value
+             *               at which to begin retrieving data.
+             */
+            void fetchColumn(MYSQL_BIND* binding, unsigned int column, unsigned long offset)
             {
-                this->statement.fetchColumn();
+                this->statement.fetchColumn(binding, column, offset);
                 engageNullables();
-                return true;
             }
 
         public:

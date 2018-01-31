@@ -874,7 +874,8 @@ namespace SuperiorMySqlpp { namespace LowLevel
             {
                 if (mysql_stmt_fetch_column(statementPtr, bindings, column, offset))
                 {
-                    throw MysqlInternalError("Failed to fetch statement's column! Invalid column number!");
+                    throw MysqlInternalError("Failed to fetch statement's column!",
+                        mysql_stmt_error(statementPtr), mysql_stmt_errno(statementPtr));
                 }
             }
 
