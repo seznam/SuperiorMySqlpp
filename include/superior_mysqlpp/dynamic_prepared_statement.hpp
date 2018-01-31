@@ -148,6 +148,15 @@ namespace SuperiorMySqlpp
             this->nullableBindings.clear();
         }
 
+        void fetchColumn(unsigned int column, unsigned long offset = 0)
+        {
+            if (column >= resultBindings.size())
+            {
+                throw OutOfRange("Result column index " + std::to_string(column) + " >= bindings size " + std::to_string(resultBindings.size()));
+            }
+            fetchColumn(&resultBindings[column], column, offset);
+        }
+
         bool nextResult()
         {
             this->statement.freeResult();
