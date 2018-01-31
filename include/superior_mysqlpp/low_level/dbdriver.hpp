@@ -381,7 +381,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
                 return mysql_num_rows(resultPtr);
             }
 
-            auto tellRowOffset()
+            MYSQL_ROW_OFFSET tellRowOffset()
             {
                 return mysql_row_tell(resultPtr);
             }
@@ -918,7 +918,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
                 mysql_stmt_row_seek(statementPtr, offset);
             }
 
-            auto tellRowOffset()
+            MYSQL_ROW_OFFSET tellRowOffset()
             {
                 return mysql_stmt_row_tell(statementPtr);
             }

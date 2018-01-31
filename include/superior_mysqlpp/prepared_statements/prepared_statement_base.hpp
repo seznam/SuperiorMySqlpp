@@ -94,7 +94,11 @@ namespace SuperiorMySqlpp
                 statement.seekRowOffset(offset);
             }
 
-            auto tellRowOffset()
+            /**
+             * Returns MYSQL_ROW_OFFSET for current row.
+             * @return MYSQL_ROW_OFFSET pointing to current row.
+             */
+            MYSQL_ROW_OFFSET tellRowOffset()
             {
                 return statement.tellRowOffset();
             }
