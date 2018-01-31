@@ -1273,7 +1273,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
                 if (resultPtr == nullptr)
                 {
                     throw MysqlInternalError("Could not get result statement metadata!",
-                        mysql_error(resultPtr->handle), mysql_errno(resultPtr->handle));
+                        mysql_stmt_error(statementPtr), mysql_stmt_errno(statementPtr));
                 }
                 return Result{resultPtr};
             }
