@@ -221,11 +221,7 @@ namespace SuperiorMySqlpp
              */
             const ResultMetadata& getResultMetadata()
             {
-                if (!resultMetadata)
-                {
-                    resultMetadata.emplace(std::move(this->statement.resultMetadata()));
-                }
-                return *resultMetadata;
+                return getModifiableResultMetadata();
             }
 
             /**
@@ -235,7 +231,11 @@ namespace SuperiorMySqlpp
              */
             ResultMetadata& getModifiableResultMetadata()
             {
-                return const_cast<ResultMetadata&>(getResultMetadata());
+                if (!resultMetadata)
+                {
+                    resultMetadata.emplace(std::move(this->statement.resultMetadata()));
+                }
+                return *resultMetadata;
             }
 
             auto fetchWithStatus()
