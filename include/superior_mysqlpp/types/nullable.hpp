@@ -371,7 +371,7 @@ public:
         if (engaged && other.engaged)
         {
             ::std::swap(payload, other.payload);
-            ::std::swap(null, null);
+            ::std::swap(null, other.null);
         }
         else if (engaged)
         {
