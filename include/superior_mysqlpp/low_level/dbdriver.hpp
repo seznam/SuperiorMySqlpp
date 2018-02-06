@@ -1471,9 +1471,9 @@ namespace SuperiorMySqlpp { namespace LowLevel
                 }
             }
 
-            auto sendLongData(unsigned int paramNumber, const std::string& data)
+            void sendLongData(unsigned int paramNumber, const std::string& data)
             {
-                return sendLongData(paramNumber, data.c_str(), data.length());
+                sendLongData(paramNumber, data.c_str(), data.length());
             }
 
             std::string sqlState()
