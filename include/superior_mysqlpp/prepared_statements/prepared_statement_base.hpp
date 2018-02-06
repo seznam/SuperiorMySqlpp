@@ -294,12 +294,10 @@ namespace SuperiorMySqlpp
              * @param paramNumber Index of given parameter.
              * @param data C style string.
              * @param length Lenght of  data in bytes.
-             * @return void
-             * !!!!! Should return void, this form is misleading.
              */
-            auto sendLongData(unsigned int paramNumber, const char* data, unsigned long length)
+            void sendLongData(unsigned int paramNumber, const char* data, unsigned long length)
             {
-                return this->statement.sendLongData(paramNumber, data, length);
+                this->statement.sendLongData(paramNumber, data, length);
             }
 
             /**
@@ -308,12 +306,10 @@ namespace SuperiorMySqlpp
              * @param paramNumber Index of given parameter.
              * @param data String containing the new data.
              * @param length Lenght of data in bytes.
-             * @return void
-             * !!!!! Should return void, this form is misleading.
              */
-            auto sendLongData(unsigned int paramNumber, const std::string& data)
+            void sendLongData(unsigned int paramNumber, const std::string& data)
             {
-                return this->statement.sendLongData(paramNumber, data);
+                this->statement.sendLongData(paramNumber, data);
             }
 
             /**
