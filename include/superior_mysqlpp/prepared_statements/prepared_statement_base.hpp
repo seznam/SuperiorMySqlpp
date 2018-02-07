@@ -374,8 +374,6 @@ namespace SuperiorMySqlpp
             template<typename ResultBindings>
             void validateResultMetadata(const ResultBindings& resultBindings)
             {
-                using namespace std::string_literals;
-                using std::to_string;
                 using std::begin;
                 using std::end;
 
