@@ -238,7 +238,13 @@ namespace SuperiorMySqlpp
                 return const_cast<ResultMetadata&>(getResultMetadata());
             }
 
-            auto fetchWithStatus()
+            /**
+             * Perform fetch of next row of result set, returning status.
+             * Truncation is not an error.
+             * @return enum #FetchStatus - contains results of mysql_stmt_fetch except
+             *                            error ones - those are thrown.
+             */
+            LowLevel::DBDriver::Statement::FetchStatus fetchWithStatus()
             {
                 auto status = this->statement.fetchWithStatus();
 
