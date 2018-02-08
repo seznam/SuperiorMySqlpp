@@ -181,15 +181,6 @@ namespace SuperiorMySqlpp
             std::vector<detail::NullableBase*> nullableBindings;
 
         public:
-            /**
-             * Appears unused, probably can be removed.
-             * Is defined exactly like (private) DBDriver::size_t, so
-             * it was presumably added for similiar purpose.
-             * !!!!!
-             */
-            using size_t = unsigned long long;
-
-        public:
             using StoreOrUseResultBase<storeResult>::StoreOrUseResultBase;
 
         private:
