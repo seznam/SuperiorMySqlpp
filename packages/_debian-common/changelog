@@ -1,4 +1,4 @@
-libsuperiormysqlpp (0.3.1) UNRELEASED; urgency=medium
+libsuperiormysqlpp (0.3.1) unstable; urgency=medium
 
   [ Radek Smejdir ]
   * Fix ostream operator for null values in Row
@@ -16,7 +16,7 @@ libsuperiormysqlpp (0.3.1) UNRELEASED; urgency=medium
   * Add a way to run extended tests from primary makefile, make them run by default
   * Add Boost as a suggestion for all packages, run extended tests during package creation
 
- -- Daniel Pernis <daniel.pernis@firma.seznam.cz>  Thu, 06 Apr 2017 16:44:52 +0200
+ -- Michal Fizek <michal.fizek@firma.seznam.cz>  Mon, 12 Feb 2018 12:19:15 +0100
 
 libsuperiormysqlpp (0.3.0) unstable; urgency=medium
 
