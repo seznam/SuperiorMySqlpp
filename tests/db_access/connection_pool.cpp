@@ -31,7 +31,6 @@ go_bandit([](){
     using namespace std::chrono_literals;
 
     describe("Test connection pool", [&](){
-        auto additionalTimeout = 10ms;
         auto& s = getSettingsRef();
 
         it("can clear pool properly", [&](){
@@ -51,6 +50,7 @@ go_bandit([](){
 
             {
                 auto&& item = connectionPool.get();
+                static_cast<void>(item);
                 poolState = connectionPool.poolState();
                 AssertThat(poolState.size, Equals(1U));
                 AssertThat(poolState.available, Equals(0U));
@@ -77,6 +77,8 @@ go_bandit([](){
             {
                 auto&& item1 = connectionPool.get();
                 auto&& item2 = connectionPool.get();
+                static_cast<void>(item1);
+                static_cast<void>(item2);
                 poolState = connectionPool.poolState();
                 AssertThat(poolState.size, Equals(2U));
                 AssertThat(poolState.available, Equals(0U));
@@ -144,7 +146,6 @@ go_bandit([](){
             auto connectionPool = makeConnectionPool([&](){
                 return std::async(std::launch::async, [&](){ return std::make_shared<Connection>(s.database, s.user, s.password, s.host, s.port); });
             });
-            auto reasonableTimeout = connectionPool.getResourceCountKeeperSleepTime() + additionalTimeout;
 
             connectionPool.setMinSpare(10);
             connectionPool.setMaxSpare(20);
@@ -206,7 +207,6 @@ go_bandit([](){
 
         it("has working keeper job", [&](){
             auto connectionPool = makeConnectionPool(makeSharedPtrConnection);
-            auto reasonableTimeout = connectionPool.getResourceCountKeeperSleepTime() + additionalTimeout;
 
             connectionPool.setMinSpare(1);
             connectionPool.setMaxSpare(2);

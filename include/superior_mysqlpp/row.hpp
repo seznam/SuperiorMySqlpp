@@ -68,7 +68,7 @@ namespace SuperiorMySqlpp
             return {mysqlRow, *this};
         }
 
-        const auto cbegin() const noexcept
+        auto cbegin() const noexcept
         {
             return begin();
         }
@@ -78,7 +78,7 @@ namespace SuperiorMySqlpp
             return {mysqlRow + fieldsCount, *this};
         }
 
-        const auto cend() const noexcept
+        auto cend() const noexcept
         {
             return end();
         }
@@ -104,12 +104,12 @@ namespace SuperiorMySqlpp
         {
             if (first)
             {
-                os << item;
+                os << item.getStringView();
                 first = false;
             }
             else
             {
-                os << ", " << item;
+                os << ", " << item.getStringView();
             }
         }
         os << "]";

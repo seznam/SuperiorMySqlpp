@@ -53,7 +53,7 @@ namespace SuperiorMySqlpp
             return stringData;
         }
 
-        const auto cbegin() const noexcept
+        auto cbegin() const noexcept
         {
             return begin();
         }
@@ -63,7 +63,7 @@ namespace SuperiorMySqlpp
             return stringData + stringLength;
         }
 
-        const auto cend() const noexcept
+        auto cend() const noexcept
         {
             return end();
         }

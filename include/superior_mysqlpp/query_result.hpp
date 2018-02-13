@@ -115,7 +115,7 @@ namespace SuperiorMySqlpp
                 }
                 else
                 {
-                    throw OutOfRange{"Column name \"" + columnName.to_string() + "\" not found!"};
+                    throw OutOfRange{"Column name \"" + std::string(columnName) + "\" not found!"};
                 }
             }
 

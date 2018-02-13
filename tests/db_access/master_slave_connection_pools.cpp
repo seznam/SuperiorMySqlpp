@@ -42,7 +42,7 @@ int count(const T& collection)
 }
 
 
-auto MySqlFactoryLambda = [&](){
+auto MySqlFactoryLambda = [](){
     return std::async(std::launch::async, [&](){
         return std::make_shared<SuperiorMySqlpp::Connection>(
         "databaseName",
@@ -57,7 +57,7 @@ class MySqlFactory
 {
 public:
     template<typename... Args>
-    MySqlFactory(Args&&... args)
+    MySqlFactory(Args&&...)
     {}
 
     MySqlFactory(const MySqlFactory&) = default;
@@ -72,7 +72,6 @@ public:
 
 go_bandit([](){
     describe("Test ms connection pools", [&](){
-        auto additionalTimeout = 10ms;
         auto& s = getSettingsRef();
 
         it("will instantiate", [&](){

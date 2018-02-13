@@ -1,3 +1,23 @@
+libsuperiormysqlpp (0.3.1) unstable; urgency=medium
+
+  [ Radek Smejdir ]
+  * Fix ostream operator for null values in Row
+  * noexcept Statement::close will not throw MysqlInternalError anymore,
+    error message is logged and std::terminate is called instead
+  * Remove -Wabi-tag from CXXFLAGS, see README.md for more details
+  * Debian Stretch packaging support
+  * Support for using MariaDB connector/C 10.2 upwards
+
+  [ Peter Opatril ]
+  * Fix incorrect Clang detection in test makefile
+  * Replace outdated std::string_view::to_string method with string constructor, because
+    mentioned method was removed by C++17 standard.
+  * Removed redundant zeroing memsets for std::vector, memsets for std::array made redundant by the use of initializer
+  * Add a way to run extended tests from primary makefile, make them run by default
+  * Add Boost as a suggestion for all packages, run extended tests during package creation
+
+ -- Michal Fizek <michal.fizek@firma.seznam.cz>  Mon, 12 Feb 2018 12:19:15 +0100
+
 libsuperiormysqlpp (0.3.0) unstable; urgency=medium
 
   * Make Transaction dtor noexcept(false) (commit query may throw an exception)

@@ -252,7 +252,7 @@ namespace SuperiorMySqlpp
             );
         }
 
-        const auto cbegin() const
+        auto cbegin() const
         {
             return makeConcatIterator(
                     &master, &master+1,
@@ -261,7 +261,7 @@ namespace SuperiorMySqlpp
             );
         }
 
-        const auto cend() const
+        auto cend() const
         {
             return makeConcatIterator(
                     &master, &master+1,
@@ -270,12 +270,12 @@ namespace SuperiorMySqlpp
             );
         }
 
-        const auto begin() const
+        auto begin() const
         {
             return cbegin();
         }
 
-        const auto end() const
+        auto end() const
         {
             return cend();
         }
@@ -309,22 +309,22 @@ namespace SuperiorMySqlpp
                 return makeSpecialIterator(parent.slaves.end(), mapSecondGetter);
             }
 
-            const auto cbegin() const
+            auto cbegin() const
             {
                 return makeSpecialIterator(parent.slaves.cbegin(), mapSecondGetter);
             }
 
-            const auto cend() const
+            auto cend() const
             {
                 return makeSpecialIterator(parent.slaves.cend(), mapSecondGetter);
             }
 
-            const auto begin() const
+            auto begin() const
             {
                 return cbegin();
             }
 
-            const auto end() const
+            auto end() const
             {
                 return cend();
             }

@@ -56,7 +56,7 @@ namespace SuperiorMySqlpp {
          */
 
         /*
-         * You are to choose to derive either from class Interface or class Empty
+         * You are to choose to derive either from class Interface or class Base
          * so you shall either implement all logging functions or only those you want.
          */
 
@@ -150,6 +150,7 @@ namespace SuperiorMySqlpp {
             virtual void logMySqlStmtMetadataNullableToNonNullableWarning(std::uint_fast64_t /*connectionId*/, std::uint_fast64_t /*id*/, std::size_t /*index*/) const noexcept = 0;
 
             virtual void logMySqlStmtClose(std::uint_fast64_t /*connectionId*/, std::uint_fast64_t /*id*/) const noexcept = 0;
+            virtual void logMySqlStmtCloseError(std::uint_fast64_t /*connectionId*/, std::uint_fast64_t /*id*/, const StringView& /*mysqlError*/) const noexcept = 0;
             virtual void logMySqlTransactionRollbackFailed(std::uint_fast64_t /*connectionId*/, std::exception&) const noexcept = 0;
             virtual void logMySqlTransactionRollbackFailed(std::uint_fast64_t /*connectionId*/) const noexcept = 0;
         };
@@ -226,9 +227,9 @@ namespace SuperiorMySqlpp {
             virtual void logMySqlClose(std::uint_fast64_t /*connectionId*/) const noexcept override {}
             virtual void logMySqlPing(std::uint_fast64_t /*connectionId*/) const noexcept override {}
             virtual void logMySqlQuery(std::uint_fast64_t /*connectionId*/, const StringView& /*query*/) const noexcept override {}
-            virtual void logMySqlStartTransaction(std::uint_fast64_t /*connectionId*/) const noexcept {};
-            virtual void logMySqlCommitTransaction(std::uint_fast64_t /*connectionId*/) const noexcept {};
-            virtual void logMySqlRollbackTransaction(std::uint_fast64_t /*connectionId*/) const noexcept {};
+            virtual void logMySqlStartTransaction(std::uint_fast64_t /*connectionId*/) const noexcept override {};
+            virtual void logMySqlCommitTransaction(std::uint_fast64_t /*connectionId*/) const noexcept override {};
+            virtual void logMySqlRollbackTransaction(std::uint_fast64_t /*connectionId*/) const noexcept override {};
             virtual void logMySqlStmtPrepare(std::uint_fast64_t /*connectionId*/, std::uint_fast64_t /*id*/, const StringView& /*query*/) const noexcept override {}
             virtual void logMySqlStmtExecute(std::uint_fast64_t /*connectionId*/, std::uint_fast64_t /*id*/) const noexcept override {}
             virtual void logMySqlStmtMetadataWarning(
@@ -244,6 +245,7 @@ namespace SuperiorMySqlpp {
             virtual void logMySqlStmtMetadataNullableToNonNullableWarning(std::uint_fast64_t /*connectionId*/, std::uint_fast64_t /*id*/, std::size_t /*index*/) const noexcept override {}
 
             virtual void logMySqlStmtClose(std::uint_fast64_t /*connectionId*/, std::uint_fast64_t /*id*/) const noexcept override {}
+            virtual void logMySqlStmtCloseError(std::uint_fast64_t /*connectionId*/, std::uint_fast64_t /*id*/, const StringView& /*mysqlError*/) const noexcept override {}
             virtual void logMySqlTransactionRollbackFailed(std::uint_fast64_t /*connectionId*/, std::exception&) const noexcept override {}
             virtual void logMySqlTransactionRollbackFailed(std::uint_fast64_t /*connectionId*/) const noexcept override {}
         };
@@ -283,7 +285,7 @@ namespace SuperiorMySqlpp {
                     std::uint_fast64_t connectionId,
                     std::uint_fast64_t id,
                     std::size_t index
-            ) const noexcept
+            ) const noexcept override
             {
                 std::cerr << stringify("Connection [", connectionId, "]: PS [", id, "]: ")
                     << "Result types at index " << index << " don't match!\n"
@@ -395,6 +397,12 @@ namespace SuperiorMySqlpp {
             {
                 SpinGuard guard{lock};
                 std::cerr << stringify("Connection [", connectionId, "]: PS [", id, "]: Closing.\n") << std::flush;
+            }
+
+            virtual void logMySqlStmtCloseError(std::uint_fast64_t connectionId, std::uint_fast64_t id, const StringView& mysqlError) const noexcept override
+            {
+                SpinGuard guard{lock};
+                std::cerr << stringify("Connection [", connectionId, "]: PS [", id, "]: Closing statement failed with error:\n", mysqlError) << std::flush;
             }
 
             virtual void logMySqlTransactionRollbackFailed(std::uint_fast64_t connectionId, std::exception& e) const noexcept override

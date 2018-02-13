@@ -1,4 +1,4 @@
-FROM docker.dev/szn-wheezy:stable-build
+FROM docker.dev/dbuilder:debian-wheezy-stable-build
 MAINTAINER Seznam.cz a.s.
 
 ENV CONCURRENCY=32

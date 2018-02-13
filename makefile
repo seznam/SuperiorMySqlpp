@@ -7,7 +7,7 @@ include ./common.mk
 # if set then must end with '/'
 DESTDIR :=
 
-VERSION :=0.0.8
+VERSION := 0.3.1
 version_numbers :=$(subst ., ,$(VERSION))
 version_major :=$(word 1,$(version_numbers))
 
@@ -20,9 +20,18 @@ INSTALL :=install
 INSTALL_LIB =$(INSTALL) -m 644
 INSTALL_INCLUDE =$(INSTALL) -m 644
 
+# Test for presence of boost_system. Currently, only actually needed part is Asio
+# that is used in extended tests and this seems to be reasonably efficient way to detect it.
+BOOST_LIB_PATHS = $(shell /sbin/ldconfig -p | grep 'libboost_system')
+ifneq ($(BOOST_LIB_PATHS),)
+	HAVE_BOOST_SYSTEM = 1
+else
+	HAVE_BOOST_SYSTEM = 0
+endif
 
-.PHONY: _print-variables test install clean clean-all packages-clean packages-clean-all packages-build packages-dbuild
-
+.PHONY: _print-variables test test-basic test-extended install clean clean-all packages-clean packages-clean-all packages-build packages-dbuild
+.PHONY: package-tar.gz package-tar.xz
+.NOTPARALLEL: test
 
 collapse-slashes =$(if $(findstring //,$1),$(call collapse-slashes,$(subst //,/,$1)),$(subst //,/,$1))
 list-directories =$(filter-out $(call collapse-slashes,$(dir $1/)),$(dir $(wildcard $(call collapse-slashes,$1/*/))))
@@ -52,10 +61,18 @@ _print-variables:
 	mkdir -p $@
 
 
-test:
+test-basic:
 	+$(MAKE) -C ./tests/ test
+test-extended:
+ifeq ($(HAVE_BOOST_SYSTEM),1)
+	+$(MAKE) -C ./tests-extended/ test
+else
+	$(error Extended tests skipped - Boost (libboost_system) is required and wasn't detected)
+endif
 
+test: test-basic test-extended
 
+	
 libsuperiormysqlpp.pc: libsuperiormysqlpp.pc.in makefile
 	sed \
          -e 's,@VERSION@,$(VERSION),' \
@@ -81,17 +98,17 @@ clean:
 clean-all: clean packages-clean-all
 
 
-deb_packages :=szn-debian-wheezy debian-jessie
-rpm_packages :=fedora-22
-packages :=$(rpm_packages) $(deb_packages)
+deb_packages := debian-stretch debian-jessie szn-debian-wheezy
+rpm_packages := fedora-22
+packages := $(deb_packages) $(rpm_packages)
 
 define deb-package
 package-$1-build:
 	+cd packages/$1/dpkg-jail/ && dpkg-buildpackage -j$(CONCURRENCY) -B -us -uc
-	
+
 package-$1-build-install-dependencies:
-	cd packages/$1/dpkg-jail/ && mk-build-deps -i -r -t 'apt-get -f -y --force-yes'
-	
+	cd packages/$1/dpkg-jail/ && mk-build-deps -i -r -t 'apt-get -f -y'
+
 package-$1-clean:
 	+$(if $(shell which dh_clean 2>&1 2>/dev/null),cd packages/$1/dpkg-jail/ && dh_clean,)
 
@@ -101,7 +118,6 @@ package-$1-clean-packages:
 package-$1-clean-all: package-$1-clean package-$1-clean-packages
 
 .PHONY: package-$1-build package-$1-build-install-dependencies package-$1-dbuild package-$1-clean package-$1-clean-packages package-$1-clean-all
-.PHONY: package-tar.gz package-tar.xz
 
 endef
 $(eval $(foreach package,$(deb_packages),$(call deb-package,$(package))))
@@ -114,16 +130,16 @@ package-$1-build:
         --define "_topdir $(abspath ./)" \
         --define "_builddir $(abspath ./)" \
         --define "_buildrootdir $(abspath ./)/packages/$1/rpmbuild/" \
-        --define "_sourcedir $(abspath ./)" 
+        --define "_sourcedir $(abspath ./)" \
         --define "_rpmdir $(abspath ./)/packages/$1/" \
         --define "_smp_mflags -j$(CONCURRENCY)" \
         --define "_srcrpmdir $(abspath ./)/packages/$1/" \
         --define "_specdir $(abspath ./)/packages/$1/" \
 	*.spec)
-	
+
 package-$1-build-install-dependencies:
 	cd packages/$1/ && dnf builddep -y *.spec
-	
+
 package-$1-clean:
 	$(RM) -R $(abspath ./)/packages/$1/rpmbuild/
 
@@ -142,10 +158,11 @@ ifneq "$(CONCURRENCY)" ""
 docker_run_concurrency :=-e "CONCURRENCY=$(CONCURRENCY)"
 endif
 
+# LeakSanitizer (lsan) needs ptrace and by default docker denies it
 define any-package
 package-$1-dbuild:
 	cd packages/$1/ && $(docker_build) --tag=package-$1-dbuild .
-	docker run --name $(IMAGE_PREFIX)dbuild-$1 -t  -v /var/run/docker.sock:/var/run/docker.sock -v `pwd`:/dbuild/sources $(docker_run_concurrency) package-$1-dbuild
+	docker run --name $(IMAGE_PREFIX)dbuild-$1 -t -v /var/run/docker.sock:/var/run/docker.sock -v `pwd`:/dbuild/sources $(docker_run_concurrency) --cap-add SYS_PTRACE package-$1-dbuild
 	docker rm $(IMAGE_PREFIX)dbuild-$1 2>&1 1>/dev/null
 
 .PHONY: package-$1-dbuild
@@ -155,13 +172,13 @@ $(eval $(foreach package,$(packages),$(call any-package,$(package))))
 
 
 packages-clean: $(foreach package,$(packages),package-$(package)-clean )
-	
+
 
 packages-clean-all: $(foreach package,$(packages),package-$(package)-clean-all )
 	$(RM) libsuperiormysqlpp-*.tar.*
 
 packages-build: $(foreach package,$(packages),package-$(package)-build )
-	
+
 packages-dbuild: $(foreach package,$(packages),package-$(package)-dbuild )
 
 

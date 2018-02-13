@@ -20,7 +20,7 @@ namespace SuperiorMySqlpp { namespace detail
 
     public:
         template<typename... Args>
-        Iterator(Pointer pointer, Args... args)
+        Iterator(Pointer pointer, Args...)
             : pointer{pointer}
         {
         }

@@ -124,6 +124,10 @@ namespace SuperiorMySqlpp { namespace LowLevel { namespace detail { namespace My
      */
     inline void setup()
     {
+// MySQL hacks are needed only for older versions of MySQL connector/C than 5.7.9.
+// MARIADB_VERSION_ID doesn't exist in older versions, MARIADB_PACKAGE_VERSION is used to detect MariaDB presence instead.
+#if !defined(MARIADB_PACKAGE_VERSION) && MYSQL_VERSION_ID < 50709
         thread_local Cleanup cleanup{};
+#endif
     }
 }}}}

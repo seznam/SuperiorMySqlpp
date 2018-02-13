@@ -63,7 +63,6 @@ namespace SuperiorMySqlpp
             if (paramsCount > 0)
             {
                 paramsBindings.resize(paramsCount);
-                std::memset(paramsBindings.data(), 0, sizeof(paramsBindings));
             }
         }
 
@@ -142,7 +141,6 @@ namespace SuperiorMySqlpp
             if (resultFieldCount > 0)
             {
                 resultBindings.resize(resultFieldCount);
-                std::memset(resultBindings.data(), 0, sizeof(resultBindings));
             }
 
             this->storeOrUse();

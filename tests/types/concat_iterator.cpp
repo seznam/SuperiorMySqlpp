@@ -16,8 +16,6 @@ using namespace std::string_literals;
 
 
 
-#pragma GCC push_options
-#pragma GCC optimize ("O0")
 go_bandit([](){
     describe("Test ConcatIterator", [&](){
         it("can work on empty vectors", [&](){
@@ -161,4 +159,3 @@ go_bandit([](){
         });
     });
 });
-#pragma GCC pop_options

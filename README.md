@@ -5,61 +5,67 @@ Modern C++ wrapper for MySQL C API
 **Author**: [Tomas Nozicka](https://github.com/tnozicka), [*Seznam.cz*](https://github.com/seznam)
 
 
-#Installation
+# Installation
 
-
-##Requirements
+## Requirements
  - C++14 compatible compiler (tested GCC>=4.9)
  - MySQL C API dev (libmysqlclient-dev)
 
-
-##Bootstrap
- - We use git submodules for our dependencies and git requires you to initialize them manually
+## Bootstrap
+We use git submodules for our dependencies and git requires you to initialize them manually.
 ```bash
 git submodule update --init --recursive
 ```
 
-##Build
- - This is header only library therefore no build step is required
+## Build
+This is header only library therefore no build step is required.
 
-##Test
- - Tests require docker(>=1.5.0) for running mysql instances with testing data
+## Test
+Tests require docker(>=1.5.0) for running mysql instances with testing data.
 ```bash
 make -j32 test
 ```
- - You may (among other things) specify custom compiler and extra flags
+You may (among other things) specify custom compiler and extra flags.
 ```bash
 make -j32 test CXX=/opt/szn/bin/g++ CXXEF=-Werror LDEF=-Wl,-rpath=/opt/szn/lib/gcc/x86_64-linux-gnu/current
 ```
 
-##Install
+## Install
 ```bash
 make -j32 DESTDIR=/usr/local/ install
 ```
 
-#Packages
- - We support several packages to be build by default:
-  - Debian Jessie
-  - Fedora 22
 
-##dbuild (docker-build)
- - This can build packages in completely clean environment using docker
- - You might want to lower the `CONCURRENCY` in case you run out of memory
+# Packages
+We support several packages to be build by default:
+ - Debian Stretch
+ - Debian Jessie
+ - Fedora 22
+
+## dbuild (docker-build)
+This can build packages in completely clean environment using docker.
+You might want to lower the `CONCURRENCY` in case you run out of memory.
 ```bash
-make CONCURRENCY=32 package-fedora-22-dbuild
+make CONCURRENCY=32 package-debian-stretch-dbuild
 ```
 ```bash
 make CONCURRENCY=32 package-debian-jessie-dbuild
 ```
-##build
- - classic packaging
 ```bash
-make package-fedora-22-build
+make CONCURRENCY=32 package-fedora-22-dbuild
+```
+
+## build
+Classic packaging.
+```bash
+make package-debian-stretch-build
 ```
 ```bash
 make package-debian-jessie-build
 ```
-
+```bash
+make package-fedora-22-build
+```
 
 
 # Features
@@ -75,8 +81,9 @@ make package-debian-jessie-build
     - DNS change checking
  - Extensive and fully automated multi-platform tests (using Docker)
 
+
 # Status
-Currently, it is already used at Seznam.cz in production code with great results.
+Currently, it is already used at *Seznam.cz* in production code with great results.
 
 The library is thoroughly tested and all tests are fully automated.
 
@@ -86,8 +93,9 @@ Please help us out by reporting bugs. (https://github.com/seznam/SuperiorMySqlpp
 
 We appreciate your feedback!
 
+
 # Preview
-Until we create proper examples, you can see all functionality in action by looking at out tests (https://github.com/seznam/SuperiorMySqlpp/tree/master/tests).
+Until we create proper examples, you can see all functionality in action by looking at our tests (https://github.com/seznam/SuperiorMySqlpp/tree/master/tests).
 Please be aware that tests must validate all possible cases and syntax and should not be taken as reference in these matters.
 
 You can look at some basic examples below:
@@ -114,7 +122,6 @@ connectionPool.startHealthCareJob();  // optional
 
 connectionSharedPtr = connectionPool.get();
 ```
-
 
 ## Queries
 ### Simple result
@@ -151,7 +158,7 @@ while (auto row = result.fetchRow())
 To escape variable manually you may use method connection.escapeString. Preferred way is using query stream manipulators:
 ```c++
 auto query = connection.makeQuery();
-query << escape << "ab'cd";  // escape - next argument will be escaped 
+query << escape << "ab'cd";  // escape - next argument will be escaped
 
 ```
 
@@ -170,6 +177,7 @@ do {} while (query.nextResult());
 Prepared statements **by default automatically check bound types and query metadata** and issue warnings or exceptions if you bound any incompatible types. All C API prepared statements variables types are supported and bindings are set using C++ type system.
 
 These are in fact relatively simple examples. There are a lot of configurations for prepared statement including how strictly do you want to check metadata, allowing some types of implicit conversion and so on.
+
 ### Param bindings
 ```c++
 // type of prepared statements parameters is deduced automatically from arguments
@@ -198,7 +206,7 @@ while (preparedStatement.fetch())
     Sql::Int id, money;
     std::tie(id, money) = preparedStatement.getResult();
 
-    // or directly use e.g. id as: 
+    // or directly use e.g. id as:
     preparedStatement.getResult().get<0>()
 }
 ```
@@ -280,15 +288,15 @@ class MyLogger final : public Loggers::Base
 {
     using Base::Base;
     virtual ~MyLogger() override
-    { 
-        // do something 
+    {
+        // do something
     }
 
     virtual void logWarning(const std::string& message) const override
     {
-        // do something 
+        // do something
     }
-    
+
     // a lot of logging methods like: logMySqlConnecting, logMySqlConnected, logMySqlClose, logMySqlCommit, ...
 }
 
@@ -296,5 +304,28 @@ auto&& logger = std::make_shared<MyLogger>();
 DefaultLogger::setLoggerPtr(std::move(logger));
 ```
 
-#Current issues
+
+# Current issues
 There are problems caused by MySQL C API's bad design which are solved by https://github.com/seznam/SuperiorMySqlpp/blob/master/include/superior_mysqlpp/low_level/mysql_hacks.hpp. This is causing problems with MariaDB which stripped down some symbols from their shared object that we use to fix this bug. (https://github.com/seznam/SuperiorMySqlpp/issues/2)
+
+## ABI tag warnings
+GCC supports `-Wabi-tag` that should warn when a type with ABI tag is used in context that not have that ABI tag (https://gcc.gnu.org/onlinedocs/gcc-6.4.0/gcc/C_002b_002b-Dialect-Options.html#C_002b_002b-Dialect-Options). This warning should be used only for building shared libraries.
+
+Mentioned compiler warning informs about situations where library may be theoretically successfully linked with another one built with incompatible ABI. For more info on this topic, see
+ - https://developers.redhat.com/blog/2015/02/05/gcc5-and-the-c11-abi/
+ - https://gcc.gnu.org/onlinedocs/libstdc++/manual/using_dual_abi.html
+
+This warning is triggered many times in this library, for example for each function where `std::string` is returned from the function or for each structure that contains `std::string` -- generally, in each case where the type is not part of the resulting mangled name for given symbol.
+Unfortunately, the only way to resolve this warning properly is explicitly put `abi_tag` attribute to every single affected symbol, which seems excessive and does not help readability.
+ABI tag incompatibility is transitive to descendants -- that means when you build own library using *SuperiorMySqlpp* you shouldn't use `-Wabi-tag` either.
+
+Notably, our internet research seem to suggest that this issue (linking code built with old and new ABI) is almost never occurring in practice, as all packages for given OS are by convention built with the same version.
+Judging from the relative lack of related problems, tutorials or general discussion about this topic, `-Wabi-tag` seems to be generally unused by now.
+
+## MariaDB compatibility
+MariaDB connector/C 10.2 upwards can be used instead of MySQL connector/C.
+
+Older versions are not supported due to some issues, for instance:
+- memory leaks when ConnectionPool is used and cannot be handled by `mysql_hacks.hpp` because missing symbols
+- missing `MARIADB_VERSION_ID` -- we are not able detect whether MariaDB is used
+- failing truncation detection test (depending on used version)
