@@ -15,7 +15,6 @@
 
 #include <superior_mysqlpp/connection_pool.hpp>
 #include <superior_mysqlpp/shared_ptr_pool/sleep_in_parts.hpp>
-#include <superior_mysqlpp/dnsa_connection_pool.hpp>
 
 #include <boost/asio/io_service.hpp>
 #include <boost/asio/ip/tcp.hpp>
