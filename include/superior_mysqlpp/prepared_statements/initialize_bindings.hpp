@@ -46,10 +46,10 @@ namespace SuperiorMySqlpp
         template<typename T>
         constexpr inline void initializeNullable(MYSQL_BIND& binding, Nullable<T>& nullable)
         {
-            // Checks if pointer of C client pointer to their custom bool bool variant is compatible with bool*
-            // TODO: It would be wise to check also sizeof(my_bool) == sizeof(bool)
             static_assert(sizeof(decltype(binding.is_null)) == sizeof(decltype(&nullable.detail_getNullRef())),
                 "Pointers to null indicators must have same size.");
+            static_assert(sizeof(decltype(*binding.is_null)) == sizeof(decltype(nullable.detail_getNullRef())),
+                "Representations of boolean null indicators must be equivalent in SuperiorMysqlpp and C client backend.");
             binding.is_null = reinterpret_cast<my_bool*>(&nullable.detail_getNullRef());
         }
 
