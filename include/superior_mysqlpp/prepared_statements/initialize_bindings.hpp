@@ -376,10 +376,10 @@ namespace SuperiorMySqlpp
          * Calls respectively initializeParamBinding or initializeResultBinding for each field.
          * @tparam isParamBinding Is true if binding is a ParamBindings specialization.
          * @param bindings Type #Bindings<...>.
-         * @param data Type std::tuple (or any heterogenous ordered container supporting std::get).
+         * @param data Type std::tuple (container supporting std::get).
          */
-        template<bool isParamBinding, typename... Types, typename Bindings, typename Data>
-        inline void initializeBindings(Bindings& bindings, Data& data)
+        template<bool isParamBinding, typename... Types, typename Bindings>
+        inline void initializeBindings(Bindings& bindings, std::tuple<Types...>& data)
         {
             InitializeBindingsImpl<isParamBinding, sizeof...(Types)>::call(bindings, data);
         }
