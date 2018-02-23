@@ -25,10 +25,19 @@ namespace SuperiorMySqlpp
             Timestamp,
         };
 
-
+        /**
+         * This boolean trait describes if type T can be used as a storage for
+         * a given binding type (of enum type #BindingTypes).
+         * This is a variant for query parameters and defaults to false.
+         */
         template<BindingTypes, typename T>
         struct CanBindAsParam : std::false_type {};
 
+        /**
+         * This boolean trait describes if type T can be used as a storage for
+         * a given binding type (of enum type #BindingTypes).
+         * This is a variant for query results and defaults to false.
+         */
         template<BindingTypes, typename T>
         struct CanBindAsResult: std::false_type {};
     }

@@ -6,6 +6,10 @@
 
 #include <superior_mysqlpp/prepared_statements/validate_metadata_modes.hpp>
 
+/*
+ * This file contains only forward declarations for PreparedStatement related types,
+ * for more information see their proper definitions.
+ */
 
 namespace SuperiorMySqlpp
 {
@@ -50,6 +54,10 @@ namespace SuperiorMySqlpp
         }
     }
 
+    /*
+     * Forward declaration of PreparedStatement.
+     * Declares defaults for template parameters.
+     */
     template<typename ResultBindings, typename ParamBindings,
              bool storeResult=detail::PreparedStatementsDefault::getStoreResult(),
              ValidateMetadataMode validateMode=detail::PreparedStatementsDefault::getValidateMode(),

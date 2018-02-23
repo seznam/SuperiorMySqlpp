@@ -13,6 +13,10 @@
 
 namespace SuperiorMySqlpp
 {
+    /**
+     * Auxiliary enumeration of field types, used instead of #enum_field_types from
+     * MySQL client, because it provides stronger type safety.
+     */
     enum class FieldTypes : std::underlying_type_t<enum_field_types>
     {
         Tiny = MYSQL_TYPE_TINY,
@@ -42,6 +46,11 @@ namespace SuperiorMySqlpp
         Null = MYSQL_TYPE_NULL,
     };
 
+    /**
+     * Conversion function from any type convertible to enum #FieldTypes to said type.
+     * @param value Arbitrary value castable to FieldTypes.
+     * @return Field type corresponding to function argument.
+     */
     template<typename T>
     inline auto toFieldType(T value)
     {
@@ -82,6 +91,11 @@ namespace SuperiorMySqlpp
 
     namespace detail
     {
+        /**
+         * Conversion of field type to corresponding value of enum #enum_field_types.
+         * As field types are defined though members of said enum, such conversion
+         * cannot fail.
+         */
         inline auto toMysqlEnum(FieldTypes fieldType)
         {
             return static_cast<enum_field_types>(fieldType);
