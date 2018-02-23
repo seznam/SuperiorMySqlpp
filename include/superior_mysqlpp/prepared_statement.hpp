@@ -421,7 +421,7 @@ namespace SuperiorMySqlpp
         /**
          * @brief Executes prepared statement.
          * This method starts by executing the query (actually performing it), then it
-         * validates metaddata for its result (if any). Finally, it calls #PreparedStatement's equivalent of
+         * validates metadata for its result (if any). Finally, it calls #PreparedStatement's equivalent of
          * SuperiorMySqlpp::Query::use() or SuperiorMySqlpp::Query::store(), depending on #storeResult flag.
          */
         void execute()
