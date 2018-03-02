@@ -11,6 +11,7 @@
 #include <superior_mysqlpp/types/string_data.hpp>
 #include <superior_mysqlpp/types/decimal_data.hpp>
 #include <superior_mysqlpp/types/nullable.hpp>
+#include <superior_mysqlpp/utils.hpp>
 
 namespace SuperiorMySqlpp
 {
@@ -47,9 +48,9 @@ namespace SuperiorMySqlpp
         constexpr inline void initializeNullable(MYSQL_BIND& binding, Nullable<T>& nullable)
         {
             // Checks if pointer of C client pointer to their custom bool bool variant is compatible with bool*
-            // TODO: It would be wise to check also sizeof(my_bool) == sizeof(bool)
-            static_assert(sizeof(decltype(binding.is_null)) == sizeof(decltype(&nullable.detail_getNullRef())),
-                "Pointers to null indicators must have same size.");
+            static_assert(sizeof(decltype(binding.is_null)) == sizeof(decltype(&nullable.detail_getNullRef()))
+                && sizeof(decltype(*binding.is_null)) == sizeof(decltype(nullable.detail_getNullRef())),
+                "Representations of boolean null indicators must be equivalent in SuperiorMysqlpp and C client backend!");
             binding.is_null = reinterpret_cast<my_bool*>(&nullable.detail_getNullRef());
         }
 
@@ -60,7 +61,7 @@ namespace SuperiorMySqlpp
         constexpr inline std::enable_if_t<std::is_integral<T>::value>
         initializeParamBinding(MYSQL_BIND& binding, T& value)
         {
-            using PureType_t = std::decay_t<T>;
+            using PureType_t = to_fixed_width_int_t<std::decay_t<T>>;
             using Signed_t = std::make_signed_t<PureType_t>;
 
             binding.buffer = &value;
@@ -377,10 +378,10 @@ namespace SuperiorMySqlpp
          * Calls respectively initializeParamBinding or initializeResultBinding for each field.
          * @tparam isParamBinding Is true if binding is a ParamBindings specialization.
          * @param bindings Type #Bindings<...>.
-         * @param data Type std::tuple (or any heterogenous ordered container supporting std::get).
+         * @param data Type std::tuple (container supporting std::get).
          */
-        template<bool isParamBinding, typename... Types, typename Bindings, typename Data>
-        inline void initializeBindings(Bindings& bindings, Data& data)
+        template<bool isParamBinding, typename... Types, typename Bindings>
+        inline void initializeBindings(Bindings& bindings, std::tuple<Types...>& data)
         {
             InitializeBindingsImpl<isParamBinding, sizeof...(Types)>::call(bindings, data);
         }

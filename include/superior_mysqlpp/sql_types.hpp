@@ -15,17 +15,18 @@
 #include <superior_mysqlpp/types/blob_data.hpp>
 #include <superior_mysqlpp/types/string_data.hpp>
 #include <superior_mysqlpp/types/decimal_data.hpp>
+#include <cstdint>
 
 
 namespace SuperiorMySqlpp
 {
     namespace Sql
     {
-        using TinyInt = signed char;
-        using SmallInt = short int;
-        using MediumInt = int;
-        using Int = int;
-        using BigInt = long long int;
+        using TinyInt = int_fast8_t;
+        using SmallInt = int_fast16_t;
+        using MediumInt = int_fast32_t;
+        using Int = int_fast32_t;
+        using BigInt = int_fast64_t;
 
         using UTinyInt = std::make_unsigned_t<TinyInt>;
         using USmallInt = std::make_unsigned_t<SmallInt>;

@@ -70,9 +70,6 @@ namespace SuperiorMySqlpp { namespace LowLevel
         const std::uint_fast64_t id;
         MYSQL mysql;
         Loggers::SharedPointer_t loggerPtr;
-
-        using size_t = unsigned long long;
-
     private:
         static auto& getGlobalIdRef()
         {
@@ -130,6 +127,11 @@ namespace SuperiorMySqlpp { namespace LowLevel
         DBDriver(DBDriver&&) = default;
         DBDriver& operator=(DBDriver&&) = delete;
 
+        /**
+         * Type for indexing rows.
+         * Underlying type inferred from usage in C MySQL client.
+         */
+        using RowIndex_t = unsigned long long;
 
         auto& getLoggerPtr()
         {
@@ -320,8 +322,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
                 close();
             }
 
-
-            void seekRow(size_t index)
+            void seekRow(SuperiorMySqlpp::LowLevel::DBDriver::RowIndex_t index)
             {
                 mysql_data_seek(resultPtr, index);
             }
@@ -381,7 +382,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
                 return mysql_num_rows(resultPtr);
             }
 
-            auto tellRowOffset()
+            MYSQL_ROW_OFFSET tellRowOffset()
             {
                 return mysql_row_tell(resultPtr);
             }
@@ -753,7 +754,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
                 if (resultPtr == nullptr)
                 {
                     throw MysqlInternalError("Could not get result statement metadata!",
-                        mysql_error(resultPtr->handle), mysql_errno(resultPtr->handle));
+                        mysql_stmt_error(statementPtr), mysql_stmt_errno(statementPtr));
                 }
                 return Result{resultPtr};
             }
@@ -874,7 +875,8 @@ namespace SuperiorMySqlpp { namespace LowLevel
             {
                 if (mysql_stmt_fetch_column(statementPtr, bindings, column, offset))
                 {
-                    throw MysqlInternalError("Failed to fetch statement's column! Invalid column number!");
+                    throw MysqlInternalError("Failed to fetch statement's column!",
+                        mysql_stmt_error(statementPtr), mysql_stmt_errno(statementPtr));
                 }
             }
 
@@ -897,9 +899,9 @@ namespace SuperiorMySqlpp { namespace LowLevel
                 }
             }
 
-            auto sendLongData(unsigned int paramNumber, const std::string& data)
+            void sendLongData(unsigned int paramNumber, const std::string& data)
             {
-                return sendLongData(paramNumber, data.c_str(), data.length());
+                sendLongData(paramNumber, data.c_str(), data.length());
             }
 
             std::string sqlState()
@@ -907,7 +909,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
                 return mysql_stmt_sqlstate(statementPtr);
             }
 
-            void seekRow(size_t index)
+            void seekRow(RowIndex_t index)
             {
                 mysql_stmt_data_seek(statementPtr, index);
             }
@@ -917,7 +919,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
                 mysql_stmt_row_seek(statementPtr, offset);
             }
 
-            auto tellRowOffset()
+            MYSQL_ROW_OFFSET tellRowOffset()
             {
                 return mysql_stmt_row_tell(statementPtr);
             }

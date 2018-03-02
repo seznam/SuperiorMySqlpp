@@ -74,12 +74,8 @@ namespace SuperiorMySqlpp
             /**
              * Seeks to an arbitrary row in a statement result set.
              * @param index Row number of seeked target.
-             * @remark This function is templated, however single implementation
-             *        with std::size_t would suffice.
-             * EDIT: Reason why this function is templated is because private DBDriver::size_t is actually used.
              */
-            template<typename T>
-            void seekRow(T index)
+            void seekRow(LowLevel::DBDriver::RowIndex_t index)
             {
                 statement.seekRow(index);
             }
@@ -94,7 +90,11 @@ namespace SuperiorMySqlpp
                 statement.seekRowOffset(offset);
             }
 
-            auto tellRowOffset()
+            /**
+             * Returns MYSQL_ROW_OFFSET for current row.
+             * @return MYSQL_ROW_OFFSET pointing to current row.
+             */
+            MYSQL_ROW_OFFSET tellRowOffset()
             {
                 return statement.tellRowOffset();
             }
@@ -181,15 +181,6 @@ namespace SuperiorMySqlpp
             std::vector<detail::NullableBase*> nullableBindings;
 
         public:
-            /**
-             * Appears unused, probably can be removed.
-             * Is defined exactly like (private) DBDriver::size_t, so
-             * it was presumably added for similiar purpose.
-             * !!!!!
-             */
-            using size_t = unsigned long long;
-
-        public:
             using StoreOrUseResultBase<storeResult>::StoreOrUseResultBase;
 
         private:
@@ -221,11 +212,7 @@ namespace SuperiorMySqlpp
              */
             const ResultMetadata& getResultMetadata()
             {
-                if (!resultMetadata)
-                {
-                    resultMetadata.emplace(std::move(this->statement.resultMetadata()));
-                }
-                return *resultMetadata;
+                return getModifiableResultMetadata();
             }
 
             /**
@@ -235,10 +222,20 @@ namespace SuperiorMySqlpp
              */
             ResultMetadata& getModifiableResultMetadata()
             {
-                return const_cast<ResultMetadata&>(getResultMetadata());
+                if (!resultMetadata)
+                {
+                    resultMetadata.emplace(std::move(this->statement.resultMetadata()));
+                }
+                return *resultMetadata;
             }
 
-            auto fetchWithStatus()
+            /**
+             * Perform fetch of next row of result set, returning status.
+             * Truncation is not an error.
+             * @return enum #FetchStatus - contains results of mysql_stmt_fetch except
+             *                            error ones - those are thrown.
+             */
+            LowLevel::DBDriver::Statement::FetchStatus fetchWithStatus()
             {
                 auto status = this->statement.fetchWithStatus();
 
@@ -265,11 +262,20 @@ namespace SuperiorMySqlpp
                 return ok;
             }
 
-            bool fetchColumn()
+        protected:
+            /**
+             * Fetches single column from current row
+             * @remark Note that the current row must be already fetched and successive calls with same
+             *         row (without calling another fetch()) do not change the result.
+             * @param binding Pointer to sigle binding structure describing storage of result.
+             * @param column Index of selected column.
+             * @param offset Columns can be fetched in chunks. Offset is the offset within the data value
+             *               at which to begin retrieving data.
+             */
+            void fetchColumn(MYSQL_BIND* binding, unsigned int column, unsigned long offset)
             {
-                this->statement.fetchColumn();
+                this->statement.fetchColumn(binding, column, offset);
                 engageNullables();
-                return true;
             }
 
         public:
@@ -279,12 +285,10 @@ namespace SuperiorMySqlpp
              * @param paramNumber Index of given parameter.
              * @param data C style string.
              * @param length Lenght of  data in bytes.
-             * @return void
-             * !!!!! Should return void, this form is misleading.
              */
-            auto sendLongData(unsigned int paramNumber, const char* data, unsigned long length)
+            void sendLongData(unsigned int paramNumber, const char* data, unsigned long length)
             {
-                return this->statement.sendLongData(paramNumber, data, length);
+                this->statement.sendLongData(paramNumber, data, length);
             }
 
             /**
@@ -293,12 +297,10 @@ namespace SuperiorMySqlpp
              * @param paramNumber Index of given parameter.
              * @param data String containing the new data.
              * @param length Lenght of data in bytes.
-             * @return void
-             * !!!!! Should return void, this form is misleading.
              */
-            auto sendLongData(unsigned int paramNumber, const std::string& data)
+            void sendLongData(unsigned int paramNumber, const std::string& data)
             {
-                return this->statement.sendLongData(paramNumber, data);
+                this->statement.sendLongData(paramNumber, data);
             }
 
             /**
@@ -359,8 +361,6 @@ namespace SuperiorMySqlpp
             template<typename ResultBindings>
             void validateResultMetadata(const ResultBindings& resultBindings)
             {
-                using namespace std::string_literals;
-                using std::to_string;
                 using std::begin;
                 using std::end;
 

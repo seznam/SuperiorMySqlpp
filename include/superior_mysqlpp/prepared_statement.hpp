@@ -147,7 +147,7 @@ namespace SuperiorMySqlpp
          */
         void update()
         {
-            detail::initializeBindings<IsParamBinding, Types...>(bindings, data);
+            detail::initializeBindings<IsParamBinding>(bindings, data);
         }
     };
 
@@ -421,7 +421,7 @@ namespace SuperiorMySqlpp
         /**
          * @brief Executes prepared statement.
          * This method starts by executing the query (actually performing it), then it
-         * validates metaddata for its result (if any). Finally, it calls #PreparedStatement's equivalent of
+         * validates metadata for its result (if any). Finally, it calls #PreparedStatement's equivalent of
          * SuperiorMySqlpp::Query::use() or SuperiorMySqlpp::Query::store(), depending on #storeResult flag.
          */
         void execute()
@@ -448,6 +448,23 @@ namespace SuperiorMySqlpp
             }
 
             this->storeOrUse();
+        }
+
+        /**
+         * Fetches individual column from current result row.
+         * @remark Note that the current row must be already fetched and successive calls with same
+         *         row (without calling another fetch()) do not change the result.
+         * @param column Index of selected column.
+         * @param offset Columns can be fetched in chunks. Offset is the offset within the data value
+         *               at which to begin retrieving data.
+         */
+        void fetchColumn(unsigned int column, unsigned long offset = 0)
+        {
+            if (column >= resultBindings.bindings.size())
+            {
+                throw OutOfRange("Result column index " + std::to_string(column) + " >= bindings size " + std::to_string(resultBindings.bindings.size()));
+            }
+            detail::PreparedStatementBase<storeResult, validateMode, warnMode, ignoreNullable>::fetchColumn(&resultBindings.bindings[column], column, offset);
         }
     };
 }

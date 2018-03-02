@@ -12,24 +12,17 @@
 
 #include <superior_mysqlpp/prepared_statements/default_initialize_result.hpp>
 #include <superior_mysqlpp/prepared_statements/binding_types.hpp>
+#include <superior_mysqlpp/exceptions.hpp>
 
 
 
 namespace SuperiorMySqlpp
 {
 
-class BadNullableAccess : public std::logic_error
+class BadNullableAccess : public LogicError
 {
 public:
-  explicit BadNullableAccess(const std::string& message)
-        : std::logic_error{message}
-  {
-  }
-
-  explicit BadNullableAccess(const char* message)
-        : logic_error(message)
-  {
-  }
+  using LogicError::LogicError;
 
   virtual ~BadNullableAccess() noexcept = default;
 };
@@ -371,7 +364,7 @@ public:
         if (engaged && other.engaged)
         {
             ::std::swap(payload, other.payload);
-            ::std::swap(null, null);
+            ::std::swap(null, other.null);
         }
         else if (engaged)
         {
