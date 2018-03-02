@@ -77,6 +77,12 @@ namespace SuperiorMySqlpp
         using SuperiorMySqlppError::SuperiorMySqlppError;
     };
 
+    class PreparedStatementBindError : public SuperiorMySqlppError
+    {
+    public:
+        using SuperiorMySqlppError::SuperiorMySqlppError;
+    };
+
     class DynamicPreparedStatementTypeError : public SuperiorMySqlppError
     {
     public:

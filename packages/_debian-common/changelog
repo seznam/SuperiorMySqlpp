@@ -1,6 +1,7 @@
 libsuperiormysqlpp (0.3.2) UNRELEASED; urgency=medium
 
-  *
+  [ Radek Smejdir ]
+  * Add uninitialized result binds validation
 
  -- Michal Fizek <michal.fizek@firma.seznam.cz>  Wed, 14 Feb 2018 08:24:25 +0100
 
