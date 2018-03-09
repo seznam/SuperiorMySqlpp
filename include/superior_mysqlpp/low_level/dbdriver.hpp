@@ -22,6 +22,7 @@
 #include <superior_mysqlpp/logging.hpp>
 #include <superior_mysqlpp/exceptions.hpp>
 #include <superior_mysqlpp/utils.hpp>
+#include <superior_mysqlpp/types/huge_string_data.hpp>
 #include <superior_mysqlpp/types/string_view.hpp>
 #include <superior_mysqlpp/low_level/mysql_hacks.hpp>
 
@@ -621,6 +622,15 @@ namespace SuperiorMySqlpp { namespace LowLevel
          */
         class Statement
         {
+        public:
+
+            enum class FetchStatus
+            {
+                Ok,
+                NoMoreData,
+                DataTruncated,
+            };
+
         private:
             MYSQL_STMT* statementPtr;
             std::uint_fast64_t driverId;
@@ -645,6 +655,41 @@ namespace SuperiorMySqlpp { namespace LowLevel
                         std::terminate();
                     }
                 }
+            }
+
+            FetchStatus processHugeStrings(FetchStatus status)
+            {
+                auto&& resultBindingsPtr = statementPtr->bind;
+                auto resultBindingsSize = statementPtr->field_count;
+                std::size_t index = 0;
+                bool moreTruncated = false;
+
+                for (auto it=resultBindingsPtr; it!=resultBindingsPtr+resultBindingsSize; ++it)
+                {
+                    if (it->error == &it->error_value)
+                    {
+                        if (it->error_value)
+                        {
+                            if(it->buffer != nullptr && it->buffer_length == 0)
+                            {
+                                HugeStringData &str = *reinterpret_cast<HugeStringData *>(it->buffer);
+                                str.doAllocate();
+
+                                it->buffer = str.data();
+                                it->buffer_length = *it->length;
+                                mysql_stmt_fetch_column(statementPtr, it, index, 0);
+                                it->buffer = &str;
+                                it->buffer_length = 0;
+                            }
+                            else
+                            {
+                                moreTruncated = true;
+                            }
+                        }
+                    }
+                    ++index;
+                }
+                return moreTruncated ? status : FetchStatus::Ok;
             }
 
         public:
@@ -776,13 +821,6 @@ namespace SuperiorMySqlpp { namespace LowLevel
                 }
             }
 
-            enum class FetchStatus
-            {
-                Ok,
-                NoMoreData,
-                DataTruncated,
-            };
-
             FetchStatus fetchWithStatus()
             {
                 auto result = mysql_stmt_fetch(statementPtr);
@@ -799,7 +837,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
                         mysql_stmt_error(statementPtr), mysql_stmt_errno(statementPtr)};
 
                     case MYSQL_DATA_TRUNCATED:
-                        return FetchStatus::DataTruncated;
+                        return processHugeStrings(FetchStatus::DataTruncated);
 
                     default:
                         throw LogicError{"Internal error!"};

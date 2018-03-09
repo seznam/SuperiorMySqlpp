@@ -8,6 +8,7 @@
 #include <superior_mysqlpp/prepared_statements/get_binding_type.hpp>
 #include <superior_mysqlpp/prepared_statements/binding_types.hpp>
 #include <superior_mysqlpp/types/blob_data.hpp>
+#include <superior_mysqlpp/types/huge_string_data.hpp>
 #include <superior_mysqlpp/types/string_data.hpp>
 #include <superior_mysqlpp/types/decimal_data.hpp>
 #include <superior_mysqlpp/types/nullable.hpp>
@@ -218,6 +219,17 @@ namespace SuperiorMySqlpp
             binding.buffer = string.data();
             binding.buffer_type = detail::toMysqlEnum(FieldTypes::String);
             binding.buffer_length = string.maxSize();
+            binding.length = &string.counterRef();
+        }
+
+        /**
+         * Result binding initialization specialization for HugeStringData
+         */
+        inline void initializeResultBinding(MYSQL_BIND& binding, HugeStringData &string)
+        {
+            binding.buffer = &string;
+            binding.buffer_type = detail::toMysqlEnum(FieldTypes::String);
+            binding.buffer_length = 0;
             binding.length = &string.counterRef();
         }
 
