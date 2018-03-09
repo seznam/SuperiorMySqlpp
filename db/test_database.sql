@@ -123,6 +123,12 @@ CREATE TABLE `nullable` (
     `nullable_name` VARCHAR(50) NULL
 )  ENGINE=INNODB DEFAULT CHARSET=UTF8;
 
+DROP TABLE IF EXISTS `hugestring`;
+CREATE TABLE `hugestring` (
+    `int_value` INT(11) NOT NULL,
+    `mytext` LONGTEXT NULL
+)  ENGINE=INNODB DEFAULT CHARSET=UTF8;
+
 DROP TABLE IF EXISTS `row`;
 CREATE TABLE `row` (
     `id` INT(11) NOT NULL,
