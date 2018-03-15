@@ -10,6 +10,7 @@
 #include <superior_mysqlpp/types/blob_data.hpp>
 #include <superior_mysqlpp/types/string_data.hpp>
 #include <superior_mysqlpp/types/decimal_data.hpp>
+#include <superior_mysqlpp/types/dynamic.hpp>
 #include <superior_mysqlpp/types/nullable.hpp>
 
 namespace SuperiorMySqlpp
@@ -286,6 +287,22 @@ namespace SuperiorMySqlpp
         }
 
         /**
+         * Result binding initialization specialization for dynamic-size types
+         */
+        template<typename T>
+        inline void initializeResultBinding(MYSQL_BIND& binding, Dynamic<T>& dyn)
+        {
+            binding.buffer = &dyn.impl_;
+            binding.buffer_type = detail::toMysqlEnum(
+                    CanBindAsResult<BindingTypes::String, T>::value ?
+                    FieldTypes::String :
+                    FieldTypes::Blob
+            );
+            binding.buffer_length = 0;
+            binding.length = &dyn.impl_.targetSize;
+        }
+
+        /**
          * Result binding initialization specialization for types bindable into SuperiorMySqlpp::Nullable.
          */
         template<typename T, typename std::enable_if<CanBindAsResult<BindingTypes::Nullable, T>::value, int>::type=0>
@@ -295,7 +312,6 @@ namespace SuperiorMySqlpp
             // Note that initialization of payload is here unconditional, unlike in initializeParamBinding version
             initializeResultBinding(binding, *nullable);
         }
-
 
         /**
          * Initializes individual binding.

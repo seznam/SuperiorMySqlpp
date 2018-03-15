@@ -26,4 +26,16 @@ namespace SuperiorMySqlpp
 
         return result;
     }
+
+    template<class P, class M>
+    size_t offsetOf(const M P::*member)
+    {
+        return (size_t) &(reinterpret_cast<P *>(0)->*member);
+    }
+
+    template<class P, class M>
+    P *containerOf(M *ptr, const M P::*member)
+    {
+        return (P *)((char*)ptr - offsetOf(member));
+    }
 }

@@ -818,52 +818,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
                         return false;
 
                     case FetchStatus::DataTruncated:
-                        throw MysqlDataTruncatedError{"Data truncated while fetching statement!" + [&](){
-                            // Identify truncated columns
-                            auto&& resultBindingsPtr = statementPtr->bind;
-                            auto resultBindingsSize = statementPtr->field_count;
-                            assert(resultBindingsSize > 0u);
-
-                            std::vector<std::size_t> truncatedColumns{};
-                            std::vector<std::size_t> undetectedColumns{};
-                            std::size_t index = 0;
-                            for (auto it=resultBindingsPtr; it!=resultBindingsPtr+resultBindingsSize; ++it)
-                            {
-                                if (it->error == &it->error_value)
-                                {
-                                    if (it->error_value)
-                                    {
-                                        truncatedColumns.emplace_back(index);
-                                    }
-                                }
-                                else
-                                {
-                                    undetectedColumns.emplace_back(index);
-                                }
-                                ++index;
-                            }
-
-                            std::string result{" Truncated columns: "};
-                            if (truncatedColumns.size() == 0)
-                            {
-                                result += "None.";
-                            }
-                            else
-                            {
-                                result += "[";
-                                result += toString(truncatedColumns);
-                                result += "].";
-                            }
-
-                            if (undetectedColumns.size() > 0)
-                            {
-                                result += " Following columns truncation state could not have been detected since you have set custom error pointer: ";
-                                result += toString(undetectedColumns);
-                                result += "!!!";
-                            }
-
-                            return result;
-                        }()};
+                        throw LogicError{"DataTruncated error! (Use PreparedStatement instead)"};
 
                     default:
                         throw LogicError{"Internal error!"};
