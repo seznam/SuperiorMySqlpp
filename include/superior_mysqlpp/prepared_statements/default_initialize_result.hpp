@@ -42,7 +42,7 @@ namespace SuperiorMySqlpp
      */
     namespace detail
     {
-        /*
+        /**
          * Initialize storage for single result field - implementation.
          */
         template<int N>
@@ -56,7 +56,7 @@ namespace SuperiorMySqlpp
             }
         };
 
-        /*
+        /**
          * Specialization of #InitializeResultImpl for case 0.
          */
         template<>

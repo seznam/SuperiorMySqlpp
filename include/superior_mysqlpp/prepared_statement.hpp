@@ -101,10 +101,10 @@ namespace SuperiorMySqlpp
      * Bindings class encapsulates the storage of heterogenous data needed for SQL parameters and results.
      * The underlying storage itself is in std::tuple member data, auxiliary binding information is stored
      * in array of MYSQL_BIND structures used from underlying C mysql client -- member bindings.
-     * @tparam IsParamBingngs - Special flag for template specialization.
-     *                          If Bindings is used for query parameter, it is true.
-     *                          If Bindings is used for query result, it is false.
-     * @tparam Types - Parameter pack of types forming storage of individual fields.
+     * @tparam IsParamBinding Special flag for template specialization.
+     *                        If Bindings is used for query parameter, it is true.
+     *                        If Bindings is used for query result, it is false.
+     * @tparam Types Parameter pack of types forming storage of individual fields.
      * @remark In user code, prefer use convenience aliases ParamBindings and ResultBindings.
      */
     template<bool IsParamBinding, typename... Types>
@@ -114,14 +114,14 @@ namespace SuperiorMySqlpp
         static constexpr auto kArgumentsCount = sizeof...(Types);
         static constexpr bool isParamBinding = IsParamBinding;
 
-        // Underlying storage for binding's data.
+        /** Underlying storage for binding's data. */
         std::tuple<Types...> data;
-        // Array of binding structures pointing to storage in member #data.
+        /** Array of binding structures pointing to storage in member #data. */
         std::array<MYSQL_BIND, sizeof...(Types)> bindings;
 
 
     public:
-        /*
+        /**
          * Bindings constructor.
          * @params args Args is a pack of values used for initialization of binding's storage.
          * @remark using just 'bindings{}' triggers (premature) warning in GCC 4.9.2,
@@ -141,7 +141,7 @@ namespace SuperiorMySqlpp
         Bindings& operator=(Bindings&&) = default;
         ~Bindings() = default;
 
-        /*
+        /**
          * Updates bindings to properly reflect on data.
          * Is fundamental for useability of Bindings and is thus called during initialization.
          */

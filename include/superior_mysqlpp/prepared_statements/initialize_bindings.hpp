@@ -195,7 +195,7 @@ namespace SuperiorMySqlpp
         }
 
 
-        /*
+        /**
          * Result binding initialization for arithmentic types (ints and floats).
          * Shares implementation with param bindings.
          * @remark Refactoring note - while this function can share implementation with ParamBinding version,
@@ -386,5 +386,3 @@ namespace SuperiorMySqlpp
         }
     }
 }
-
-
