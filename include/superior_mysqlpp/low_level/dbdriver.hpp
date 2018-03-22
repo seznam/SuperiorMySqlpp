@@ -32,14 +32,34 @@
     #error Older versions of MariaDB connector/C are not supported upto version 10.2 (see README.md for details).
 #endif
 
+/*
+ * Layer directly communicating with underlying MySQL C API.
+ *
+ * It should be the only place in code communicating to MySQL library functions!
+ * C API header file mysql/mysql.h might be also included elsewhere for providing
+ * internal MySQL types like MYSQL_BIND, MYSQL_ROW and other structures.
+ *
+ * For complete list of C API methods, see:
+ * https://dev.mysql.com/doc/refman/5.7/en/c-api-function-overview.html
+ */
 
 namespace SuperiorMySqlpp { namespace LowLevel
 {
     namespace detail
     {
+        /**
+         * MySQL library initialization class implemenented as singleton.
+         * Call method #initialize() to initialize underlying MySQL library.
+         */
         class MysqlLibraryInitWrapper
         {
         private:
+            /**
+             * MySQL client library initialization.
+             * @see https://dev.mysql.com/doc/refman/5.7/en/mysql-library-init.html
+             *
+             * @throws MysqlInternalError When any error occurred during library initialization.
+             */
             MysqlLibraryInitWrapper()
             {
                 if (mysql_library_init(0, nullptr, nullptr))
@@ -48,12 +68,19 @@ namespace SuperiorMySqlpp { namespace LowLevel
                 }
             }
 
+            /**
+             * MySQL client library finalization and memory cleanup.
+             * @see https://dev.mysql.com/doc/refman/5.7/en/mysql-library-end.html
+             */
             ~MysqlLibraryInitWrapper()
             {
                 mysql_library_end();
             }
 
         public:
+            /**
+             * Thread-safe initialization of underlying MySQL library.
+             */
             static void initialize()
             {
                 // Thread-safe initialization
@@ -63,33 +90,59 @@ namespace SuperiorMySqlpp { namespace LowLevel
     }
 
 
+    /**
+     * Class holding information about connection to MySQL server.
+     * Suitable for using in threads.
+     */
     class DBDriver
     {
     private:
+        /** Connection status. */
         bool connected = false;
+        /** Internal ID; each instance have unique ID. */
         const std::uint_fast64_t id;
+        /** Connection handler settings. */
         MYSQL mysql;
+        /** Logger instance pointer. */
         Loggers::SharedPointer_t loggerPtr;
 
         using size_t = unsigned long long;
 
     private:
+        /**
+         * Internal thread-safe ID counter.
+         * @return ID counter reference.
+         */
         static auto& getGlobalIdRef()
         {
             static std::atomic<std::uint_fast64_t> globalId{1};
             return globalId;
         }
 
+        /**
+         * Returns current MySQL handler settings.
+         * @return Reference to internal MYSQL structure.
+         */
         MYSQL& getMysql()
         {
             return mysql;
         }
 
+        /**
+         * Returns current MySQL handler settings.
+         * @return Pointer to internal MYSQL structure.
+         */
         MYSQL* getMysqlPtr()
         {
             return &mysql;
         }
 
+        /**
+         * Initializes library and allocates MySQL connection handler.
+         * @see https://dev.mysql.com/doc/refman/5.7/en/mysql-init.html
+         *
+         * @throws MysqlInternalError When any error occurred during initialization.
+         */
         void mysqlInit()
         {
             detail::MysqlLibraryInitWrapper::initialize();
@@ -105,6 +158,10 @@ namespace SuperiorMySqlpp { namespace LowLevel
             }
         }
 
+        /**
+         * Closes connection and deallocates MySQL connection handler.
+         * @see https://dev.mysql.com/doc/refman/5.7/en/mysql-close.html
+         */
         void mysqlClose()
         {
             getLogger()->logMySqlClose(id);
@@ -113,12 +170,19 @@ namespace SuperiorMySqlpp { namespace LowLevel
 
 
     public:
+        /**
+         * Initialize underlying library and internal structures.
+         * @param loggerPtr Custom logger (optional).
+         */
         DBDriver(Loggers::SharedPointer_t loggerPtr=DefaultLogger::getLoggerPtr())
             : id{getGlobalIdRef().fetch_add(1)}, loggerPtr{std::move(loggerPtr)}
         {
             mysqlInit();
         }
 
+        /**
+         * Close connection and cleanup all acquired resources.
+         */
         ~DBDriver()
         {
             mysqlClose();
@@ -131,41 +195,73 @@ namespace SuperiorMySqlpp { namespace LowLevel
         DBDriver& operator=(DBDriver&&) = delete;
 
 
+        /**
+         * Returns current logger instance.
+         * @return Shared pointer to logger instance.
+         */
         auto& getLoggerPtr()
         {
             return loggerPtr;
         }
 
+        /**
+         * Returns current logger instance.
+         * @return Constant shared pointer to logger instance.
+         */
         const auto& getLoggerPtr() const
         {
             return loggerPtr;
         }
 
+        /**
+         * Sets logger instance at runtime.
+         * @remark Universal (forwarding) reference covering perfect forwarding for l-value and r-value references.
+         *
+         * @tparam T Shared pointer of any Logger::Interface implementation.
+         * @param value Logger instance.
+         */
         template<typename T>
         void setLoggerPtr(T&& value)
         {
             loggerPtr = std::forward<T>(value);
         }
 
+        /**
+         * Returns current logger instance.
+         * @return Constant pointer to logger instance.
+         */
         Loggers::ConstPointer_t getLogger() const
         {
             return loggerPtr.get();
         }
 
 
-        auto affectedRows()
-        {
-            return mysql_affected_rows(getMysqlPtr());
-        }
-
+        /**
+         * Sets auto-commit mode.
+         * @see https://dev.mysql.com/doc/refman/5.7/en/mysql-autocommit.html
+         *
+         * @param value True for enabling auto-commit.
+         * @throws MysqlInternalError When any error occurred during setting auto-commit flag.
+         */
         void enableAutocommit(bool value)
         {
             if (mysql_autocommit(getMysqlPtr(), value))
             {
-                throw MysqlInternalError("Failed to set autocommit!");
+                throw MysqlInternalError("Failed to set auto-commit!");
             }
         }
 
+        /**
+         * Escapes string to be legal for using in SQL statements.
+         * It using charset from MySQL's connection.
+         * This can help prevent SQL-injection attacks.
+         * @see https://dev.mysql.com/doc/refman/5.7/en/mysql-real-escape-string.html
+         *
+         * @tparam T Integer type of #originalLength param.
+         * @param original C-style string.
+         * @param originalLength String length.
+         * @return SQL escaped string.
+         */
         template<typename T>
         std::string escapeString(const char* original, T originalLength)
         {
@@ -175,11 +271,31 @@ namespace SuperiorMySqlpp { namespace LowLevel
             return std::string(buffer.get(), length);
         }
 
+        /**
+         * Escapes string to be legal for using in SQL statements.
+         * It using charset from MySQL's connection.
+         * This can help prevent SQL-injection attacks.
+         * @see https://dev.mysql.com/doc/refman/5.7/en/mysql-real-escape-string.html
+         *
+         * @param original Original string.
+         * @return SQL escaped string.
+         */
         std::string escapeString(const std::string& original)
         {
             return escapeString(original.c_str(), original.length());
         }
 
+        /**
+         * Escapes string to be legal for using in SQL statements.
+         * It doesn't have information about used charset!
+         * This can help prevent SQL-injection attacks.
+         * @see https://dev.mysql.com/doc/refman/5.7/en/mysql-escape-string.html
+         *
+         * @tparam T Integer type of #originalLength param.
+         * @param original C-style string.
+         * @param originalLength String length.
+         * @return SQL escaped string.
+         */
         template<typename T>
         static std::string escapeStringNoConnection(const char* original, T originalLength)
         {
@@ -189,11 +305,29 @@ namespace SuperiorMySqlpp { namespace LowLevel
             return std::string(buffer.get(), length);
         }
 
+        /**
+         * Escapes string to be legal for using in SQL statements.
+         * It doesn't have information about used charset!
+         * This can help prevent SQL-injection attacks.
+         * @see https://dev.mysql.com/doc/refman/5.7/en/mysql-escape-string.html
+         *
+         * @param original Original string.
+         * @return SQL escaped string.
+         */
         static std::string escapeStringNoConnection(const std::string& original)
         {
             return escapeStringNoConnection(original.c_str(), original.length());
         }
 
+        /**
+         * Converts string to HEX string suitable for using in SQL statements.
+         * Useful for binary data for instance.
+         * @see https://dev.mysql.com/doc/refman/5.7/en/mysql-hex-string.html
+         *
+         * @tparam Type supporting std::begin, std::end and default conversion to char array (char[]).
+         * @param from Original string.
+         * @return HEX string.
+         */
         template<typename Iterable>
         std::string makeHexString(const Iterable& from)
         {
@@ -204,6 +338,15 @@ namespace SuperiorMySqlpp { namespace LowLevel
             return std::string(buffer.get(), length);
         }
 
+        /**
+         * Changes user and default DB for current connection.
+         * @see https://dev.mysql.com/doc/refman/5.7/en/mysql-change-user.html
+         *
+         * @param user DB username.
+         * @param password Password.
+         * @param database Default database name.
+         * @throws MysqlInternalError When any error occurred during changing the user on current connection.
+         */
         void changeUser(const char* user, const char* password, const char* database)
         {
             using namespace std::string_literals;
@@ -214,11 +357,29 @@ namespace SuperiorMySqlpp { namespace LowLevel
             }
         }
 
+        /**
+         * Returns the default charset name for the current connection.
+         * @see https://dev.mysql.com/doc/refman/5.7/en/mysql-character-set-name.html
+         *
+         * @return Charset name as a C-string.
+         */
         auto getCharacterSetName()
         {
             return mysql_character_set_name(getMysqlPtr());
         }
 
+        /**
+         * Connect (or reconnect) to MySQL server.
+         * @see https://dev.mysql.com/doc/refman/5.7/en/mysql-real-connect.html
+         *
+         * @param host Hostname or IP address.
+         * @param user DB username.
+         * @param password Password.
+         * @param database Default database name.
+         * @param port Server port; Use 0 in case #sockedName is provided.
+         * @param socketName Socket name; Use nullptr in case Hostname is provided.
+         * @throws MysqlInternalError When any error occurred during connecting to server.
+         */
         void connect(const char* host,
                      const char* user,
                      const char* password,
@@ -267,18 +428,29 @@ namespace SuperiorMySqlpp { namespace LowLevel
             getLogger()->logMySqlConnected(id);
         }
 
-
+        /**
+         * Returns connection state.
+         * @return True whether connection is active.
+         */
         bool isConnected() const
         {
             return connected;
         }
 
 
+        /**
+         * Results management.
+         */
         class Result
         {
         private:
+            /** Pointer to underlying library's result set instance. */
             MYSQL_RES* resultPtr;
 
+            /**
+             * Frees allocated memory for current result set.
+             * @see https://dev.mysql.com/doc/refman/5.7/en/mysql-free-result.html
+             */
             void close() noexcept
             {
                 if (resultPtr != nullptr)
@@ -288,6 +460,10 @@ namespace SuperiorMySqlpp { namespace LowLevel
             }
 
         public:
+            /**
+             * Constructs object directly from MySQL's result set represented by MYSQL_RES structure.
+             * @param resultPtr Pointer to MYSQL_RES structure with result set.
+             */
             explicit Result(MYSQL_RES* resultPtr)
                 : resultPtr{resultPtr}
             {
@@ -300,12 +476,21 @@ namespace SuperiorMySqlpp { namespace LowLevel
             Result(const Result&) = delete;
             Result& operator=(const Result&) = delete;
 
+            /**
+             * Move constructor.
+             * @param result Result instance.
+             */
             Result(Result&& result) noexcept
             {
                 resultPtr = result.resultPtr;
                 result.resultPtr = nullptr;
             }
 
+            /**
+             * Move assignment operator.
+             * @param result Result instance.
+             * @return Reference to current instance.
+             */
             Result& operator=(Result&& result) noexcept
             {
                 static_assert(noexcept(close()), "close() must be noexcept!");
@@ -315,80 +500,173 @@ namespace SuperiorMySqlpp { namespace LowLevel
                 return *this;
             }
 
+            /**
+             * Frees all allocated resources.
+             * @see https://dev.mysql.com/doc/refman/5.7/en/mysql-free-result.html
+             */
             ~Result()
             {
                 close();
             }
 
 
+            /**
+             * Seeks to an arbitrary row in a query result set.
+             * @see https://dev.mysql.com/doc/refman/5.7/en/mysql-data-seek.html
+             * @remark Use this method only in case #storeResult (not #useResult) was called before.
+             *
+             * @param index Row number in a result set.
+             */
             void seekRow(size_t index)
             {
                 mysql_data_seek(resultPtr, index);
             }
 
+            /**
+             * Sets the row cursor to an arbitrary row in a query result set by cursor offset.
+             * @see https://dev.mysql.com/doc/refman/5.7/en/mysql-row-seek.html
+             *
+             * @param offset Row offset, not a row index. Typically returned value from #tellRowOffset is used.
+             */
             void seekRowOffset(MYSQL_ROW_OFFSET offset)
             {
                 mysql_row_seek(resultPtr, offset);
             }
 
-            auto fetchField()
-            {
-                return mysql_fetch_field(resultPtr);
-            }
-
-            auto fetchFieldDirect(unsigned int index)
-            {
-                return mysql_fetch_field_direct(resultPtr, index);
-            }
-
-            auto fetchFields()
-            {
-                return mysql_fetch_fields(resultPtr);
-            }
-
-            auto fetchLengths()
-            {
-                return mysql_fetch_lengths(resultPtr);
-            }
-
-            auto fetchRow()
-            {
-                return mysql_fetch_row(resultPtr);
-            }
-
-            auto fieldSeek(MYSQL_FIELD_OFFSET offset)
-            {
-                return mysql_field_seek(resultPtr, offset);
-            }
-
-            auto fieldTell()
-            {
-                return mysql_field_tell(resultPtr);
-            }
-
-            auto freeResult()
-            {
-                return mysql_free_result(resultPtr);
-            }
-
-            auto getFieldsCount()
-            {
-                return mysql_num_fields(resultPtr);
-            }
-
-            auto getRowsCount()
-            {
-                return mysql_num_rows(resultPtr);
-            }
-
+            /**
+             * Returns the current position of the row cursor for the last #fetchRow call.
+             *
+             * @see https://dev.mysql.com/doc/refman/5.7/en/mysql-row-tell.html
+             * @remark Use this method only in case #storeResult (not #useResult) was called before.
+             *
+             * @return The current offset of the row cursor.
+             */
             auto tellRowOffset()
             {
                 return mysql_row_tell(resultPtr);
             }
 
+            /**
+             * Returns the definition of one column of a result set.
+             * Call this function repeatedly to retrieve information about all columns in the result set.
+             * @see https://dev.mysql.com/doc/refman/5.7/en/mysql-fetch-field.html
+             *
+             * @return The MYSQL_FIELD structure for the current column. NULL if no columns are left.
+             */
+            auto fetchField()
+            {
+                return mysql_fetch_field(resultPtr);
+            }
 
-            /*
-             * DO NOT USE this function unless you want to work with C API directly!
+            /**
+             * Returns column's field definition for the specified column in a result set.
+             * @see https://dev.mysql.com/doc/refman/5.7/en/mysql-fetch-field-direct.html
+             *
+             * @param index Column index to fetch details of.
+             * @return The MYSQL_FIELD structure for the specified column.
+             */
+            auto fetchFieldDirect(unsigned int index)
+            {
+                return mysql_fetch_field_direct(resultPtr, index);
+            }
+
+            /**
+             * Returns an array of all MYSQL_FIELD structures for a result set.
+             * Each structure provides the field definition for one column of the result set.
+             * @see https://dev.mysql.com/doc/refman/5.7/en/mysql-fetch-fields.html
+             *
+             * @return An array of MYSQL_FIELD structures for all columns of a result set.
+             */
+            auto fetchFields()
+            {
+                return mysql_fetch_fields(resultPtr);
+            }
+
+            /**
+             * Returns the lengths of the columns of the current row within a result set.
+             * @see https://dev.mysql.com/doc/refman/5.7/en/mysql-fetch-lengths.html
+             *
+             * @return An array of unsigned long integers representing the size of each column (not including any terminating null bytes).
+             */
+            auto fetchLengths()
+            {
+                return mysql_fetch_lengths(resultPtr);
+            }
+
+            /**
+             * Retrieves the next row of a result set.
+             * @see https://dev.mysql.com/doc/refman/5.7/en/mysql-fetch-row.html
+             *
+             * @return MYSQL_ROW with next row results. NULL if there are no more rows or on error.
+             */
+            auto fetchRow()
+            {
+                return mysql_fetch_row(resultPtr);
+            }
+
+            /**
+             * Sets the field cursor to the given offset / index.
+             * The next call to #fetchField retrieves the field definition of the column associated with that offset.
+             * @see https://dev.mysql.com/doc/refman/5.7/en/mysql-field-seek.html
+             *
+             * @param offset Field number index, use 0 for first column.
+             * @return Previous offset value.
+             */
+            auto fieldSeek(MYSQL_FIELD_OFFSET offset)
+            {
+                return mysql_field_seek(resultPtr, offset);
+            }
+
+            /**
+             * Returns the position of the field cursor used for the last #fetchField call.
+             * @see https://dev.mysql.com/doc/refman/5.7/en/mysql-field-tell.html
+             *
+             * @return The current offset of the field cursor.
+             */
+            auto fieldTell()
+            {
+                return mysql_field_tell(resultPtr);
+            }
+
+            /**
+             * Frees allocated memory for current result set.
+             * @see https://dev.mysql.com/doc/refman/5.7/en/mysql-free-result.html
+             *
+             * @return Void - nothing!
+             */
+            auto freeResult()
+            {
+                return mysql_free_result(resultPtr);
+            }
+
+            /**
+             * Returns number of columns in a result set.
+             * @see https://dev.mysql.com/doc/refman/5.7/en/mysql-num-fields.html
+             *
+             * @return Unsigned integer representing the number of columns in a result set.
+             */
+            auto getFieldsCount()
+            {
+                return mysql_num_fields(resultPtr);
+            }
+
+            /**
+             * Returns number of records in a result set.
+             * @see https://dev.mysql.com/doc/refman/5.7/en/mysql-num-rows.html
+             *
+             * @return Number of rows in a result set.
+             */
+            auto getRowsCount()
+            {
+                return mysql_num_rows(resultPtr);
+            }
+
+
+            /**
+             * Returns low-level result set instance.
+             * @remark DO NOT USE this function unless you want to work with C API directly!
+             *
+             * @return Pointer to MYSQL_RES structure with current result set.
              */
             auto detail_getResultPtr()
             {
@@ -397,26 +675,57 @@ namespace SuperiorMySqlpp { namespace LowLevel
         };
 
 
+        /**
+         * Returns the number of columns for the most recent query on the connection.
+         * @see https://dev.mysql.com/doc/refman/5.7/en/mysql-field-count.html
+         *
+         * @return Number of columns of the last performed query.
+         */
         auto getFieldsCount()
         {
             return mysql_field_count(getMysqlPtr());
         }
 
+        /**
+         * Returns MySQL client library version string.
+         * @see https://dev.mysql.com/doc/refman/5.7/en/mysql-get-client-info.html
+         *
+         * @return MySQL client library version as a string.
+         */
         static std::string getClientInfo()
         {
             return mysql_get_client_info();
         }
 
+        /**
+         * Returns MySQL client library version as an integer value.
+         * For instance, "5.7.23" is represented as 50723.
+         * @see https://dev.mysql.com/doc/refman/5.7/en/mysql-get-client-version.html
+         *
+         * @return MySQL client library version as an integer value.
+         */
         static auto getClientVersion()
         {
             return mysql_get_client_version();
         }
 
+        /**
+         * Returns a string describing the connection type in use.
+         * @see https://dev.mysql.com/doc/refman/5.7/en/mysql-get-host-info.html
+         *
+         * @return String representing server hostname and connection type.
+         */
         std::string getHostInfo()
         {
             return mysql_get_host_info(getMysqlPtr());
         }
 
+        /**
+         * Provides info about character set on the client.
+         * @see https://dev.mysql.com/doc/refman/5.7/en/mysql-get-character-set-info.html
+         *
+         * @return Instance of MY_CHARSET_INFO structure.
+         */
         auto getCharacterSetInfo()
         {
             MY_CHARSET_INFO characterSet;
@@ -424,21 +733,47 @@ namespace SuperiorMySqlpp { namespace LowLevel
             return characterSet;
         }
 
+        /**
+         * Returns protocol version used by current connection.
+         * @see https://dev.mysql.com/doc/refman/5.7/en/mysql-get-proto-info.html
+         *
+         * @return Integer representing protocol version of current connection.
+         */
         auto getProtocolInfo()
         {
             return mysql_get_proto_info(getMysqlPtr());
         }
 
+        /**
+         * Returns MySQL server version string.
+         * @see https://dev.mysql.com/doc/refman/5.7/en/mysql-get-server-info.html
+         *
+         * @return MySQL server version as a string.
+         */
         std::string getServerInfo()
         {
             return mysql_get_server_info(getMysqlPtr());
         }
 
+        /**
+         * Returns MySQL server library version as an integer value.
+         * For instance, "5.7.23" is represented as 50723.
+         * @see https://dev.mysql.com/doc/refman/5.7/en/mysql-get-server-version.html
+         *
+         * @return MySQL server version as an integer value.
+         */
         auto getServerVersion()
         {
             return mysql_get_server_version(getMysqlPtr());
         }
 
+        /**
+         * Returns encryption cipher used for current connection to the server.
+         * @see https://dev.mysql.com/doc/refman/5.7/en/mysql-get-ssl-cipher.html
+         *
+         * @return String naming the encryption cipher user for connection.
+         *         Empty string is returned in case the connection is not encrypted.
+         */
         std::string getSslCipher()
         {
             auto stringPtr = mysql_get_ssl_cipher(getMysqlPtr());
@@ -452,11 +787,27 @@ namespace SuperiorMySqlpp { namespace LowLevel
             }
         }
 
+        /**
+         * Last value generated for AUTO_INCREMENT column for the last performed
+         * INSERT or UPDATE statement.
+         * @see https://dev.mysql.com/doc/refman/5.7/en/mysql-insert-id.html
+         *
+         * @return Last ID value for AUTO_INCREMENT column.
+         */
         auto getInsertId()
         {
             return mysql_insert_id(getMysqlPtr());
         }
 
+        /**
+         * Executes SQL statement described in queryString.
+         * Call #storeResult or #useResult to get the #Result instance.
+         * @see https://dev.mysql.com/doc/refman/5.7/en/mysql-real-query.html
+         *
+         * @param queryString SQL query as a C-string.
+         * @param length SQL query length.
+         * @throws MysqlInternalError When any error occurred.
+         */
         void execute(const char* queryString, unsigned long length)
         {
             getLogger()->logMySqlQuery(id, StringView{queryString, length});
@@ -467,17 +818,67 @@ namespace SuperiorMySqlpp { namespace LowLevel
             }
         }
 
+        /**
+         * Executes SQL statement described in queryString.
+         * @see https://dev.mysql.com/doc/refman/5.7/en/mysql-real-query.html
+         *
+         * @param queryString SQL query to execute.
+         * @throws MysqlInternalError When any error occurred.
+         */
         void execute(const std::string& queryString)
         {
             execute(queryString.c_str(), queryString.length());
         }
 
+        /**
+         * May be called immediately after executing statement by #execute
+         * method to get number of affected rows by last SELECT, UPDATE, INSERT
+         * or DELETE statement.
+         * @see https://dev.mysql.com/doc/refman/5.7/en/mysql-affected-rows.html
+         *
+         * @return Number of affected rows by last statement.
+         */
+        auto affectedRows()
+        {
+            return mysql_affected_rows(getMysqlPtr());
+        }
+
+        /**
+         * Detects whether any result is available to fetch.
+         * @see https://dev.mysql.com/doc/refman/5.7/en/mysql-more-results.html
+         *
+         * @return True if there are more results.
+         */
         bool hasMoreResults()
         {
             return mysql_more_results(getMysqlPtr());
         }
 
+        /**
+         * Fetch next result and returns state to idicate whether more results exists.
+         * @see https://dev.mysql.com/doc/refman/5.7/en/mysql-next-result.html
+         *
+         * @return True if there are more results.
+         * @throws MysqlInternalError When any error occurred.
+         */
+        bool nextResult()
+        {
+            auto result = mysql_next_result(getMysqlPtr());
+            switch (result)
+            {
+                case 0:
+                    return true;
+                case -1:
+                    return false;
+                default:
+                    throw MysqlInternalError("Failed to get next result!",
+                        mysql_error(getMysqlPtr()), mysql_errno(getMysqlPtr()));
+            }
+        }
 
+        /**
+         * Enumeration of MySQL options, used instead of #mysql_option.
+         */
         enum class DriverOptions : std::underlying_type_t<mysql_option>
         {
               connectTimeout = MYSQL_OPT_CONNECT_TIMEOUT,
@@ -507,6 +908,14 @@ namespace SuperiorMySqlpp { namespace LowLevel
               enableClearTextPlugin = MYSQL_ENABLE_CLEARTEXT_PLUGIN,
         };
 
+        /**
+         * Sets an extra connect options and affects behavior for a connection.
+         * @see https://dev.mysql.com/doc/refman/5.7/en/mysql-options.html
+         *
+         * @param option Option to set on client/library side.
+         * @param argumentPtr New value for option.
+         * @throws MysqlInternalError When any error occurred during setting client options.
+         */
         void setDriverOption(DriverOptions option, const void* argumentPtr)
         {
             if (mysql_options(getMysqlPtr(), static_cast<mysql_option>(option), argumentPtr))
@@ -516,24 +925,12 @@ namespace SuperiorMySqlpp { namespace LowLevel
             }
         }
 
-        /*
-         * true if there are more results
+        /**
+         * Checks whether the connection to the server is working.
+         * @see https://dev.mysql.com/doc/refman/5.7/en/mysql-ping.html
+         *
+         * @throws MysqlInternalError in case the connection is not alive.
          */
-        bool nextResult()
-        {
-            auto result = mysql_next_result(getMysqlPtr());
-            switch (result)
-            {
-                case 0:
-                    return true;
-                case -1:
-                    return false;
-                default:
-                    throw MysqlInternalError("Failed to get next result!",
-                        mysql_error(getMysqlPtr()), mysql_errno(getMysqlPtr()));
-            }
-        }
-
         void ping()
         {
             getLogger()->logMySqlPing(id);
@@ -544,12 +941,26 @@ namespace SuperiorMySqlpp { namespace LowLevel
             }
         }
 
+        /**
+         * Checks whether the connection to the server is working.
+         * @see https://dev.mysql.com/doc/refman/5.7/en/mysql-ping.html
+         *
+         * @return True if a connection is still alive, false is returned otherwise.
+         */
         bool tryPing()
         {
             getLogger()->logMySqlPing(id);
             return !mysql_ping(getMysqlPtr());
         }
 
+        /**
+         * Retrieves additional human-readable information about the most recently executed statement.
+         * The statement must be one of the following types: INSERT, LOAD DATA INFILE, ALTER TABLE, UPDATE.
+         * Empty string is returned for all other statements then the types listed above.
+         * @see https://dev.mysql.com/doc/refman/5.7/en/mysql-info.html
+         *
+         * @return String representing additional information about the last performed SQL statement.
+         */
         std::string queryInfo()
         {
             const char* info = mysql_info(getMysqlPtr());
@@ -563,6 +974,13 @@ namespace SuperiorMySqlpp { namespace LowLevel
             }
         }
 
+        /**
+         * Sets the default character set for the current connection.
+         * @see https://dev.mysql.com/doc/refman/5.7/en/mysql-set-character-set.html
+         *
+         * @param characterSetName Character set name.
+         * @throws MysqlInternalError When any error occurred during changing the charset.
+         */
         void setCharacterSet(char* characterSetName)
         {
             if (mysql_set_character_set(getMysqlPtr(), characterSetName))
@@ -572,13 +990,22 @@ namespace SuperiorMySqlpp { namespace LowLevel
             }
         }
 
-
-        enum class ServerOptions
+        /**
+         * Enumeration of MySQL server-side options, used instead of #enum_mysql_set_option.
+         */
+        enum class ServerOptions : std::underlying_type_t<enum_mysql_set_option>
         {
               multiStatementsOn = MYSQL_OPTION_MULTI_STATEMENTS_ON,
               multiStatementsOff = MYSQL_OPTION_MULTI_STATEMENTS_OFF,
         };
 
+        /**
+         * Enables or disables the multiple statement option for a connection on server side.
+         * @see https://dev.mysql.com/doc/refman/5.7/en/mysql-set-server-option.html
+         *
+         * @param option Option to set on server side.
+         * @throws MysqlInternalError When any error occurred during setting server options.
+         */
         void setServerOption(ServerOptions option)
         {
             if (mysql_set_server_option(getMysqlPtr(), static_cast<enum_mysql_set_option>(option)))
@@ -588,6 +1015,16 @@ namespace SuperiorMySqlpp { namespace LowLevel
             }
         }
 
+        /**
+         * Establish encrypted connection using SSL.
+         * @see https://dev.mysql.com/doc/refman/5.7/en/mysql-ssl-set.html
+         *
+         * @param key The path name of the client private key file.
+         * @param certificate The path name of the client public key certificate file.
+         * @param certificationAuthority The path name of the Certificate Authority (CA) certificate file.
+         * @param trustedCertificationAuthorityDirectory The path name of the directory that contains trusted SSL CA certificate files.
+         * @param cipher List The list of permitted ciphers for SSL encryption.
+         */
         void setSsl(
                 const char* key,
                 const char* certificate,
@@ -599,6 +1036,14 @@ namespace SuperiorMySqlpp { namespace LowLevel
                     trustedCertificationAuthorityDirectory, cipherList);
         }
 
+        /**
+         * Return MySQL server statistics string.
+         * Statistics data contains uptime [s], number of running threads, questions, reloads and open tables.
+         * @see https://dev.mysql.com/doc/refman/5.7/en/mysql-stat.html
+         *
+         * @return MySQL server statistics string in readable format.
+         * @throws MysqlInternalError When any error occurred.
+         */
         std::string serverStatistics()
         {
             auto statisticsPtr = mysql_stat(getMysqlPtr());
@@ -610,29 +1055,48 @@ namespace SuperiorMySqlpp { namespace LowLevel
             return statisticsPtr;
         }
 
+        /**
+         * Returns the number of errors, warning and notes for last performed SQL statement.
+         * @see https://dev.mysql.com/doc/refman/5.7/en/mysql-warning-count.html
+         *
+         * @return Number of errors, warning and notes during the last SQL statement.
+         */
         auto warningsCount()
         {
             return mysql_warning_count(getMysqlPtr());
         }
 
 
-        /*
-         * Prepared statements
+        /**
+         * Prepared statements.
          */
         class Statement
         {
         private:
+            /** Pointer to underlying library's statement handler instance. */
             MYSQL_STMT* statementPtr;
+            /** ID of parent entity - DBDriver instance; Used only for logging purposes. */
             std::uint_fast64_t driverId;
+            /** Internal ID; each instance have unique ID. */
             std::uint_fast64_t id;
+            /** Logger instance pointer. */
             Loggers::ConstPointer_t loggerPtr;
 
+            /**
+             * Internal thread-safe ID counter.
+             * @return ID counter reference.
+             */
             static auto& getGlobalIdRef()
             {
                 static std::atomic<std::uint_fast64_t> globalId{1};
                 return globalId;
             }
 
+            /**
+             * Closes the prepared statement and deallocates the statement handler.
+             * In case of error, std::terminate() is called.
+             * @see https://dev.mysql.com/doc/refman/5.7/en/mysql-stmt-close.html
+             */
             void close() noexcept
             {
                 if (statementPtr != nullptr)
@@ -650,6 +1114,14 @@ namespace SuperiorMySqlpp { namespace LowLevel
         public:
             Statement() = delete;
 
+            /**
+             * Constructs prepared statement on passed connection.
+             * @see https://dev.mysql.com/doc/refman/5.7/en/mysql-stmt-init.html
+             *
+             * @param mysql Connection handler settings.
+             * @param driverId DBDriver ID for logging purposes.
+             * @param loggerPtr Pointer to Logger object.
+             */
             Statement(MYSQL& mysql, std::uint_fast64_t driverId, Loggers::ConstPointer_t loggerPtr)
                 : driverId{driverId}, id{getGlobalIdRef().fetch_add(1)}, loggerPtr{std::move(loggerPtr)}
             {
@@ -665,6 +1137,10 @@ namespace SuperiorMySqlpp { namespace LowLevel
             Statement(const Statement&) = delete;
             Statement& operator=(const Statement&) = delete;
 
+            /**
+             * Move constructor.
+             * @param result Statement instance.
+             */
             Statement(Statement&& other) noexcept
                 : statementPtr{std::move(other).statementPtr},
                   driverId{std::move(other).driverId},
@@ -674,6 +1150,11 @@ namespace SuperiorMySqlpp { namespace LowLevel
                 other.statementPtr = nullptr;
             }
 
+            /**
+             * Move assignment operator.
+             * @param result Statement instance.
+             * @return Reference to current instance.
+             */
             Statement& operator=(Statement&& other) noexcept
             {
                 static_assert(noexcept(close()), "close() must be noexcept!");
@@ -683,16 +1164,28 @@ namespace SuperiorMySqlpp { namespace LowLevel
                 return *this;
             }
 
+            /**
+             * Closes the prepared statement and frees all allocated resources.
+             * @see https://dev.mysql.com/doc/refman/5.7/en/mysql-stmt-close.html
+             */
             ~Statement()
             {
                 close();
             }
 
+            /**
+             * Returns parent DBDriver ID.
+             * @return DBDriver ID.
+             */
             auto getDriverId() const
             {
                 return driverId;
             }
 
+            /**
+             * Returns unique statement's ID.
+             * @return Statement's ID.
+             */
             auto getId() const
             {
                 return id;
@@ -878,11 +1371,25 @@ namespace SuperiorMySqlpp { namespace LowLevel
                 }
             }
 
+            /**
+             * May be called immediately after executing statement by #execute
+             * method to get number of affected rows by last SELECT, UPDATE, INSERT
+             * or DELETE statement.
+             * @see https://dev.mysql.com/doc/refman/5.7/en/mysql-stmt-affected-rows.html
+             *
+             * @return Number of affected rows by last statement.
+             */
             auto affectedRows()
             {
                 return mysql_stmt_affected_rows(statementPtr);
             }
 
+            /**
+             * Returns the number of parameters markers present in prepared statement.
+             * @see https://dev.mysql.com/doc/refman/5.7/en/mysql-stmt-param-count.html
+             *
+             * @return Number of parameters in a statement.
+             */
             auto paramCount()
             {
                 return mysql_stmt_param_count(statementPtr);
@@ -907,21 +1414,49 @@ namespace SuperiorMySqlpp { namespace LowLevel
                 return mysql_stmt_sqlstate(statementPtr);
             }
 
+            /**
+             * Seeks to an arbitrary row in a statement result set.
+             * @see https://dev.mysql.com/doc/refman/5.7/en/mysql-stmt-data-seek.html
+             * @remark Use this method only in case #storeResult (not #useResult) was called before.
+             *
+             * @param index Row number in a result set.
+             */
             void seekRow(size_t index)
             {
                 mysql_stmt_data_seek(statementPtr, index);
             }
 
+            /**
+             * Sets the row cursor to an arbitrary row in a statement result set by cursor offset.
+             * @see https://dev.mysql.com/doc/refman/5.7/en/mysql-stmt-row-seek.html
+             *
+             * @param offset Row offset, not a row index. Typically returned value from #tellRowOffset is used.
+             */
             void seekRowOffset(MYSQL_ROW_OFFSET offset)
             {
                 mysql_stmt_row_seek(statementPtr, offset);
             }
 
+            /**
+             * Returns the current position of the row cursor for the last #fetchRow call.
+             *
+             * @see https://dev.mysql.com/doc/refman/5.7/en/mysql-row-tell.html
+             * @remark Use this method only in case #storeResult (not #useResult) was called before.
+             *
+             * @return The current offset of the row cursor.
+             */
             auto tellRowOffset()
             {
                 return mysql_stmt_row_tell(statementPtr);
             }
 
+            /**
+             * Returns the number of rows in the statement's result set.
+             * @see https://dev.mysql.com/doc/refman/5.7/en/mysql-stmt-num-rows.html
+             * @remark Call this method for SELECT queries after the #storeResult method call.
+             *
+             * @return Number of rows in the statement's result set.
+             */
             auto getRowsCount()
             {
                 return mysql_stmt_num_rows(statementPtr);
@@ -929,9 +1464,9 @@ namespace SuperiorMySqlpp { namespace LowLevel
 
             enum class Attributes : std::underlying_type_t<enum_stmt_attr_type>
             {
-                  updateMaxLength = STMT_ATTR_UPDATE_MAX_LENGTH,
-                  cursorType = STMT_ATTR_CURSOR_TYPE,
-                  prefetchRows = STMT_ATTR_PREFETCH_ROWS,
+                updateMaxLength = STMT_ATTR_UPDATE_MAX_LENGTH,
+                cursorType = STMT_ATTR_CURSOR_TYPE,
+                prefetchRows = STMT_ATTR_PREFETCH_ROWS,
             };
 
             template<typename T>
@@ -954,8 +1489,12 @@ namespace SuperiorMySqlpp { namespace LowLevel
                 }
             }
 
-            /*
-             * true if there are more results
+            /**
+             * Detects whether any result is available to fetch.
+             * @see https://dev.mysql.com/doc/refman/5.7/en/mysql-stmt-next-result.html
+             *
+             * @return True if there are more results.
+             * @throws MysqlInternalError When any error occurred.
              */
             bool nextResult()
             {
@@ -972,8 +1511,11 @@ namespace SuperiorMySqlpp { namespace LowLevel
                 }
             }
 
-            /*
-             * DO NOT USE this function unless you want to work with C API directly!
+            /**
+             * Returns low-level prepared statement instance.
+             * @remark DO NOT USE this function unless you want to work with C API directly!
+             *
+             * @return Pointer to MYSQL_STMT structure with prepared statement.
              */
             auto detail_getStatementPtr()
             {
@@ -981,12 +1523,22 @@ namespace SuperiorMySqlpp { namespace LowLevel
             }
         };
 
+        /**
+         * Factory method for constructing #Statement object providing interface for prepared statements.
+         * @return Prepared statements management instance.
+         */
         Statement makeStatement()
         {
             return {mysql, id, loggerPtr.get()};
         }
 
-
+        /**
+         * Retrieve the entire result set of last executed query to the client.
+         * @see https://dev.mysql.com/doc/refman/5.7/en/mysql-store-result.html
+         *
+         * @return Results management instance.
+         * @throws MysqlInternalError When any error occurred.
+         */
         auto storeResult()
         {
             auto result = mysql_store_result(getMysqlPtr());
@@ -1007,6 +1559,13 @@ namespace SuperiorMySqlpp { namespace LowLevel
             return Result{result};
         }
 
+        /**
+         * Retrieve each result's row individually from server without storing it locally.
+         * @see https://dev.mysql.com/doc/refman/5.7/en/mysql-use-result.html
+         *
+         * @return Results management instance.
+         * @throws MysqlInternalError When any error occurred.
+         */
         auto useResult()
         {
             auto result = mysql_use_result(getMysqlPtr());
@@ -1018,14 +1577,21 @@ namespace SuperiorMySqlpp { namespace LowLevel
             return Result{result};
         }
 
+        /**
+         * Returns unique instance's ID.
+         * @return Instance's ID.
+         */
         auto getId() const
         {
             return id;
         }
 
 
-        /*
-         * DO NOT USE this function unless you want to work with C API directly!
+        /**
+         * Returns low-level configuration used for current connection.
+         * @remark DO NOT USE this function unless you want to work with C API directly!
+         *
+         * @return Pointer to MYSQL structure with current connection settings.
          */
         MYSQL* detail_getMysqlPtr()
         {
@@ -1034,6 +1600,12 @@ namespace SuperiorMySqlpp { namespace LowLevel
     };
 
 
+    /**
+     * Identity comparison of two DBDriver instances by comparing its unique IDs.
+     * @param lhs DBDriver instance.
+     * @param rhs DBDriver instance.
+     * @return True if both DBDriver instances are the same.
+     */
     inline bool operator==(const DBDriver& lhs, const DBDriver& rhs)
     {
         return lhs.getId() == rhs.getId();
