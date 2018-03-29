@@ -106,4 +106,10 @@ namespace SuperiorMySqlpp
     public:
         using QueryError::QueryError;
     };
+
+    class UnexpectedMultipleRowsError : public SuperiorMySqlppError
+    {
+    public:
+        using SuperiorMySqlppError::SuperiorMySqlppError;
+    };
 }

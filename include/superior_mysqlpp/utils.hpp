@@ -6,6 +6,8 @@
 
 
 #include <string>
+#include <tuple>
+#include <utility>
 
 
 namespace SuperiorMySqlpp
@@ -25,5 +27,31 @@ namespace SuperiorMySqlpp
         }
 
         return result;
+    }
+
+    namespace
+    {
+        /**
+         * @brief Invokes function via unpacked tuple
+         * @param f Functor to be invoked
+         * @param t Tuple of arguments to be unpacked
+         */
+        template<typename Function, typename Tuple, std::size_t... I>
+        auto invokeViaTuple(Function f, const Tuple &t, std::index_sequence<I...>)
+        {
+            return f(std::get<I>(t)...);
+        }
+    }
+
+    /**
+     * @brief Invokes function via unpacked tuple
+     * @param f Functor to be invoked
+     * @param t Tuple of arguments to be unpacked
+     */
+    template<typename Function, typename Tuple>
+    auto invokeViaTuple(Function f, const Tuple &t)
+    {
+        static constexpr std::size_t tuple_size = std::tuple_size<Tuple>::value;
+        return invokeViaTuple(f, t, std::make_index_sequence<tuple_size>{});
     }
 }
