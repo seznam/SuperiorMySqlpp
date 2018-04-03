@@ -18,7 +18,7 @@ namespace SuperiorMySqlpp
 
             /**
              * @brief Constructs MemberWrapper object
-             * @param object Instance of T
+             * @param object Instance of T, note: pointer is not owned -> possible out of scope error
              * @param member Member function from T
              */
             constexpr MemberWrapper(T *object, TMember member) noexcept
@@ -30,7 +30,7 @@ namespace SuperiorMySqlpp
              */
             inline void operator()(Args... args) const
             {
-                return (object->*member)(args...);
+                (object->*member)(args...);
             }
         };
     }

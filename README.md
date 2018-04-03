@@ -242,18 +242,34 @@ while (preparedStatement.fetch())
 }
 ```
 
-### Convenient read functions
+### Convenience read functions
 **psReadQuery**
 ```c++
 auto preparedStatement = connection.makePreparedStatement<ResultBindings<Sql::Int, Sql::Int>("SELECT ... FROM ...");
-psReadQuery(preparedStatement, [&](int arg1, int arg2) {  });
+psReadQuery(preparedStatement, <Callable>);
 ```
 or
 ```c++
-psReadQuery("SELECT ... FROM ...", connection, [&](int arg1, int arg2){});
+psReadQuery("SELECT ... FROM ...", connection, <Callable>);
 ```
 Where callable can be C function, lambda, or member function, however in the last case you need to use
 wrapper, for example wrapMember function (located in *superior_mysqlpp/extras/member_wrapper.hpp*).
+```c++
+psReadQuery(..., [&](int arg1, int arg2){});
+```
+```c++
+void processRow(int arg1, int arg2) {}
+psReadQuery(..., &processRow);
+```
+```c++
+class ProcessingClass {
+public:
+    void processRow(int arg1, int arg2) {}
+};
+
+ProcessingClass pc;
+psReadQuery(..., wrapMember(&pc, &ProcessingClass::processRow));
+```
 This method doesn't throw exceptions, however query execution and row fetching can still fail,
 resulting in exception.
 

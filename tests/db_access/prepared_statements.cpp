@@ -569,30 +569,46 @@ go_bandit([](){
             }
         });
 
-        it("can work with prepared statement helper functions - psReadValues", [&](){
-            {
-                int id{};
-                BlobData blob{}, binary{}, varbinary{};
-                psReadValues("SELECT `id`, `blob`, `binary`, `varbinary` FROM `test_superior_sqlpp`.`binary_data` ORDER BY `id` LIMIT 1", connection, id, blob, binary, varbinary);
+        it("can work with psReadValues (passing query string)", [&](){
+            int id{};
+            BlobData blob{}, binary{}, varbinary{};
+            psReadValues("SELECT `id`, `blob`, `binary`, `varbinary` FROM `test_superior_sqlpp`.`binary_data` ORDER BY `id` LIMIT 1", connection, id, blob, binary, varbinary);
 
-                AssertThat(id, Equals(42));
-                AssertThat(blob.size(), Equals(5u));
-                AssertThat(binary.size(), Equals(10u));
-                AssertThat(varbinary.size(), Equals(5u));
-                AssertThat(blob.getStringView()=="ab0cd"s, IsTrue());
-                AssertThat(binary.getStringView(), Equals("ef\0gh\0\0\0\0\0"s));
-                AssertThat(varbinary.getStringView(), Equals("ij\0kl"s));
-            }
-            {
-                int id{};
-                BlobData blob{}, binary{}, varbinary{};
-                AssertThrows(UnexpectedMultipleRowsError,
-                    psReadValues("SELECT `id`, `blob`, `binary`, `varbinary` FROM `test_superior_sqlpp`.`binary_data` ORDER BY `id`", connection, id, blob, binary, varbinary)
-                );
-            }
+            AssertThat(id, Equals(42));
+            AssertThat(blob.size(), Equals(5u));
+            AssertThat(binary.size(), Equals(10u));
+            AssertThat(varbinary.size(), Equals(5u));
+            AssertThat(blob.getStringView()=="ab0cd"s, IsTrue());
+            AssertThat(binary.getStringView(), Equals("ef\0gh\0\0\0\0\0"s));
+            AssertThat(varbinary.getStringView(), Equals("ij\0kl"s));
         });
 
-        it("can work with prepared statement helper functions - psReadQuery", [&](){
+        it("can work with psReadValues (passing PreparedStatement object)", [&](){
+            int id{};
+            BlobData blob{}, binary{}, varbinary{};
+            auto preparedStatement = connection.makePreparedStatement<ResultBindings<int, BlobData, BlobData, BlobData>>(
+                "SELECT `id`, `blob`, `binary`, `varbinary` FROM `test_superior_sqlpp`.`binary_data` ORDER BY `id` LIMIT 1"
+            );
+            psReadValues(preparedStatement, id, blob, binary, varbinary);
+
+            AssertThat(id, Equals(42));
+            AssertThat(blob.size(), Equals(5u));
+            AssertThat(binary.size(), Equals(10u));
+            AssertThat(varbinary.size(), Equals(5u));
+            AssertThat(blob.getStringView()=="ab0cd"s, IsTrue());
+            AssertThat(binary.getStringView(), Equals("ef\0gh\0\0\0\0\0"s));
+            AssertThat(varbinary.getStringView(), Equals("ij\0kl"s));
+        });
+
+        it("can work with psReadValues (throws multiple rows error)", [&](){
+            int id{};
+            BlobData blob{}, binary{}, varbinary{};
+            AssertThrows(UnexpectedMultipleRowsError,
+                psReadValues("SELECT `id`, `blob`, `binary`, `varbinary` FROM `test_superior_sqlpp`.`binary_data` ORDER BY `id`", connection, id, blob, binary, varbinary)
+            );
+        });
+
+        it("can work with psReadQuery (valid types, passing PreparedStatement object)", [&](){
             auto preparedStatement = connection.makePreparedStatement<ResultBindings<int, BlobData, BlobData, BlobData>>(
                 "SELECT `id`, `blob`, `binary`, `varbinary` FROM `test_superior_sqlpp`.`binary_data` ORDER BY `id` LIMIT 1"
             );
@@ -606,7 +622,22 @@ go_bandit([](){
                 AssertThat(binary.getStringView(), Equals("ef\0gh\0\0\0\0\0"s));
                 AssertThat(varbinary.getStringView(), Equals("ij\0kl"s));
             });
-            
+        });
+
+        it("can work with psReadQuery (valid types, passing query string)", [&](){
+            psReadQuery("SELECT `id`, `blob`, `binary`, `varbinary` FROM `test_superior_sqlpp`.`binary_data` ORDER BY `id` LIMIT 1", 
+              connection, [&](int id, const BlobData &blob, const BlobData &binary, const BlobData &varbinary) {
+                AssertThat(id, Equals(42));
+                AssertThat(blob.size(), Equals(5u));
+                AssertThat(binary.size(), Equals(10u));
+                AssertThat(varbinary.size(), Equals(5u));
+                AssertThat(blob.getStringView()=="ab0cd"s, IsTrue());
+                AssertThat(binary.getStringView(), Equals("ef\0gh\0\0\0\0\0"s));
+                AssertThat(varbinary.getStringView(), Equals("ij\0kl"s));
+            });
+        });
+
+        it("can work with prepared statement helper functions - psReadQuery (invalid data types)", [&](){
             AssertThrows(PreparedStatementTypeError, psReadQuery("SELECT `id`, `blob`, `binary`, `varbinary` FROM `test_superior_sqlpp`.`binary_data` ORDER BY `id` LIMIT 1", 
                 connection, [&](int , int, const BlobData &, const BlobData &) {}));
         });
