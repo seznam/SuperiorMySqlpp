@@ -607,7 +607,7 @@ go_bandit([](){
                 );
                 preparedStatement.execute();
                 int id;
-                Nullable<Dynamic<std::string>> htext{};
+                Nullable<std::string> htext{};
 
                 AssertThat(preparedStatement.fetch(), IsTrue());
                 std::tie(id, htext) = preparedStatement.getResult();

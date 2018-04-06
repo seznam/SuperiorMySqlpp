@@ -159,6 +159,46 @@ go_bandit([](){
             AssertThat(count, Equals(1));
         });
 
+        it("can bind dynamic strings", [&](){
+            auto preparedStatement = connection.makeDynamicPreparedStatement(
+                "SELECT `id`, CAST(`name` as CHAR) FROM `test_superior_sqlpp`.`xuser5` WHERE `id`=? AND `name`=? AND `name`=? AND `name`=? AND `name`=?"
+            );
+
+            int id = 12;
+            StringData sd{"Kokot"};
+            std::string string{"Kokot"};
+            const char cca[] = "Kokot";
+            const char* ccp = static_cast<const char*>(cca);
+            preparedStatement.bindParam(0, id);
+            preparedStatement.bindParam(1, sd);
+            preparedStatement.bindParam(2, string);
+            preparedStatement.bindParam(3, cca);
+            preparedStatement.bindParam(4, ccp);
+
+            preparedStatement.updateParamBindings();
+
+            preparedStatement.execute();
+            {
+                Nullable<std::string> sname;
+                preparedStatement.bindResult(0, id);
+                preparedStatement.bindResult(1, sname);
+
+                preparedStatement.updateResultBindings();
+
+                int count = 0;
+                while (preparedStatement.fetch())
+                {
+                    AssertThat(sname.isValid(), IsTrue());
+
+                    AssertThat(id, Equals(12));
+                    AssertThat(*sname, Equals("Kokot"));
+
+                    ++count;
+                }
+                AssertThat(count, Equals(1));
+            }
+        });
+
         it("can validate metadata", [&](){
             AssertThat((testInt32<ValidateMetadataMode::Strict, signed char>(connection)), IsFalse());
             AssertThat((testInt32<ValidateMetadataMode::Strict, short int>(connection)), IsFalse());

@@ -302,6 +302,19 @@ namespace SuperiorMySqlpp
             binding.length = &dyn.impl_.targetSize;
         }
 
+        template<typename T>
+        inline void initializeResultBinding(MYSQL_BIND& binding, detail::DynamicStorageBase &dyn, const T &)
+        {
+            binding.buffer = &dyn;
+            binding.buffer_type = detail::toMysqlEnum(
+                    CanBindAsResult<BindingTypes::String, T>::value ?
+                    FieldTypes::String :
+                    FieldTypes::Blob
+            );
+            binding.buffer_length = 0;
+            binding.length = &dyn.targetSize;
+        }
+
         /**
          * Result binding initialization specialization for types bindable into SuperiorMySqlpp::Nullable.
          */

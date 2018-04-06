@@ -262,6 +262,44 @@ public:
         return *this;
     }
 
+    template<typename U>
+    std::enable_if_t<std::is_base_of<StoredType, std::decay_t<U>>::value, Nullable&> operator=(const Nullable<U>& value)
+    {
+        static_assert(std::is_constructible<StoredType, U>() && std::is_assignable<StoredType&, U>(), "Cannot assign to value type from argument");
+
+        if (engaged)
+        {
+            payload = value.value();
+        }
+        else
+        {
+            constructPayload(value.value());
+        }
+
+        null = false;
+
+        return *this;
+    }
+
+    template<typename U>
+    std::enable_if_t<std::is_base_of<StoredType, std::decay_t<U>>::value, Nullable&> operator=(Nullable<U>&& value)
+    {
+        static_assert(std::is_constructible<StoredType, U>() && std::is_assignable<StoredType&, U>(), "Cannot assign to value type from argument");
+
+        if (engaged)
+        {
+            payload = std::forward<U>(value).value();
+        }
+        else
+        {
+            constructPayload(std::forward<U>(value).value());
+        }
+
+        null = false;
+
+        return *this;
+    }
+
     ~Nullable()
     {
         if (!std::is_trivially_destructible<StoredType>())

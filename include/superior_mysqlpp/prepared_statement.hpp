@@ -22,6 +22,7 @@
 #include <superior_mysqlpp/connection_def.hpp>
 #include <superior_mysqlpp/metadata.hpp>
 #include <superior_mysqlpp/traits.hpp>
+#include <superior_mysqlpp/types/dynamic.hpp>
 #include <superior_mysqlpp/types/tags.hpp>
 
 /************************************
@@ -96,12 +97,28 @@
 
 namespace SuperiorMySqlpp
 {
+    namespace detail
+    {
+        /**
+         * @brief Wraps dynamic type results with Dynamic<> class
+         */
+        template<bool, typename... Types>
+        struct BindingsStorageTrait {
+            typedef std::tuple<Types...> type;
+        };
+
+        template<typename... Types>
+        struct BindingsStorageTrait<false, Types...> {
+            typedef std::tuple<typename detail::DynamicTypeTransform<Types>::type...> type;
+        };
+    }
+
     /**
      * @brief Bindings of storage for either parameters (inputs) or results (outputs) of SQL queries.
      * Bindings class encapsulates the storage of heterogenous data needed for SQL parameters and results.
      * The underlying storage itself is in std::tuple member data, auxiliary binding information is stored
      * in array of MYSQL_BIND structures used from underlying C mysql client -- member bindings.
-     * @tparam IsParamBingngs - Special flag for template specialization.
+     * @tparam IsParamBinding - Special flag for template specialization.
      *                          If Bindings is used for query parameter, it is true.
      *                          If Bindings is used for query result, it is false.
      * @tparam Types - Parameter pack of types forming storage of individual fields.
@@ -115,7 +132,7 @@ namespace SuperiorMySqlpp
         static constexpr bool isParamBinding = IsParamBinding;
 
         // Underlying storage for binding's data.
-        std::tuple<Types...> data;
+        typename detail::BindingsStorageTrait<IsParamBinding, Types...>::type data;
         // Array of binding structures pointing to storage in member #data.
         std::array<MYSQL_BIND, sizeof...(Types)> bindings;
 

@@ -20,6 +20,7 @@
 #include <superior_mysqlpp/prepared_statements/prepared_statement_base.hpp>
 #include <superior_mysqlpp/low_level/dbdriver.hpp>
 #include <superior_mysqlpp/connection_def.hpp>
+#include <superior_mysqlpp/types/dynamic.hpp>
 #include <superior_mysqlpp/types/nullable.hpp>
 
 namespace SuperiorMySqlpp
@@ -33,15 +34,53 @@ namespace SuperiorMySqlpp
 
         std::vector<MYSQL_BIND> paramsBindings;
         std::vector<MYSQL_BIND> resultBindings;
+        std::vector<detail::DynamicStorageBase> dynamicStorageHandlers;
 
         template<typename T>
-        void bindResultInternal(unsigned int index, T& value)
+        std::enable_if_t<detail::CanBeDynamic<T>::value> bindResultInternal(unsigned int index, T& value)
         {
             throwIfStatementNotExecuted();
             if (index >= resultBindings.size())
             {
                 throw OutOfRange("Param result index " + std::to_string(index) + " >= bindings size " + std::to_string(resultBindings.size()));
             }
+
+            dynamicStorageHandlers[index] = Dynamic<T &>(value);
+            detail::initializeResultBinding(resultBindings[index], dynamicStorageHandlers[index], value);
+        }
+
+        template<typename T>
+        std::enable_if_t<detail::CanBeDynamic<T>::value> bindResultInternal(unsigned int index, Nullable<T>& value)
+        {
+            throwIfStatementNotExecuted();
+            if (index >= resultBindings.size())
+            {
+                throw OutOfRange("Param result index " + std::to_string(index) + " >= bindings size " + std::to_string(resultBindings.size()));
+            }
+
+            dynamicStorageHandlers[index] = Dynamic<T &>(*value);
+            // We have to register nullable manually
+            detail::initializeNullable(resultBindings[index], value);
+            detail::initializeResultBinding(resultBindings[index], dynamicStorageHandlers[index], value);
+
+            // This is really important part of this code:
+            // Sometimes there is chance, that container inside nullable is not initialized,
+            // resulting in segmentation fault on write... Let's run default constructor
+            // to ensure we have valid internal state of the container
+            if(!value.isValid()) {
+                value.emplace();
+            }
+        }
+
+        template<typename T>
+        std::enable_if_t<!detail::CanBeDynamic<T>::value> bindResultInternal(unsigned int index, T& value)
+        {
+            throwIfStatementNotExecuted();
+            if (index >= resultBindings.size())
+            {
+                throw OutOfRange("Param result index " + std::to_string(index) + " >= bindings size " + std::to_string(resultBindings.size()));
+            }
+
             detail::initializeResultBinding(resultBindings[index], value);
         }
 
@@ -141,6 +180,7 @@ namespace SuperiorMySqlpp
             if (resultFieldCount > 0)
             {
                 resultBindings.resize(resultFieldCount);
+                dynamicStorageHandlers.resize(resultFieldCount);
             }
 
             this->storeOrUse();
