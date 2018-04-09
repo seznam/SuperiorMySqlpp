@@ -8,10 +8,10 @@
 
 namespace SuperiorMySqlpp
 {
-    namespace
+    namespace detail
     {
         /**
-         * @brief Makes prepared statement by guessing ResultBindings template arguments from function's signature
+         * @brief Makes prepared statement by deducing ResultBindings template arguments from function's signature
          * @param connection Connection handle into database
          * @param query Query for prepared statement
          * @tparam storeResult Boolean indicating if results will be in `store` or `use` mode
@@ -25,7 +25,7 @@ namespace SuperiorMySqlpp
         }
 
         /**
-         * @brief Makes prepared statement by guessing ResultBindings template arguments from function's signature
+         * @brief Makes prepared statement by deducing ResultBindings template arguments from function's signature
          * @param connection Connection handle into database
          * @param query Query for prepared statement
          * @tparam storeResult Boolean indicating if results will be in `store` or `use` mode
@@ -39,7 +39,7 @@ namespace SuperiorMySqlpp
         }
 
         /**
-         * @brief Makes prepared statement by guessing ResultBindings template arguments from function's signature
+         * @brief Makes prepared statement by deducing ResultBindings template arguments from function's signature
          * @param connection Connection handle into database
          * @param query Query for prepared statement
          * @tparam storeResult Boolean indicating if results will be in `store` or `use` mode
@@ -53,7 +53,7 @@ namespace SuperiorMySqlpp
         }
 
         /**
-         * @brief Makes prepared statement by guessing ResultBindings template arguments from function's signature
+         * @brief Makes prepared statement by deducing ResultBindings template arguments from function's signature
          * @param connection Connection handle into database
          * @param query Query for prepared statement
          * @tparam storeResult Boolean indicating if results will be in `store` or `use` mode
@@ -67,7 +67,7 @@ namespace SuperiorMySqlpp
         }
 
         /**
-         * @brief Makes prepared statement by guessing ResultBindings template arguments from lambda's signature
+         * @brief Makes prepared statement by deducing ResultBindings template arguments from lambda's signature
          * @param connection Connection handle into database
          * @param query Query for prepared statement
          * @tparam storeResult Boolean indicating if results will be in `store` or `use` mode
@@ -82,7 +82,7 @@ namespace SuperiorMySqlpp
         }
 
         /**
-         * @brief Makes prepared statement by guessing ResultBindings template arguments from plain old C function's signature
+         * @brief Makes prepared statement by deducing ResultBindings template arguments from plain old C function's signature
          * @param connection Connection handle into database
          * @param query Query for prepared statement
          * @tparam storeResult Boolean indicating if results will be in `store` or `use` mode
@@ -98,7 +98,7 @@ namespace SuperiorMySqlpp
 
     /**
      * @brief Executes query, reads input data and passes them to callback function
-     * @param ps Prepared statement object
+     * @param ps Prepared statement object (only static statements are currently supported)
      * @param processingFunction function to be invoked on every row
      *                           Its parameters must correspond with result columns (their types and count)
      */
@@ -127,17 +127,17 @@ namespace SuperiorMySqlpp
              ValidateMetadataMode validateMode=detail::PreparedStatementsDefault::getValidateMode(),
              ValidateMetadataMode warnMode=detail::PreparedStatementsDefault::getWarnMode(),
              bool ignoreNullable=detail::PreparedStatementsDefault::getIgnoreNullable(),
-             typename Callable, 
+             typename Callable,
              typename ConnType>
     void psReadQuery(const std::string &query, ConnType &&connection, Callable &&processingFunction)
     {
-        auto ps = generatePreparedStatementImpl<storeResult, validateMode, warnMode, ignoreNullable>(connection, query, processingFunction);
+        auto ps = detail::generatePreparedStatementImpl<storeResult, validateMode, warnMode, ignoreNullable>(connection, query, processingFunction);
         psReadQuery(ps, processingFunction);
     }
 
     /**
      * @brief Reads one and only one row from query (from your own instance) into variables
-     * @param ps Prepared statement object
+     * @param ps Prepared statement object (only static statements are currently supported)
      * @param values References to variables to be loaded from query
      *               Their type must be compatible with query result types
      * @throws std::runtime_error if more than one row is being loaded

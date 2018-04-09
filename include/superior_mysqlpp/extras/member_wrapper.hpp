@@ -2,7 +2,7 @@
 
 namespace SuperiorMySqlpp
 {
-    namespace
+    namespace detail
     {
         /**
          * @brief Wraps member object and member function pointer into single functor
@@ -44,7 +44,7 @@ namespace SuperiorMySqlpp
     template<typename T, typename... Args>
     inline auto wrapMember(T *object, void (T::*member)(Args...)) noexcept
     {
-        return MemberWrapper<T, decltype(member), Args...>(object, member);
+        return detail::MemberWrapper<T, decltype(member), Args...>(object, member);
     }
 
     /**
@@ -56,7 +56,7 @@ namespace SuperiorMySqlpp
     template<typename T, typename... Args>
     inline auto wrapMember(volatile T *object, void (T::*member)(Args...) volatile) noexcept
     {
-        return MemberWrapper<volatile T, decltype(member), Args...>(object, member);
+        return detail::MemberWrapper<volatile T, decltype(member), Args...>(object, member);
     }
 
     /**
@@ -68,7 +68,7 @@ namespace SuperiorMySqlpp
     template<typename T, typename... Args>
     inline auto wrapMember(const T *object, void (T::*member)(Args...) const) noexcept
     {
-        return MemberWrapper<const T, decltype(member), Args...>(object, member);
+        return detail::MemberWrapper<const T, decltype(member), Args...>(object, member);
     }
 
     /**
@@ -80,6 +80,6 @@ namespace SuperiorMySqlpp
     template<typename T, typename... Args>
     inline auto wrapMember(const volatile T *object, void (T::*member)(Args...) const volatile) noexcept
     {
-        return MemberWrapper<const volatile T, decltype(member), Args...>(object, member);
+        return detail::MemberWrapper<const volatile T, decltype(member), Args...>(object, member);
     }
 }
