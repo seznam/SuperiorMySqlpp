@@ -13,6 +13,7 @@
 #include <superior_mysqlpp/metadata.hpp>
 #include <superior_mysqlpp/prepared_statements/validate_metadata_modes.hpp>
 #include <superior_mysqlpp/prepared_statements/get_binding_type.hpp>
+#include <superior_mysqlpp/types/dynamic.hpp>
 #include <superior_mysqlpp/types/nullable.hpp>
 
 namespace SuperiorMySqlpp
@@ -256,13 +257,80 @@ namespace SuperiorMySqlpp
              */
             auto fetch()
             {
-                auto ok = this->statement.fetch();
+                auto result = this->statement.fetchWithStatus();
+                switch (result)
+                {
+                    case LowLevel::DBDriver::Statement::FetchStatus::Ok:
+                        engageNullables();
+                        return true;
 
-                if (ok) {
-                    engageNullables();
+                    case LowLevel::DBDriver::Statement::FetchStatus::NoMoreData:
+                        return false;
+
+                    case LowLevel::DBDriver::Statement::FetchStatus::DataTruncated:
+                    {
+                        auto statementPtr = this->statement.detail_getStatementPtr();
+                        auto&& resultBindingsPtr = statementPtr->bind;
+                        auto resultBindingsSize = statementPtr->field_count;
+                        assert(resultBindingsSize > 0u);
+
+                        std::vector<std::size_t> truncatedColumns{};
+                        std::vector<std::size_t> undetectedColumns{};
+                        std::size_t index = 0;
+
+                        for (auto it=resultBindingsPtr; it!=resultBindingsPtr + resultBindingsSize; ++it)
+                        {
+                            if (it->error == &it->error_value)
+                            {
+                                if (it->error_value)
+                                {
+                                    if(it->buffer != nullptr && it->buffer_length == 0) {
+                                        auto storage = reinterpret_cast<detail::DynamicStorageBase *>(it->buffer);
+                                        it->buffer = storage->dynamicAlloc(storage, it->buffer_length);
+
+                                        mysql_stmt_fetch_column(statementPtr, it, index, 0);
+                                        it->buffer = storage;
+                                        it->buffer_length = 0;
+                                    } else {
+                                        truncatedColumns.emplace_back(index);
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                undetectedColumns.emplace_back(index);
+                            }
+                            ++index;
+                        }
+
+                        if(undetectedColumns.size() > 0 || truncatedColumns.size() > 0)
+                        {
+                            std::string result{"Data truncated while fetching statement! Truncated columns: "};
+                            if (truncatedColumns.size() == 0)
+                            {
+                                result += "None.";
+                            }
+                            else
+                            {
+                                result += "[";
+                                result += toString(truncatedColumns);
+                                result += "].";
+                            }
+
+                            if (undetectedColumns.size() > 0)
+                            {
+                                result += " Following columns truncation state could not have been detected since you have set custom error pointer: ";
+                                result += toString(undetectedColumns);
+                                result += "!!!";
+                            }
+                            throw MysqlDataTruncatedError{result};
+                        }
+                        engageNullables();
+                        return true;
+                    }
+                    default:
+                        throw LogicError{"Internal error!"};
                 }
-
-                return ok;
             }
 
             bool fetchColumn()

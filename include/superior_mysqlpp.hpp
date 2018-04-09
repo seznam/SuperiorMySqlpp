@@ -13,6 +13,7 @@
 #include <superior_mysqlpp/query.hpp>
 #include <superior_mysqlpp/transaction.hpp>
 #include <superior_mysqlpp/sql_types.hpp>
+#include <superior_mysqlpp/types/dynamic.hpp>
 #include <superior_mysqlpp/types/nullable.hpp>
 #include <superior_mysqlpp/types/date.hpp>
 #include <superior_mysqlpp/types/time.hpp>

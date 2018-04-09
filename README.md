@@ -80,6 +80,7 @@ make package-fedora-22-build
     - Health checks
     - DNS change checking
  - Extensive and fully automated multi-platform tests (using Docker)
+ - Dynamic storage allocation (for std::string and std::vector)
 
 
 # Status
@@ -210,6 +211,12 @@ while (preparedStatement.fetch())
     preparedStatement.getResult().get<0>()
 }
 ```
+
+### Dynamic storage results
+```Dynamic<T>``` template for dynamic storage allocation, effectively inheriting from T.
+Currently, only ```std::basic_string<>``` and ```std::vector<>``` containers are supported.
+However, this library does not provide charset conversions, so be sure you are using correct
+underlying type.
 
 ## Dynamic prepared statement
 This type is for situations when you do not know which columns you are going to need at compile time.
