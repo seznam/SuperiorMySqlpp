@@ -29,7 +29,7 @@ namespace SuperiorMySqlpp
         return result;
     }
 
-    namespace
+    namespace detail
     {
         /**
          * @brief Invokes function via unpacked tuple
@@ -52,6 +52,6 @@ namespace SuperiorMySqlpp
     auto invokeViaTuple(Function f, const Tuple &t)
     {
         constexpr std::size_t tuple_size = std::tuple_size<Tuple>::value;
-        return invokeViaTupleImpl(f, t, std::make_index_sequence<tuple_size>{});
+        return detail::invokeViaTupleImpl(f, t, std::make_index_sequence<tuple_size>{});
     }
 }
