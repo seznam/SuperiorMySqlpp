@@ -97,7 +97,7 @@ namespace SuperiorMySqlpp
     }
 
     /**
-     * @brief Executes query, reads input data and passes them to callback function
+     * @brief Executes query, reads input data and passes them row by row to callback function
      * @param ps Prepared statement object (only static statements are currently supported)
      * @param processingFunction function to be invoked on every row
      *                           Its parameters must correspond with result columns (their types and count)
@@ -113,7 +113,7 @@ namespace SuperiorMySqlpp
     }
 
     /**
-     * @brief Builds prepared statement from string and invokes psReadQuery(ps, processingFunction)
+     * @brief Builds prepared statement from query string and invokes psReadQuery(ps, processingFunction)
      * @param query Query to be executed (in most cases there will be selections)
      * @param connection Connection handle into database
      * @param processingFunction function to be invoked on every row
@@ -136,7 +136,7 @@ namespace SuperiorMySqlpp
     }
 
     /**
-     * @brief Reads one and only one row from query (from your own instance) into variables
+     * @brief Reads one and only one row from your own prepared statement into variables
      * @param ps Prepared statement object (only static statements are currently supported)
      * @param values References to variables to be loaded from query
      *               Their type must be compatible with query result types
@@ -156,7 +156,7 @@ namespace SuperiorMySqlpp
     }
 
     /**
-     * @brief Reads one and only one row from query (constructed from `query` string) into variables
+     * @brief Reads one and only one row from prepared statement (constructed from `query` string) into variables
      * @param query Query to be executed (Ensure you are returning only 1 row)
      * @param connection Connection handle into database
      * @param values Reference to variables to be loaded from query
