@@ -1,0 +1,12 @@
+language: cpp
+os: linux
+sudo: required
+services: docker
+branches:
+  only:
+    - master
+    - devel
+script:
+  - make CONCURRENCY=4 package-debian-stretch-dbuild
+  - make CONCURRENCY=4 package-debian-jessie-dbuild
+  - make CONCURRENCY=4 package-fedora-22-dbuild
