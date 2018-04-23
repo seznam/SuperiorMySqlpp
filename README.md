@@ -4,6 +4,7 @@ Modern C++ wrapper for MySQL C API
 
 **Author**: [Tomas Nozicka](https://github.com/tnozicka), [*Seznam.cz*](https://github.com/seznam)
 
+Note: This library currently doesn't supports MySQL library version 8 and newer.
 
 # Installation
 
