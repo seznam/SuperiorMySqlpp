@@ -8,6 +8,10 @@
 #include <cstdlib>
 #include <cassert>
 
+/*
+ * MySQL hacks are needed only for older versions of MySQL connector/C than 5.7.9.
+ * MARIADB_VERSION_ID doesn't exist in older versions, MARIADB_PACKAGE_VERSION is used to detect MariaDB presence instead.
+ */
 
 /*
  * I'm terribly, terribly sorry about this code (hacks),
@@ -75,6 +79,13 @@ namespace SuperiorMySqlpp { namespace LowLevel { namespace detail { namespace My
 {
     /*
      * Use this class only with thread_local storage specifier to ensure correct functionality!
+     *
+     * RAII class used in #DBDriver::mysqlInit to ensure correct releasing of acquired resources
+     * because older versions of MySQL client library contain a bug and not all resources were
+     * correctly released.
+     *
+     * @remark There are no memory leaks in release builds version of MySQL library since commit
+     *     https://github.com/mysql/mysql-server/commit/13ccce6f380844fd030e33a06be10afaa91d56c2
      */
     class Cleanup
     {
@@ -92,9 +103,7 @@ namespace SuperiorMySqlpp { namespace LowLevel { namespace detail { namespace My
             /*
              * In Debian init is set correctly, but at least on Fedora init is always false.
              * So we cannot use the original condition:
-             *
-             * if (tssPointer!=nullptr) && tssPointer->init)
-             *
+             *   if (tssPointer!=nullptr) && tssPointer->init)
              */
             if (tssPointer != nullptr)
             {

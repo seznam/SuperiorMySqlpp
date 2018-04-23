@@ -136,6 +136,24 @@ go_bandit([](){
             validateMetadataId(metadata[0]);
             validateMetadataName(metadata[1]);
         });
+
+        it("can do PreparedStatement metadata without execute", [&](){
+            PreparedStatement<ResultBindings<Sql::Int, Nullable<Sql::String>>, ParamBindings<>> preparedStatement(connection.detail_getDriver(), queryString);
+
+            auto& metadata = preparedStatement.getResultMetadata();
+
+            validateMetadataId(metadata[0]);
+            validateMetadataName(metadata[1]);
+        });
+
+        it("can do DynamicPreparedStatement metadata without execute", [&](){
+            DynamicPreparedStatement<> preparedStatement(connection.detail_getDriver(), queryString);
+
+            auto& metadata = preparedStatement.getResultMetadata();
+
+            validateMetadataId(metadata[0]);
+            validateMetadataName(metadata[1]);
+        });
     });
 });
 

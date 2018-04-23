@@ -11,15 +11,21 @@
 
 namespace SuperiorMySqlpp
 {
+    /**
+     * Enumeration of different strategies how to validate legality of field type conversions.
+     */
     enum class ValidateMetadataMode
     {
-        Disabled = 0,
-        Strict,
-        Same,
-        ArithmeticPromotions,
-        ArithmeticConversions,
+        Disabled = 0, ///< No validation is performed
+        Strict, ///< Only the exactly same data type is allowed
+        Same, ///< Conversions between types with same internal representation allowed
+        ArithmeticPromotions, ///< Conversions allowed between types preforming arithmetic promotions (converting to bigger type, like Short to Long)
+        ArithmeticConversions, ///< Arbitary arithmentic conversions across numeric types allowed
     };
 
+    /**
+     * Function returning stringified ValidateMetadataMode enum.
+     */
     inline const char* getValidateMetadataModeName(ValidateMetadataMode validateMetadataMode)
     {
         switch (validateMetadataMode)
@@ -44,6 +50,12 @@ namespace SuperiorMySqlpp
         }
     }
 
+    /**
+     * Function for given field type returns "pseudo-typeid" shared by same types.
+     * @param type SuperiorMySqlpp::FieldTypes enumeration.
+     * @return Arbitary integer that is however unique for each group of same types
+     * !!!!!
+     */
     inline int getSameTypeId(FieldTypes type)
     {
         switch (type)
@@ -112,6 +124,15 @@ namespace SuperiorMySqlpp
         throw std::logic_error{"Universe is falling apart"};
     }
 
+    /**
+     * @brief Tests whether one argument is convertible to the other
+     * Implementation depends on selected validation strategy
+     * @params from Input field type
+     * @params from_is_unsigned Flag indicating signedness of input
+     * @params to Output field type
+     * @params fo_is_unsigned Flag indicating signedness of output
+     * @return true if type of parameter from is compatible with parameter to.
+     */
 
     template<ValidateMetadataMode>
     inline bool isCompatible(FieldTypes, bool, FieldTypes, bool) = delete;

@@ -1,3 +1,13 @@
+libsuperiormysqlpp (0.3.2) unstable; urgency=medium
+
+  [ Radek Smejdir ]
+  * Add uninitialized result binds validation
+
+  [ Michal Merc ]
+  * Add convenience prepared statement read utils
+
+ -- Michal Fizek <michal.fizek@firma.seznam.cz>  Mon, 23 Apr 2018 12:32:13 +0200
+
 libsuperiormysqlpp (0.3.1) unstable; urgency=medium
 
   [ Radek Smejdir ]

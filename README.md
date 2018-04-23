@@ -1,9 +1,14 @@
 SuperiorMySQL++
 ====================================================
+[![Build Status](https://travis-ci.org/seznam/SuperiorMySqlpp.svg?branch=master)](https://travis-ci.org/seznam/SuperiorMySqlpp) - master branch  
+[![Build Status](https://travis-ci.org/seznam/SuperiorMySqlpp.svg?branch=devel)](https://travis-ci.org/seznam/SuperiorMySqlpp) - devel branch  
+[![License: LGPL v3](https://img.shields.io/badge/License-LGPL%20v3-blue.svg)](LICENSE)  
+
 Modern C++ wrapper for MySQL C API
 
 **Author**: [Tomas Nozicka](https://github.com/tnozicka), [*Seznam.cz*](https://github.com/seznam)
 
+Note: This library currently doesn't supports MySQL library version 8 and newer.
 
 # Installation
 
@@ -241,6 +246,52 @@ while (preparedStatement.fetch())
     // do something with id
 }
 ```
+
+### Convenience read functions
+**psReadQuery**
+```c++
+auto preparedStatement = connection.makePreparedStatement<ResultBindings<Sql::Int, Sql::Int>("SELECT ... FROM ...");
+psReadQuery(preparedStatement, <Callable>);
+```
+or
+```c++
+psReadQuery("SELECT ... FROM ...", connection, <Callable>);
+```
+Where callable can be C function, lambda, or member function, however in the last case you need to use
+wrapper, for example wrapMember function (located in *superior_mysqlpp/extras/member_wrapper.hpp*).
+```c++
+psReadQuery(..., [&](int arg1, int arg2){});
+```
+```c++
+void processRow(int arg1, int arg2) {}
+psReadQuery(..., &processRow);
+```
+```c++
+class ProcessingClass {
+public:
+    void processRow(int arg1, int arg2) {}
+};
+
+ProcessingClass pc;
+psReadQuery(..., wrapMember(&pc, &ProcessingClass::processRow));
+```
+This method doesn't throw exceptions, however query execution and row fetching can still fail,
+resulting in exception.
+
+**psReadValues**
+```c++
+auto preparedStatement = connection.makePreparedStatement<ResultBindings<Sql::Int, Sql::Int>("SELECT ... FROM ...");
+int arg1, arg2;
+
+psReadValues(preparedStatement, arg1, arg2);)
+```
+or
+```c++
+int arg1, arg2;
+psReadValues("SELECT ... FROM ...", connection, arg1, arg2);
+```
+Note: This function is made only for reading single row. In case you are reading more than one row,
+an *UnexpectedMultipleRowsError* exception is thrown.
 
 ## RowStreamAdapter
 Syntactic sugar is provided for extracting values from `Row` using a familiar stream operator.

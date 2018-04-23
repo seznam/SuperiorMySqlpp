@@ -1,4 +1,4 @@
-FROM mysql:latest
+FROM mysql:5.7.22
 MAINTAINER Seznam.cz a.s.
 
 WORKDIR /

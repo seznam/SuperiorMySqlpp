@@ -11,6 +11,12 @@
 
 namespace SuperiorMySqlpp { namespace detail
 {
+    /**
+     * Conditional sleep with upper bound limit.
+     * @param time Maximum time to sleep in total.
+     * @param part Sleep interval between periodic #condition checks.
+     * @param condition Breaks sleeping when condition's result is not true.
+     */
     template<typename T1, typename T2, typename C, typename Clock=std::chrono::high_resolution_clock>
     void sleepInParts(T1&& time, T2&& part, C&& condition)
     {
