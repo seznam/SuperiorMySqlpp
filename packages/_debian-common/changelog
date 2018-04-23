@@ -1,3 +1,9 @@
+libsuperiormysqlpp (0.3.3) UNRELEASED; urgency=medium
+
+  *
+
+ -- Michal Fizek <michal.fizek@firma.seznam.cz>  Mon, 23 Apr 2018 14:17:57 +0200
+
 libsuperiormysqlpp (0.3.2) unstable; urgency=medium
 
   [ Radek Smejdir ]
