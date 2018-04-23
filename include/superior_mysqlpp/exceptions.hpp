@@ -106,4 +106,13 @@ namespace SuperiorMySqlpp
     public:
         using QueryError::QueryError;
     };
+
+    /**
+     * @brief This exception is thrown, when you attempt to read more rows in function `psReadValues`
+     */
+    class UnexpectedMultipleRowsError : public SuperiorMySqlppError
+    {
+    public:
+        using SuperiorMySqlppError::SuperiorMySqlppError;
+    };
 }
