@@ -72,7 +72,7 @@ endif
 
 test: test-basic test-extended
 
-	
+
 libsuperiormysqlpp.pc: libsuperiormysqlpp.pc.in makefile
 	sed \
          -e 's,@VERSION@,$(VERSION),' \

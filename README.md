@@ -8,7 +8,7 @@ Modern C++ wrapper for MySQL C API
 
 **Author**: [Tomas Nozicka](https://github.com/tnozicka), [*Seznam.cz*](https://github.com/seznam)
 
-Note: This library currently doesn't supports MySQL library version 8 and newer.
+Note: This library currently doesn't support MySQL library version 8 and newer.
 
 # Installation
 
@@ -106,8 +106,21 @@ Please be aware that tests must validate all possible cases and syntax and shoul
 You can look at some basic examples below:
 
 ## Connection
+Connection can be constructed either by passing all necessary arguments directly to `Connection` constructor or by passing `ConnectionConfiguration` object.
+
 ```c++
 Connection connection{"<database>", "<user>", "<password>", "<host>", "<port>"};
+```
+
+`ConnectionConfiguration` contains static factory methods used to build proper connection configuration for desired purpose, e.g. encrypted connection over TCP or connection over Unix socket.
+
+```c++
+auto tcpConfig = ConnectionConfiguration::getTcpConnectionConfiguration("<database>", "<user>", "<password>", "<host>", "<port>");
+auto tcpSslConfig = ConnectionConfiguration::getSslTcpConnectionConfiguration(SslConfiguration{}, "<database>", "<user>", "<password>", "<host>", "<port>");
+auto socketConfig = ConnectionConfiguration::getSocketConnectionConfiguration("<database>", "<user>", "<password>", "<socket>");
+auto socketSslConfig = ConnectionConfiguration::getSslSocketConnectionConfiguration(SslConfiguration{}, "<database>", "<user>", "<password>", "<socket>");
+
+Connection connection{tcpConfig};
 ```
 
 Connections are not thread-safe => use one connection per thread. If you intend to have multiple connection to one server consider using connection pool.
@@ -160,7 +173,7 @@ while (auto row = result.fetchRow())
 ```
 
 ### Escaping
-To escape variable manually you may use method connection.escapeString. Preferred way is using query stream manipulators:
+To escape variable manually you may use method `connection.escapeString`. Preferred way is using query stream manipulators:
 ```c++
 auto query = connection.makeQuery();
 query << escape << "ab'cd";  // escape - next argument will be escaped

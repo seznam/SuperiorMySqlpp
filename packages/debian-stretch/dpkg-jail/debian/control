@@ -6,7 +6,8 @@ Build-Depends: debhelper,
                clang-5.0,
                docker-ce,
                libmysqlclient-dev | libmariadb-dev (>= 10.2),
-               libboost-system-dev (>= 1.49.0)
+               libboost-system-dev (>= 1.49.0),
+               socat
 Standards-Version: 3.7.2
 
 Package: libsuperiormysqlpp-dev

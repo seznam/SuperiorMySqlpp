@@ -35,14 +35,14 @@ public:
 
 void printUsage()
 {
-    std::cerr << "Usage: ./tester <MySqlIpAddress> <MySqlPort> <MySqlContainerId> [bandit-options...]" << std::endl;
+    std::cerr << "Usage: ./tester <MySqlIpAddress> <MySqlPort> <MySqlContainerId> <LocalFwdSocket> [bandit-options...]" << std::endl;
 }
 
 int main(int argc, char* argv[])
 {
-    if (argc < 4)
+    if (argc < 5)
     {
-        std::cerr << "Less than 3 arguments!" << std::endl;
+        std::cerr << "Less than 4 arguments!" << std::endl;
         printUsage();
         return 1;
     }
@@ -60,6 +60,7 @@ int main(int argc, char* argv[])
         return 1;
     }
     s.containerId = argv[3];
+    s.socket = argv[4];
 
     Singleton::getInstance();
 
@@ -69,6 +70,6 @@ int main(int argc, char* argv[])
     waitForMySql();
     std::cout << "MySQL is ready." << std::endl;
 
-    return bandit::run(argc-3, argv+3);
+    return bandit::run(argc-4, argv+4);
 }
 

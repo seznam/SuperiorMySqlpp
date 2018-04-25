@@ -1,0 +1,2 @@
+#!/bin/sh
+exec socat TCP-LISTEN:3307,reuseaddr,fork UNIX-CLIENT:/var/run/mysqld/mysqld.sock
