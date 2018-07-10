@@ -393,3 +393,6 @@ Older versions are not supported due to some issues, for instance:
 - memory leaks when ConnectionPool is used and cannot be handled by `mysql_hacks.hpp` because missing symbols
 - missing `MARIADB_VERSION_ID` -- we are not able detect whether MariaDB is used
 - failing truncation detection test (depending on used version)
+
+### Known bugs
+MariaDB 10.2.8 has a broken MySQL compatibility symlink (libmysqlclient.so), therefore you need to link directly with MariaDB client lib (`-lmariadb`) instead of using usual symlink (`-lmysqlclient`).
