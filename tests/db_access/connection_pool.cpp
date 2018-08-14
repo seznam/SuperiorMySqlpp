@@ -34,8 +34,10 @@ go_bandit([](){
         auto& s = getSettingsRef();
 
         it("can clear pool properly", [&](){
-            auto&& connectionPool = makeConnectionPool<true, true, true, true, true>([&](){
-                return std::async(std::launch::async, [&](){ return std::make_shared<Connection>(s.database, s.user, s.password, s.host, s.port); });
+            auto&& connectionPool = makeConnectionPool<true, true, true, true, true>(
+                    [&]() {
+                        return std::async(std::launch::async, [&]() {
+                                return std::make_shared<Connection>(s.database, s.user, s.password, s.host, s.port); });
             });
             connectionPool.startHealthCareJob();
 

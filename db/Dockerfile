@@ -4,6 +4,7 @@ MAINTAINER Seznam.cz a.s.
 WORKDIR /
 ENV MYSQL_ROOT_PASSWORD password
 ADD test_database.sql /docker-entrypoint-initdb.d/
+RUN chmod o+r /docker-entrypoint-initdb.d/test_database.sql
 
 # Tests require us to restart running mysql instance. To this end, we will
 # install and configure supervisord.
@@ -21,6 +22,7 @@ RUN patch /usr/local/bin/docker-entrypoint.sh /docker-entrypoint.sh.patch
 # Since docker-entrypoint.sh drops privileges, we need to point supervisord
 # to a directory with required privileges. In this case, /tmp will suffice.
 ADD supervisord.conf /etc/supervisor/supervisord.conf
+RUN chmod o+r /etc/supervisor/supervisord.conf
 
 # Ensure that we are using correct entrypoint due to wild development of
 # mysql:latest
