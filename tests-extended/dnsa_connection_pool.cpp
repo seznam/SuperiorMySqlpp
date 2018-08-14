@@ -111,5 +111,46 @@ go_bandit([]() {
             AssertThat(pool.get()->tryPing(), IsTrue());
             AssertThat((pool.poolState().available>10 && pool.poolState().available<20), IsTrue());
         });
+
+        it("can log dns error", [&]() {
+
+            auto& settings = getSettingsRef();
+            std::string hostname{"definitiely.not.resolvable.hostname"}, streamRedirectionResult{};
+
+
+                StreamRedirect<std::ostream> redirection(std::cerr);
+
+                auto && connectionPool = makeDnsaConnectionPool<true, true, true, true, true>(
+                    [&]() {
+                        return std::async(
+                            std::launch::async,
+                            [&]() {
+                                return std::make_shared<Connection>(
+                                    settings.database,
+                                    settings.user,
+                                    settings.password,
+                                    settings.host,
+                                    settings.port
+                                );
+                            });
+                    },
+                    hostname,
+                    std::make_shared<Loggers::Full>()
+                );
+
+                // ensure that at least one log method is called
+                connectionPool.startDnsAwarePoolManagement();
+                connectionPool.stopDnsAwarePoolManagement();
+
+                // save stream data, restore std::cerr
+                streamRedirectionResult = redirection.getString();
+                redirection.restore();
+
+                // check that hostname is present in stream data
+                AssertThat(streamRedirectionResult.find(hostname), !Equals(std::string::npos));
+        });
+
     });
+
+
 });

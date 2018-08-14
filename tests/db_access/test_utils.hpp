@@ -7,7 +7,34 @@
 
 #include <chrono>
 #include <thread>
+#include <iostream>
+#include <streambuf>
+#include <string>
+#include <sstream>
 
+template <typename T>
+class StreamRedirect {
+    public:
+        StreamRedirect(T &stream): buffer{}, originalStream{stream},
+            originalBuffer{stream.rdbuf(buffer.rdbuf())} {}
+
+        std::string getString() {
+            return buffer.str();
+        }
+
+        void restore() {
+            originalStream.rdbuf(originalBuffer);
+        }
+
+        ~StreamRedirect() {
+            restore();
+        }
+
+    private:
+        std::stringstream buffer;
+        T &originalStream;
+        std::streambuf *originalBuffer;
+};
 
 template<typename F>
 inline void backoffSleep(std::chrono::milliseconds max, std::chrono::milliseconds min, F&& f)
