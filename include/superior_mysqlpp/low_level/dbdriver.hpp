@@ -634,9 +634,10 @@ namespace SuperiorMySqlpp { namespace LowLevel
              *
              * @return Void - nothing!
              */
-            auto freeResult()
+            void freeResult()
             {
-                return mysql_free_result(resultPtr);
+                mysql_free_result(resultPtr);
+		resultPtr = nullptr;
             }
 
             /**
