@@ -13,6 +13,7 @@
 using namespace bandit;
 using namespace SuperiorMySqlpp;
 using namespace SuperiorMySqlpp::LowLevel;
+using namespace std::string_literals;
 
 
 go_bandit([](){
@@ -23,6 +24,19 @@ go_bandit([](){
             DBDriver driver{};
             driver.connect(s.host.c_str(), s.user.c_str(), s.password.c_str(), nullptr, s.port, nullptr);
         });
+
+        it("can make hex string from string types", [&]() {
+            DBDriver driver{};
+            std::string expected{"666F6F62617200"};
+
+            AssertThat(driver.makeHexString("foobar"), Equals(expected));
+            AssertThat(driver.makeHexString("foobar"s), Equals(expected));
+
+            std::string foobar{"foobar"};
+            AssertThat(driver.makeHexString(foobar), Equals(expected));
+        });
+
+
     });
 });
 
