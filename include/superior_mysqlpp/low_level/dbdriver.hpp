@@ -319,6 +319,28 @@ namespace SuperiorMySqlpp { namespace LowLevel
             return escapeStringNoConnection(original.c_str(), original.length());
         }
 
+        // XXX: makeHexString functions can be implemented by one function using constexpr-if from c++17
+        /**
+         * Converts string to HEX string suitable for using in SQL statements.
+         * Useful for binary data for instance.
+         * @see https://dev.mysql.com/doc/refman/5.7/en/mysql-hex-string.html
+         *
+         * @tparam Type convertable to char[]
+         * @param from Original string.
+         * @tparam Size type.
+         * @param length of original string
+         * @return HEX string.
+         */
+        template <typename T>
+        std::string makeHexString(T *form, std::size_t formlen)
+        {
+
+            auto buffer = std::make_unique<char[]>(formlen * 2 + 1);
+            auto length = mysql_hex_string(buffer.get(), form, formlen);
+
+            return std::string(buffer.get(), length);
+        }
+
         /**
          * Converts string to HEX string suitable for using in SQL statements.
          * Useful for binary data for instance.
@@ -331,11 +353,24 @@ namespace SuperiorMySqlpp { namespace LowLevel
         template<typename Iterable>
         std::string makeHexString(const Iterable& from)
         {
-            auto fromSize = std::end(from) - std::begin(from);
-            auto buffer = std::make_unique<char[]>(fromSize*2 + 1);
-            auto length = mysql_hex_string(buffer.get(), from, fromSize);
+            return makeHexString(from, std::end(from) - std::begin(from));
+        }
 
-            return std::string(buffer.get(), length);
+        /**
+         * Converts string to HEX string suitable for using in SQL statements.
+         * Useful for binary data for instance.
+         * @see https://dev.mysql.com/doc/refman/5.7/en/mysql-hex-string.html
+         *
+         * @tparam Type imlicitly convertable to std::string.
+         * @param from Original string.
+         * @return HEX string.
+         */
+        template <typename T>
+        std::string makeHexString(T &&from)
+        {
+            // +1 is because we want to include null character as we do for char *
+            // version
+            return makeHexString(from.data(), from.size() + 1);
         }
 
         /**
