@@ -26,10 +26,12 @@ namespace SuperiorMySqlpp
 {
     namespace detail
     {
+        /**
+         * Utility class that provides a method for DNS resolving.
+         * Class depends on boost::asio library.
+         */
         class DnsResolver
         {
-        private:
-
         public:
             DnsResolver() = default;
             DnsResolver(const DnsResolver&) = default;
@@ -39,6 +41,13 @@ namespace SuperiorMySqlpp
             DnsResolver& operator=(const DnsResolver&) = default;
             DnsResolver& operator=(DnsResolver&&) = default;
 
+            /**
+             * Resolve a hostname to ip addresses.
+             *
+             * @tparam const reference to std::string
+             * @param hostname
+             * @return Vector of strings that represent ip addresses for given hostname.
+             */
             std::vector<std::string> resolve(const std::string& hostname)
             {
                 boost::asio::io_service ioService{};
@@ -63,15 +72,23 @@ namespace SuperiorMySqlpp
             }
         };
 
-
+        /**
+         * Mix in class that checks and logs DNS changes.
+         * It is used as pool management class in DnsaConnectionPool.
+         */
         template<typename Base, bool terminateOnFailure>
         class DnsAwarePoolManagement
         {
         private:
+            /** Flag that specifies if jobThread is running. */
             std::atomic<bool> enabled{false};
+            /** Sleep period between DNS resolutions.
+             *  Sleep can be aborted if _enabled_ is set to false.
+             */
             std::chrono::milliseconds sleepTime{std::chrono::seconds{10}};
+            /* DNS resolution thread */
             std::thread jobThread{};
-
+            /* Hostname to resolve */
             std::string hostname;
 
         public:
@@ -81,6 +98,10 @@ namespace SuperiorMySqlpp
 
             DnsAwarePoolManagement(const DnsAwarePoolManagement&) = delete;
 
+            /**
+             * Initializes pool from other pool.
+             * It starts DNS resolution job if job is running in other instance.
+             */
             DnsAwarePoolManagement(DnsAwarePoolManagement&& other)
                 : enabled{[&](){ other.stopDnsAwarePoolManagement(); return other.enabled.load(); }()},
                   sleepTime{std::move(other).sleepTime},
@@ -92,6 +113,9 @@ namespace SuperiorMySqlpp
                 }
             }
 
+            /**
+             * Stops DNS check job if it is running.
+             */
             ~DnsAwarePoolManagement()
             {
                 stopDnsAwarePoolManagement();
@@ -101,88 +125,99 @@ namespace SuperiorMySqlpp
             DnsAwarePoolManagement& operator=(DnsAwarePoolManagement&&) = delete;
 
         private:
+            /**
+             * Returns reference to base class where is this mixin class used.
+             */
             Base& getBase()
             {
                 return *static_cast<Base*>(this);
             }
 
+            /**
+             * Returns const reference to class where is this mixin class used.
+             */
             const Base& getBase() const
             {
                 return *static_cast<const Base*>(this);
             }
 
-            /*
-             * This function is run as parallel thread.
-             * We cannot afford to let any exceptions to be propagated from logging functions
-             * since it would result in call to std::terminate()!!! Hence all the try/catch blocks.
+            /**
+             * This function is called when unexpected error is thrown during dns resolution error handling.
+             * It's called only if logger throws exception.
              */
-            void job() const
-            {
-                auto onError = [](){
-                    if (terminateOnFailure)
-                    {
-                        std::terminate();
-                    }
-                };
-
-                try
-                {
-                    std::vector<std::string> lastIpAddresses{};
-
-                    while (enabled)
-                    {
-                        getBase().getLogger()->logSharedPtrPoolDnsAwarePoolManagementCycleStart(getBase().getId());
-
-                        try
-                        {
-                            /*
-                             * We do intentionally make always new connection to DNS server.
-                             */
-                            DnsResolver resolver{};
-                            auto ipAddresses = resolver.resolve(hostname);
-
-
-                            // compare
-                            if (!std::equal(lastIpAddresses.begin(), lastIpAddresses.end(), ipAddresses.begin(), ipAddresses.end()))
-                            {
-                                getBase().getLogger()->logSharedPtrPoolDnsAwarePoolManagementChangeDetected(getBase().getId());
-
-                                getBase().clearPool();
-                                lastIpAddresses = std::move(ipAddresses);
-                            }
-                        }
-                        /*
-                         * DNS is sometimes to fail...
-                         */
-                        catch (std::exception& e)
-                        {
-                            getBase().getLogger()->logSharedPtrPoolDnsAwarePoolManagementCheckError(getBase().getId(), e);
-                        }
-                        catch (...)
-                        {
-                            getBase().getLogger()->logSharedPtrPoolDnsAwarePoolManagementCheckError(getBase().getId());
-                        }
-
-                        getBase().getLogger()->logSharedPtrPoolDnsAwarePoolManagementCycleEnd(getBase().getId());
-
-                        sleepInParts(sleepTime, std::chrono::milliseconds{50}, [&](){ return enabled.load(); });
-                    }
-
-                    getBase().getLogger()->logSharedPtrPoolDnsAwarePoolManagementStopped(getBase().getId());
-                }
-                catch (std::exception& e)
-                {
-                    getBase().getLogger()->logSharedPtrPoolDnsAwarePoolManagementError(getBase().getId(), e);
-                    onError();
-                }
-                catch (...)
-                {
-                    getBase().getLogger()->logSharedPtrPoolDnsAwarePoolManagementError(getBase().getId());
-                    onError();
+            void onUnexpectedError(void) const noexcept {
+                if(terminateOnFailure) {
+                    std::terminate();
                 }
             }
 
+            /**
+             * This function is run as parallel thread.
+             * We cannot afford to let any exceptions to be propagated from logging functions
+             * since it would result in call to std::terminate().
+             */
+            void job(void) const {
+                try {
+                    runJobLoop();
+                } catch(std::exception &e) {
+                    getBase().getLogger()->logSharedPtrPoolDnsAwarePoolManagementError(getBase().getId(), e);
+                    onUnexpectedError();
+                } catch(...) {
+                    getBase().getLogger()->logSharedPtrPoolDnsAwarePoolManagementError(getBase().getId());
+                    onUnexpectedError();
+                }
+            }
+
+            /**
+             * It does dns resolution of given hostname.
+             * Logs if previously resolved ip addresses differ from new ones.
+             */
+            void runJobLoop() const
+            {
+                std::vector<std::string> lastIpAddresses{};
+
+                while (enabled)
+                {
+                    getBase().getLogger()->logSharedPtrPoolDnsAwarePoolManagementCycleStart(getBase().getId());
+
+                    try
+                    {
+                        //We do intentionally make always new connection to DNS server.
+                        DnsResolver resolver{};
+                        auto ipAddresses = resolver.resolve(hostname);
+
+
+                        // Check if ip addresses match to last resolved ip addresses.
+                        if (!std::equal(lastIpAddresses.begin(), lastIpAddresses.end(), ipAddresses.begin(), ipAddresses.end()))
+                        {
+                            getBase().getLogger()->logSharedPtrPoolDnsAwarePoolManagementChangeDetected(getBase().getId());
+
+                            getBase().clearPool();
+                            lastIpAddresses = std::move(ipAddresses);
+                        }
+                    }
+                    // catch all dns related errors
+                    catch (std::exception& e)
+                    {
+                        getBase().getLogger()->logSharedPtrPoolDnsAwarePoolManagementCheckError(getBase().getId(), e);
+                    }
+                    catch (...)
+                    {
+                        getBase().getLogger()->logSharedPtrPoolDnsAwarePoolManagementCheckError(getBase().getId());
+                    }
+
+                    getBase().getLogger()->logSharedPtrPoolDnsAwarePoolManagementCycleEnd(getBase().getId());
+
+                    sleepInParts(sleepTime, std::chrono::milliseconds{50}, [&](){ return enabled.load(); });
+                }
+
+                getBase().getLogger()->logSharedPtrPoolDnsAwarePoolManagementStopped(getBase().getId());
+            }
+
         public:
+            /**
+             * Stops DNS resolution check.
+             */
             void stopDnsAwarePoolManagement()
             {
                 if (jobThread.joinable())
@@ -193,6 +228,9 @@ namespace SuperiorMySqlpp
                 enabled = false;
             }
 
+            /**
+             * Starts DNS resolution check.
+             */
             void startDnsAwarePoolManagement()
             {
                 /* We must stop possibly running thread otherwise ~thread/operator= shall call std::terminate! */
@@ -201,21 +239,34 @@ namespace SuperiorMySqlpp
                 jobThread = std::thread{&DnsAwarePoolManagement::job, std::cref(*this)};
             }
 
+            /**
+             * Returns true if jobThread is in joinable state.
+             */
             auto isDnsAwarePoolManagementThreadRunning() const
             {
+                // XXX: this is ambigious, it can return false if jobThread is detached
                 return jobThread.joinable();
             }
 
+            /**
+             * Returns id of jobThread.
+             */
             auto getDnsAwarePoolManagementThreadId() const
             {
                 return jobThread.get_id();
             }
 
+            /**
+             * Returns DNS resolution sleepTime
+             */
             auto getDnsAwarePoolManagementSleepTime() const
             {
                 return sleepTime;
             }
 
+            /**
+             * Sets DNS resolution sleepTime
+             */
             void setDnsAwarePoolManagementSleepTime(decltype(sleepTime) value)
             {
                 sleepTime = value;
