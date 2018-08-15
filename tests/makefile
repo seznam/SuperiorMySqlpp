@@ -46,7 +46,6 @@ LDLIBS += -lstdc++
 LDLIBS += -lpthread
 LDLIBS += -lmysqlclient
 
-
 mangle-path =$(subst /,-_-,$1)
 demangle-path =$(subst -_-,/,$1)
 
