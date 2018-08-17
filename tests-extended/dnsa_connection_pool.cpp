@@ -2,7 +2,6 @@
  * Author: Tomas Nozicka
  */
 
-
 #include <bandit/bandit.h>
 
 #include <thread>
@@ -28,25 +27,10 @@ std::string getUniqueHostname()
     return ss.str();
 }
 
-std::string hostname = "tmp-superiormysqlpp-" + getUniqueHostname();
+std::string hostname = getUniqueHostname();
 
-auto makePool()
-{
-    return makeDnsaConnectionPool([&](){
-               auto& s = getSettingsRef();
-               static unsigned int timeout = 1;
-               return std::async(std::launch::async, [&](){ return std::make_shared<Connection>("", s.user, s.password, hostname, s.port,
-                       std::make_tuple(
-                           std::make_tuple(SuperiorMySqlpp::ConnectionOptions::connectTimeout, &timeout),
-                           std::make_tuple(SuperiorMySqlpp::ConnectionOptions::readTimeout, &timeout),
-                           std::make_tuple(SuperiorMySqlpp::ConnectionOptions::writeTimeout, &timeout)
-                       )
-                   );
-               });
-           },
-           hostname
-    );
-}
+
+
 
 
 void setIpForHostname(const std::string& ip, const std::string& hostname)
@@ -80,12 +64,40 @@ public:
 
 
 go_bandit([]() {
-    describe("Test dnsa connection pool", [&]() {
-        it("works", [&]() {
-            HostnameGuard hostnameGuard{};
 
+    it("reconnects after dns change", [&]() {
+
+            HostnameGuard hostnameGuard{};
             setIpForHostname("1.1.1.1", hostname);
-            auto pool = makePool();
+
+            auto& settings = getSettingsRef();
+            static int mysql_opt_timeout_s = 1;
+            static bool mysql_opt_reconnect = true;
+
+            auto&& driverOptions = std::make_tuple(
+                std::make_tuple(SuperiorMySqlpp::ConnectionOptions::connectTimeout, &mysql_opt_timeout_s),
+                std::make_tuple(SuperiorMySqlpp::ConnectionOptions::readTimeout, &mysql_opt_timeout_s),
+                std::make_tuple(SuperiorMySqlpp::ConnectionOptions::writeTimeout, &mysql_opt_timeout_s),
+                std::make_tuple(SuperiorMySqlpp::ConnectionOptions::reconnect, &mysql_opt_reconnect)
+            );
+
+            auto&& pool = makeDnsaConnectionPool<true, true, true, true, true>(
+                [&]() {
+                    return std::async(
+                        std::launch::async,
+                        [&]() {
+                            return std::make_shared<Connection>(
+                                settings.database,
+                                settings.user,
+                                settings.password,
+                                hostname,
+                                settings.port,
+                                driverOptions
+                            );
+                        });
+                },
+                hostname
+            );
 
             pool.setMinSpare(10);
             pool.setMaxSpare(20);
@@ -104,12 +116,18 @@ go_bandit([]() {
             hostnameGuard.restore();
             setIpForHostname(getSettingsRef().host, hostname);
 
-            backoffSleep(1000ms, [&](){
-                return pool.poolState().available>10 && pool.poolState().available<20;
+            // tryPing will use one connection, we must save previous state for later
+            // comparison
+            SharedPtrPoolState state{};
+
+            // wait until resource count keeper do its job
+            backoffSleep(std::chrono::milliseconds(2000 * mysql_opt_timeout_s), [&]() {
+                state = pool.poolState();
+                return state.available >= 10 && state.available <= 20;
             });
-            AssertThat(pool.poolState().available!=0, IsTrue());
+
             AssertThat(pool.get()->tryPing(), IsTrue());
-            AssertThat((pool.poolState().available>10 && pool.poolState().available<20), IsTrue());
-        });
+            AssertThat(state.available >= 10, IsTrue());
+            AssertThat(state.available <= 20, IsTrue());
     });
 });
