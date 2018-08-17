@@ -627,18 +627,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
             {
                 return mysql_field_tell(resultPtr);
             }
-
-            /**
-             * Frees allocated memory for current result set.
-             * @see https://dev.mysql.com/doc/refman/5.7/en/mysql-free-result.html
-             *
-             * @return Void - nothing!
-             */
-            auto freeResult()
-            {
-                return mysql_free_result(resultPtr);
-            }
-
+            
             /**
              * Returns number of columns in a result set.
              * @see https://dev.mysql.com/doc/refman/5.7/en/mysql-num-fields.html
