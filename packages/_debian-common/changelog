@@ -1,4 +1,4 @@
-libsuperiormysqlpp (0.4.0) unstable; urgency=medium
+libsuperiormysqlpp (0.4.0) UNRELEASED; urgency=medium
 
   [ Radek Smejdir ]
   * Add ConnectionConfiguration
