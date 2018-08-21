@@ -29,10 +29,6 @@ std::string getUniqueHostname()
 
 std::string hostname = getUniqueHostname();
 
-
-
-
-
 void setIpForHostname(const std::string& ip, const std::string& hostname)
 {
     systemExecute("echo '" + ip + " " + hostname + "' >> /etc/hosts");
@@ -62,57 +58,82 @@ public:
     }
 };
 
+static constexpr int  mysql_opt_timeout_s = 1;
+static constexpr bool mysql_opt_reconnect = true;
+static constexpr std::size_t min_spare_connections = 10;
+static constexpr std::size_t max_spare_connections = 20;
+
+auto makeTestPool(const Setting &settings, const std::string &hostname) {
+
+    auto driverOptions = std::make_tuple(
+        std::make_tuple(SuperiorMySqlpp::ConnectionOptions::connectTimeout, &mysql_opt_timeout_s),
+        std::make_tuple(SuperiorMySqlpp::ConnectionOptions::readTimeout, &mysql_opt_timeout_s),
+        std::make_tuple(SuperiorMySqlpp::ConnectionOptions::writeTimeout, &mysql_opt_timeout_s),
+        std::make_tuple(SuperiorMySqlpp::ConnectionOptions::reconnect, &mysql_opt_reconnect)
+    );
+
+    return makeDnsaConnectionPool(
+        [=]() {
+            return std::async(
+                std::launch::async,
+                [=]() {
+                    return std::make_shared<Connection>(
+                        settings.database,
+                        settings.user,
+                        settings.password,
+                        hostname,
+                        settings.port,
+                        driverOptions
+                    );
+                });
+        },
+        hostname
+    );
+
+}
+
+template <typename T>
+void setupTestPool(T&& pool, const std::chrono::milliseconds &job_sleep_period=50ms,
+        const bool &start_resource_keeper=true, const bool &start_healthcare=false) {
+
+    pool.setMinSpare(min_spare_connections);
+    pool.setMaxSpare(max_spare_connections);
+
+
+    if(start_healthcare) {
+        pool.setHealthCareJobSleepTime(job_sleep_period);
+        pool.startHealthCareJob();
+    }
+
+    if(start_resource_keeper) {
+        pool.setResourceCountKeeperSleepTime(job_sleep_period);
+        pool.startResourceCountKeeper();
+    }
+
+    pool.startDnsAwarePoolManagement();
+}
 
 go_bandit([]() {
 
-    it("reconnects after dns change", [&]() {
+    describe("Test dnsa connection pool", [&]() {
+
+        it("reconnects after dns change", [&]() {
 
             HostnameGuard hostnameGuard{};
+            // set "invalid" ip address, connections cannot be created
             setIpForHostname("1.1.1.1", hostname);
 
-            auto& settings = getSettingsRef();
-            static int mysql_opt_timeout_s = 1;
-            static bool mysql_opt_reconnect = true;
+            auto settings = getSettingsRef();
+            auto pool = makeTestPool(settings, hostname);
 
-            auto&& driverOptions = std::make_tuple(
-                std::make_tuple(SuperiorMySqlpp::ConnectionOptions::connectTimeout, &mysql_opt_timeout_s),
-                std::make_tuple(SuperiorMySqlpp::ConnectionOptions::readTimeout, &mysql_opt_timeout_s),
-                std::make_tuple(SuperiorMySqlpp::ConnectionOptions::writeTimeout, &mysql_opt_timeout_s),
-                std::make_tuple(SuperiorMySqlpp::ConnectionOptions::reconnect, &mysql_opt_reconnect)
-            );
+            setupTestPool(pool);
 
-            auto&& pool = makeDnsaConnectionPool<true, true, true, true, true>(
-                [&]() {
-                    return std::async(
-                        std::launch::async,
-                        [&]() {
-                            return std::make_shared<Connection>(
-                                settings.database,
-                                settings.user,
-                                settings.password,
-                                hostname,
-                                settings.port,
-                                driverOptions
-                            );
-                        });
-                },
-                hostname
-            );
-
-            pool.setMinSpare(10);
-            pool.setMaxSpare(20);
-            pool.setResourceCountKeeperSleepTime(50ms);
-            pool.startResourceCountKeeper();
-
-            pool.setHealthCareJobSleepTime(50ms);
-            pool.startHealthCareJob();
-
-            pool.startDnsAwarePoolManagement();
-
+            // check that we cannot create connections
             AssertThat(pool.poolState().available, Equals(0u));
             SuperiorMySqlpp::detail::sleepInParts(1s, 50ms, [](){return true;});
             AssertThat(pool.poolState().available, Equals(0u));
 
+            // set "valid" ip address, connections can be created now
             hostnameGuard.restore();
             setIpForHostname(getSettingsRef().host, hostname);
 
@@ -123,11 +144,55 @@ go_bandit([]() {
             // wait until resource count keeper do its job
             backoffSleep(std::chrono::milliseconds(2000 * mysql_opt_timeout_s), [&]() {
                 state = pool.poolState();
-                return state.available >= 10 && state.available <= 20;
+
+                return state.available >= min_spare_connections &&
+                       state.available <= max_spare_connections;
             });
 
             AssertThat(pool.get()->tryPing(), IsTrue());
-            AssertThat(state.available >= 10, IsTrue());
-            AssertThat(state.available <= 20, IsTrue());
+            AssertThat(state.available >= min_spare_connections, IsTrue());
+            AssertThat(state.available <= max_spare_connections, IsTrue());
+        });
+
+        it("keeps spare connections", [&]() {
+
+            auto settings = getSettingsRef();
+            auto pool = makeTestPool(settings, hostname);
+
+            setIpForHostname(settings.host, hostname);
+            setupTestPool(pool);
+
+            // wait until we create enough connections
+            backoffSleep(2000ms, [&]() {return pool.poolState().available > 0;});
+            AssertThat(pool.poolState().available, Equals(min_spare_connections));
+
+            // use one connection
+            auto connection = pool.get();
+            connection->tryPing();
+
+            // check that we have at least _min_spare_connections_ spare connections
+            std::this_thread::sleep_for(150ms);
+            AssertThat(pool.poolState().available >= min_spare_connections, IsTrue());
+        });
+
+        it("doesn't keep spare connections until a job creates them", [&]() {
+
+            auto settings = getSettingsRef();
+            auto pool = makeTestPool(settings, hostname);
+
+            setIpForHostname(settings.host, hostname);
+            setupTestPool(pool);
+
+            // wait until we create enough connections
+            backoffSleep(2000ms, [&]() {return pool.poolState().available > 0;});
+            AssertThat(pool.poolState().available, Equals(min_spare_connections));
+
+            // use one connection
+            auto connection = pool.get();
+            connection->tryPing();
+
+            std::this_thread::sleep_for(10ms);
+            AssertThat(pool.poolState().available < min_spare_connections, IsTrue());
+        });
     });
 });
