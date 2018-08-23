@@ -163,7 +163,7 @@ go_bandit([]() {
             setupTestPool(pool);
 
             // wait until we create enough connections
-            backoffSleep(2000ms, [&]() {return pool.poolState().available > 0;});
+            backoffSleep(2000ms, [&]() {return pool.poolState().available >= min_spare_connections;});
             AssertThat(pool.poolState().available, Equals(min_spare_connections));
 
             // use one connection
@@ -184,7 +184,7 @@ go_bandit([]() {
             setupTestPool(pool);
 
             // wait until we create enough connections
-            backoffSleep(2000ms, [&]() {return pool.poolState().available > 0;});
+            backoffSleep(2000ms, [&]() {return pool.poolState().available >= min_spare_connections;});
             AssertThat(pool.poolState().available, Equals(min_spare_connections));
 
             // use one connection
