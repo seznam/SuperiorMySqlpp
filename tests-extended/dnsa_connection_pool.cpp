@@ -150,8 +150,6 @@ go_bandit([]() {
             });
 
             AssertThat(pool.get()->tryPing(), IsTrue());
-            AssertThat(state.available >= min_spare_connections, IsTrue());
-            AssertThat(state.available <= max_spare_connections, IsTrue());
         });
 
         it("keeps spare connections", [&]() {
@@ -181,7 +179,7 @@ go_bandit([]() {
             auto pool = makeTestPool(settings, hostname);
 
             setIpForHostname(settings.host, hostname);
-            setupTestPool(pool);
+            setupTestPool(pool, std::chrono::milliseconds(1h));
 
             // wait until we create enough connections
             backoffSleep(2000ms, [&]() {return pool.poolState().available >= min_spare_connections;});
