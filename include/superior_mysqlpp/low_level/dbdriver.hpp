@@ -627,7 +627,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
             {
                 return mysql_field_tell(resultPtr);
             }
-            
+
             /**
              * Returns number of columns in a result set.
              * @see https://dev.mysql.com/doc/refman/5.7/en/mysql-num-fields.html
