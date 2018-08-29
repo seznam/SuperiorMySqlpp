@@ -637,53 +637,14 @@ namespace SuperiorMySqlpp {
                 std::cerr << stringify("Pool [", id, "]: Health care job unknown ERROR!\n") << std::flush;
             }
 
-            [[deprecated]] virtual void logSharedPtrPoolDnsAwarePoolManagementCycleStart(std::uint_fast64_t poolId) const noexcept override
-            {
-                SpinGuard guard{lock};
-                std::cerr << stringify("Pool [", poolId, "]: DnsAwarePoolManagement: Cycle start.\n") << std::flush;
-            }
-
-            [[deprecated]] virtual void logSharedPtrPoolDnsAwarePoolManagementChangeDetected(std::uint_fast64_t poolId) const noexcept override
-            {
-                SpinGuard guard{lock};
-                std::cerr << stringify("Pool [", poolId, "]: DnsAwarePoolManagement: Change detected.\n") << std::flush;
-            }
-
-            [[deprecated]] virtual void logSharedPtrPoolDnsAwarePoolManagementCheckError(std::uint_fast64_t poolId, std::exception&e) const noexcept override
-            {
-                SpinGuard guard{lock};
-                std::cerr << stringify("Pool [", poolId, "]: DnsAwarePoolManagement: Check error:\n", e.what(), "\n") << std::flush;
-            }
-
-            [[deprecated]] virtual void logSharedPtrPoolDnsAwarePoolManagementCheckError(std::uint_fast64_t poolId) const noexcept override
-            {
-                SpinGuard guard{lock};
-                std::cerr << stringify("Pool [", poolId, "]: DnsAwarePoolManagement: Check unknown error!!!\n") << std::flush;
-            }
-
-            [[deprecated]] virtual void logSharedPtrPoolDnsAwarePoolManagementCycleEnd(std::uint_fast64_t poolId) const noexcept override
-            {
-                SpinGuard guard{lock};
-                std::cerr << stringify("Pool [", poolId, "]: DnsAwarePoolManagement: Cycle end.\n") << std::flush;
-            }
-
-            [[deprecated]] virtual void logSharedPtrPoolDnsAwarePoolManagementStopped(std::uint_fast64_t poolId)const noexcept override
-            {
-                SpinGuard guard{lock};
-                std::cerr << stringify("Pool [", poolId, "]: DnsAwarePoolManagement: Stopped.\n") << std::flush;
-            }
-
-            [[deprecated]] virtual void logSharedPtrPoolDnsAwarePoolManagementError(std::uint_fast64_t poolId, std::exception&e) const noexcept override
-            {
-                SpinGuard guard{lock};
-                std::cerr << stringify("Pool [", poolId, "]: DnsAwarePoolManagement: Error:\n", e.what(), "\n") << std::flush;
-            }
-
-            [[deprecated]] virtual void logSharedPtrPoolDnsAwarePoolManagementError(std::uint_fast64_t poolId) const noexcept override
-            {
-                SpinGuard guard{lock};
-                std::cerr << stringify("Pool [", poolId, "]: DnsAwarePoolManagement: Unknown error!!!\n") << std::flush;
-            }
+            [[deprecated]] virtual void logSharedPtrPoolDnsAwarePoolManagementCycleStart(std::uint_fast64_t /*poolId*/) const noexcept override {}
+            [[deprecated]] virtual void logSharedPtrPoolDnsAwarePoolManagementChangeDetected(std::uint_fast64_t /*poolId*/) const noexcept override {}
+            [[deprecated]] virtual void logSharedPtrPoolDnsAwarePoolManagementCheckError(std::uint_fast64_t /*poolId*/, std::exception&) const noexcept override {}
+            [[deprecated]] virtual void logSharedPtrPoolDnsAwarePoolManagementCheckError(std::uint_fast64_t /*poolId*/) const noexcept override {}
+            [[deprecated]] virtual void logSharedPtrPoolDnsAwarePoolManagementCycleEnd(std::uint_fast64_t /*poolId*/) const noexcept override {}
+            [[deprecated]] virtual void logSharedPtrPoolDnsAwarePoolManagementStopped(std::uint_fast64_t /*poolId*/)const noexcept override {}
+            [[deprecated]] virtual void logSharedPtrPoolDnsAwarePoolManagementError(std::uint_fast64_t /*poolId*/, std::exception&) const noexcept override {}
+            [[deprecated]] virtual void logSharedPtrPoolDnsAwarePoolManagementError(std::uint_fast64_t /*poolId*/) const noexcept override {}
 
             virtual void logSharedPtrPoolDnsAwarePoolManagementCycleStart(std::uint_fast64_t poolId, const std::string &hostname) const noexcept override
             {

@@ -131,6 +131,7 @@ namespace SuperiorMySqlpp
 
                     while (enabled)
                     {
+                        getBase().getLogger()->logSharedPtrPoolDnsAwarePoolManagementCycleStart(getBase().getId());
                         getBase().getLogger()->logSharedPtrPoolDnsAwarePoolManagementCycleStart(getBase().getId(), hostname);
 
                         try
@@ -145,6 +146,7 @@ namespace SuperiorMySqlpp
                             // compare
                             if (!std::equal(lastIpAddresses.begin(), lastIpAddresses.end(), ipAddresses.begin(), ipAddresses.end()))
                             {
+                                getBase().getLogger()->logSharedPtrPoolDnsAwarePoolManagementChangeDetected(getBase().getId());
                                 getBase().getLogger()->logSharedPtrPoolDnsAwarePoolManagementChangeDetected(getBase().getId(), hostname);
 
                                 getBase().clearPool();
@@ -156,27 +158,33 @@ namespace SuperiorMySqlpp
                          */
                         catch (std::exception& e)
                         {
+                            getBase().getLogger()->logSharedPtrPoolDnsAwarePoolManagementCheckError(getBase().getId(), e);
                             getBase().getLogger()->logSharedPtrPoolDnsAwarePoolManagementCheckError(getBase().getId(), e, hostname);
                         }
                         catch (...)
                         {
+                            getBase().getLogger()->logSharedPtrPoolDnsAwarePoolManagementCheckError(getBase().getId());
                             getBase().getLogger()->logSharedPtrPoolDnsAwarePoolManagementCheckError(getBase().getId(), hostname);
                         }
 
+                        getBase().getLogger()->logSharedPtrPoolDnsAwarePoolManagementCycleEnd(getBase().getId());
                         getBase().getLogger()->logSharedPtrPoolDnsAwarePoolManagementCycleEnd(getBase().getId(), hostname);
 
                         sleepInParts(sleepTime, std::chrono::milliseconds{50}, [&](){ return enabled.load(); });
                     }
 
+                    getBase().getLogger()->logSharedPtrPoolDnsAwarePoolManagementStopped(getBase().getId());
                     getBase().getLogger()->logSharedPtrPoolDnsAwarePoolManagementStopped(getBase().getId(), hostname);
                 }
                 catch (std::exception& e)
                 {
+                    getBase().getLogger()->logSharedPtrPoolDnsAwarePoolManagementError(getBase().getId(), e);
                     getBase().getLogger()->logSharedPtrPoolDnsAwarePoolManagementError(getBase().getId(), e, hostname);
                     onError();
                 }
                 catch (...)
                 {
+                    getBase().getLogger()->logSharedPtrPoolDnsAwarePoolManagementError(getBase().getId());
                     getBase().getLogger()->logSharedPtrPoolDnsAwarePoolManagementError(getBase().getId(), hostname);
                     onError();
                 }
