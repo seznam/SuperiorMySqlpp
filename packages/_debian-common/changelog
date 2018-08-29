@@ -1,9 +1,10 @@
-libsuperiormysqlpp (0.3.3) UNRELEASED; urgency=medium
+libsuperiormysqlpp (0.3.4) UNRELEASED; urgency=medium
 
   [ Radek Smejdir ]
   * Add ConnectionConfiguration
 
   [ Adam Stepan ]
+  * Propagate return values from mysql_*row_seek methods
   * Fix dnsa test
 
  -- Adam Stepan <adam.stepan@firma.seznam.cz>  Mon, 20 Aug 2018 15:56:20 +0200
