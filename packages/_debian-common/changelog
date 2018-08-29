@@ -1,10 +1,10 @@
-libsuperiormysqlpp (0.4.0) UNRELEASED; urgency=medium
+libsuperiormysqlpp (0.3.3) UNRELEASED; urgency=medium
 
   [ Radek Smejdir ]
   * Add ConnectionConfiguration
 
   [ Tomas Prochazka ]
-  * Removed useless method DBDriver::Result::close() and substituted with method freeResult()
+  * Removed useless private method DBDriver::Result::close() and substituted with method freeResult()
 
  -- Michal Fizek <michal.fizek@firma.seznam.cz>  Mon, 23 Apr 2018 14:17:57 +0200
 

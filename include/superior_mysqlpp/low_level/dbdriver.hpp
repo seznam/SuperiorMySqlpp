@@ -623,12 +623,12 @@ namespace SuperiorMySqlpp { namespace LowLevel
             void freeResult() noexcept
             {
                 if (resultPtr != nullptr)
-                     {
-                         mysql_free_result(resultPtr);
-                         resultPtr = nullptr;
-                     }
+                {
+                    mysql_free_result(resultPtr);
+                    resultPtr = nullptr;
+                }
             }
-            
+
             /**
              * Returns number of columns in a result set.
              * @see https://dev.mysql.com/doc/refman/5.7/en/mysql-num-fields.html
