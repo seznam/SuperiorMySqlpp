@@ -515,10 +515,11 @@ namespace SuperiorMySqlpp { namespace LowLevel
              * @see https://dev.mysql.com/doc/refman/5.7/en/mysql-row-seek.html
              *
              * @param offset Row offset, not a row index. Typically returned value from #tellRowOffset is used.
+             * @return The previous value of the row cursor
              */
-            void seekRowOffset(MYSQL_ROW_OFFSET offset)
+            auto seekRowOffset(MYSQL_ROW_OFFSET offset)
             {
-                mysql_row_seek(resultPtr, offset);
+                return mysql_row_seek(resultPtr, offset);
             }
 
             /**
@@ -1421,10 +1422,11 @@ namespace SuperiorMySqlpp { namespace LowLevel
              * @see https://dev.mysql.com/doc/refman/5.7/en/mysql-stmt-row-seek.html
              *
              * @param offset Row offset, not a row index. Typically returned value from #tellRowOffset is used.
+             * @return The previous value of row cursor.
              */
-            void seekRowOffset(MYSQL_ROW_OFFSET offset)
+            auto seekRowOffset(MYSQL_ROW_OFFSET offset)
             {
-                mysql_stmt_row_seek(statementPtr, offset);
+                return mysql_stmt_row_seek(statementPtr, offset);
             }
 
             /**

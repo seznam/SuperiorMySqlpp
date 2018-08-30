@@ -1,4 +1,4 @@
-libsuperiormysqlpp (0.3.3) UNRELEASED; urgency=medium
+libsuperiormysqlpp (0.3.4) UNRELEASED; urgency=medium
 
   [ Radek Smejdir ]
   * Add ConnectionConfiguration
@@ -6,7 +6,11 @@ libsuperiormysqlpp (0.3.3) UNRELEASED; urgency=medium
   [ Tomas Prochazka ]
   * Removed useless private method DBDriver::Result::close() and substituted with method freeResult()
 
- -- Michal Fizek <michal.fizek@firma.seznam.cz>  Mon, 23 Apr 2018 14:17:57 +0200
+  [ Adam Stepan ]
+  * Propagate return values from mysql_*row_seek methods
+  * Fix dnsa test
+
+ -- Adam Stepan <adam.stepan@firma.seznam.cz>  Mon, 20 Aug 2018 15:56:20 +0200
 
 libsuperiormysqlpp (0.3.2) unstable; urgency=medium
 
