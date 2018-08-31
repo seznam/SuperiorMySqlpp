@@ -93,7 +93,7 @@ auto makeTestPool(const Setting &settings, const std::string &hostname) {
 }
 
 template <typename T>
-void setupTestPool(T&& pool, const std::chrono::milliseconds &job_sleep_period=50ms,
+void setupTestPool(T &&pool, const std::chrono::milliseconds &job_sleep_period=50ms,
         const bool &start_resource_keeper=true, const bool &start_healthcare=false) {
 
     pool.setMinSpare(min_spare_connections);
@@ -195,13 +195,13 @@ go_bandit([]() {
 
         it("can log dns error", [&]() {
 
-            auto& settings = getSettingsRef();
+            auto &settings = getSettingsRef();
             std::string hostname{"definitiely.not.resolvable.hostname"}, streamRedirectionResult{};
 
 
                 StreamRedirect<std::ostream> redirection(std::cerr);
 
-                auto && connectionPool = makeDnsaConnectionPool<true, true, true, true, true>(
+                auto &&connectionPool = makeDnsaConnectionPool<true, true, true, true, true>(
                     [&]() {
                         return std::async(
                             std::launch::async,
