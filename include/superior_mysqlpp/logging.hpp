@@ -48,6 +48,9 @@ namespace SuperiorMySqlpp {
         return ss.str();
     }
 
+    #define __deprecated_logger_method \
+        [[deprecated("This method is deprecated in favor of method with hostname argument")]]
+
     namespace Loggers
     {
         /*
@@ -117,14 +120,14 @@ namespace SuperiorMySqlpp {
             virtual void logSharedPtrPoolHealthCareJobError(std::uint_fast64_t /*poolId*/, const std::exception&) const noexcept = 0;
             virtual void logSharedPtrPoolHealthCareJobError(std::uint_fast64_t /*poolId*/) const noexcept = 0;
 
-            [[deprecated]] virtual void logSharedPtrPoolDnsAwarePoolManagementCycleStart(std::uint_fast64_t /*poolId*/) const noexcept = 0;
-            [[deprecated]] virtual void logSharedPtrPoolDnsAwarePoolManagementChangeDetected(std::uint_fast64_t /*poolId*/) const noexcept = 0;
-            [[deprecated]] virtual void logSharedPtrPoolDnsAwarePoolManagementCheckError(std::uint_fast64_t /*poolId*/, std::exception&) const noexcept = 0;
-            [[deprecated]] virtual void logSharedPtrPoolDnsAwarePoolManagementCheckError(std::uint_fast64_t /*poolId*/) const noexcept = 0;
-            [[deprecated]] virtual void logSharedPtrPoolDnsAwarePoolManagementCycleEnd(std::uint_fast64_t /*poolId*/) const noexcept = 0;
-            [[deprecated]] virtual void logSharedPtrPoolDnsAwarePoolManagementStopped(std::uint_fast64_t /*poolId*/)const noexcept = 0;
-            [[deprecated]] virtual void logSharedPtrPoolDnsAwarePoolManagementError(std::uint_fast64_t /*poolId*/, std::exception&) const noexcept = 0;
-            [[deprecated]] virtual void logSharedPtrPoolDnsAwarePoolManagementError(std::uint_fast64_t /*poolId*/) const noexcept = 0;
+            __deprecated_logger_method virtual void logSharedPtrPoolDnsAwarePoolManagementCycleStart(std::uint_fast64_t /*poolId*/) const noexcept = 0;
+            __deprecated_logger_method virtual void logSharedPtrPoolDnsAwarePoolManagementChangeDetected(std::uint_fast64_t /*poolId*/) const noexcept = 0;
+            __deprecated_logger_method virtual void logSharedPtrPoolDnsAwarePoolManagementCheckError(std::uint_fast64_t /*poolId*/, std::exception&) const noexcept = 0;
+            __deprecated_logger_method virtual void logSharedPtrPoolDnsAwarePoolManagementCheckError(std::uint_fast64_t /*poolId*/) const noexcept = 0;
+            __deprecated_logger_method virtual void logSharedPtrPoolDnsAwarePoolManagementCycleEnd(std::uint_fast64_t /*poolId*/) const noexcept = 0;
+            __deprecated_logger_method virtual void logSharedPtrPoolDnsAwarePoolManagementStopped(std::uint_fast64_t /*poolId*/)const noexcept = 0;
+            __deprecated_logger_method virtual void logSharedPtrPoolDnsAwarePoolManagementError(std::uint_fast64_t /*poolId*/, std::exception&) const noexcept = 0;
+            __deprecated_logger_method virtual void logSharedPtrPoolDnsAwarePoolManagementError(std::uint_fast64_t /*poolId*/) const noexcept = 0;
 
 
             virtual void logSharedPtrPoolDnsAwarePoolManagementCycleStart(std::uint_fast64_t /*poolId*/, const std::string &) const noexcept = 0;
@@ -222,14 +225,14 @@ namespace SuperiorMySqlpp {
             virtual void logSharedPtrPoolHealthCareJobError(std::uint_fast64_t /*poolId*/, const std::exception&) const noexcept override {}
             virtual void logSharedPtrPoolHealthCareJobError(std::uint_fast64_t /*poolId*/) const noexcept override {}
 
-            [[deprecated]] virtual void logSharedPtrPoolDnsAwarePoolManagementCycleStart(std::uint_fast64_t /*poolId*/) const noexcept override {}
-            [[deprecated]] virtual void logSharedPtrPoolDnsAwarePoolManagementChangeDetected(std::uint_fast64_t /*poolId*/) const noexcept override {}
-            [[deprecated]] virtual void logSharedPtrPoolDnsAwarePoolManagementCheckError(std::uint_fast64_t /*poolId*/, std::exception&) const noexcept override {}
-            [[deprecated]] virtual void logSharedPtrPoolDnsAwarePoolManagementCheckError(std::uint_fast64_t /*poolId*/) const noexcept override {}
-            [[deprecated]] virtual void logSharedPtrPoolDnsAwarePoolManagementCycleEnd(std::uint_fast64_t /*poolId*/) const noexcept override {}
-            [[deprecated]] virtual void logSharedPtrPoolDnsAwarePoolManagementStopped(std::uint_fast64_t /*poolId*/)const noexcept override {}
-            [[deprecated]] virtual void logSharedPtrPoolDnsAwarePoolManagementError(std::uint_fast64_t /*poolId*/, std::exception&) const noexcept override {}
-            [[deprecated]] virtual void logSharedPtrPoolDnsAwarePoolManagementError(std::uint_fast64_t /*poolId*/) const noexcept override {}
+            __deprecated_logger_method virtual void logSharedPtrPoolDnsAwarePoolManagementCycleStart(std::uint_fast64_t /*poolId*/) const noexcept override {}
+            __deprecated_logger_method virtual void logSharedPtrPoolDnsAwarePoolManagementChangeDetected(std::uint_fast64_t /*poolId*/) const noexcept override {}
+            __deprecated_logger_method virtual void logSharedPtrPoolDnsAwarePoolManagementCheckError(std::uint_fast64_t /*poolId*/, std::exception&) const noexcept override {}
+            __deprecated_logger_method virtual void logSharedPtrPoolDnsAwarePoolManagementCheckError(std::uint_fast64_t /*poolId*/) const noexcept override {}
+            __deprecated_logger_method virtual void logSharedPtrPoolDnsAwarePoolManagementCycleEnd(std::uint_fast64_t /*poolId*/) const noexcept override {}
+            __deprecated_logger_method virtual void logSharedPtrPoolDnsAwarePoolManagementStopped(std::uint_fast64_t /*poolId*/)const noexcept override {}
+            __deprecated_logger_method virtual void logSharedPtrPoolDnsAwarePoolManagementError(std::uint_fast64_t /*poolId*/, std::exception&) const noexcept override {}
+            __deprecated_logger_method virtual void logSharedPtrPoolDnsAwarePoolManagementError(std::uint_fast64_t /*poolId*/) const noexcept override {}
 
             virtual void logSharedPtrPoolDnsAwarePoolManagementCycleStart(std::uint_fast64_t /*poolId*/, const std::string &) const noexcept override {}
             virtual void logSharedPtrPoolDnsAwarePoolManagementChangeDetected(std::uint_fast64_t /*poolId*/, const std::string &) const noexcept override {}
@@ -637,14 +640,14 @@ namespace SuperiorMySqlpp {
                 std::cerr << stringify("Pool [", id, "]: Health care job unknown ERROR!\n") << std::flush;
             }
 
-            [[deprecated]] virtual void logSharedPtrPoolDnsAwarePoolManagementCycleStart(std::uint_fast64_t /*poolId*/) const noexcept override {}
-            [[deprecated]] virtual void logSharedPtrPoolDnsAwarePoolManagementChangeDetected(std::uint_fast64_t /*poolId*/) const noexcept override {}
-            [[deprecated]] virtual void logSharedPtrPoolDnsAwarePoolManagementCheckError(std::uint_fast64_t /*poolId*/, std::exception&) const noexcept override {}
-            [[deprecated]] virtual void logSharedPtrPoolDnsAwarePoolManagementCheckError(std::uint_fast64_t /*poolId*/) const noexcept override {}
-            [[deprecated]] virtual void logSharedPtrPoolDnsAwarePoolManagementCycleEnd(std::uint_fast64_t /*poolId*/) const noexcept override {}
-            [[deprecated]] virtual void logSharedPtrPoolDnsAwarePoolManagementStopped(std::uint_fast64_t /*poolId*/)const noexcept override {}
-            [[deprecated]] virtual void logSharedPtrPoolDnsAwarePoolManagementError(std::uint_fast64_t /*poolId*/, std::exception&) const noexcept override {}
-            [[deprecated]] virtual void logSharedPtrPoolDnsAwarePoolManagementError(std::uint_fast64_t /*poolId*/) const noexcept override {}
+            __deprecated_logger_method virtual void logSharedPtrPoolDnsAwarePoolManagementCycleStart(std::uint_fast64_t /*poolId*/) const noexcept override {}
+            __deprecated_logger_method virtual void logSharedPtrPoolDnsAwarePoolManagementChangeDetected(std::uint_fast64_t /*poolId*/) const noexcept override {}
+            __deprecated_logger_method virtual void logSharedPtrPoolDnsAwarePoolManagementCheckError(std::uint_fast64_t /*poolId*/, std::exception&) const noexcept override {}
+            __deprecated_logger_method virtual void logSharedPtrPoolDnsAwarePoolManagementCheckError(std::uint_fast64_t /*poolId*/) const noexcept override {}
+            __deprecated_logger_method virtual void logSharedPtrPoolDnsAwarePoolManagementCycleEnd(std::uint_fast64_t /*poolId*/) const noexcept override {}
+            __deprecated_logger_method virtual void logSharedPtrPoolDnsAwarePoolManagementStopped(std::uint_fast64_t /*poolId*/)const noexcept override {}
+            __deprecated_logger_method virtual void logSharedPtrPoolDnsAwarePoolManagementError(std::uint_fast64_t /*poolId*/, std::exception&) const noexcept override {}
+            __deprecated_logger_method virtual void logSharedPtrPoolDnsAwarePoolManagementError(std::uint_fast64_t /*poolId*/) const noexcept override {}
 
             virtual void logSharedPtrPoolDnsAwarePoolManagementCycleStart(std::uint_fast64_t poolId, const std::string &hostname) const noexcept override
             {
@@ -701,6 +704,7 @@ namespace SuperiorMySqlpp {
         using SharedPointer_t = std::shared_ptr<Loggers::Interface>;
     }
 
+    #undef __deprecated_logger_method
 
     /*
      * Phoenix singleton
