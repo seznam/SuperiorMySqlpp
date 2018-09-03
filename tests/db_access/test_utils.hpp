@@ -13,12 +13,16 @@
 #include <sstream>
 
 template <typename T>
-class StreamRedirect {
+class StreamCapture {
+    /** Class captures all strings which are written into a stream and expose
+     *  them by function `getString', the captured stream is returned to its original
+     *  stateby calling `restore' method.
+     */
     public:
-        StreamRedirect(T &stream): buffer{}, originalStream{stream},
+        StreamCapture(T &stream): buffer{}, originalStream{stream},
             originalBuffer{stream.rdbuf(buffer.rdbuf())} {}
 
-        std::string getString() {
+        std::string getString() const {
             return buffer.str();
         }
 
@@ -26,7 +30,7 @@ class StreamRedirect {
             originalStream.rdbuf(originalBuffer);
         }
 
-        ~StreamRedirect() {
+        ~StreamCapture() {
             restore();
         }
 
