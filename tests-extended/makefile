@@ -1,6 +1,8 @@
 #!/usr/bin/make -f
 
 LDFLAGS += -lboost_system
+# XXX: can be removed when we delete deprecated DNS logger methods
+CXXFLAGS += -Wno-deprecated-declarations
 
 ifneq "$(shell id -u -r)" "0"
 @echo "Note: This test will require elevated privileges."

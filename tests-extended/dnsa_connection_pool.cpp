@@ -93,7 +93,7 @@ auto makeTestPool(const Setting &settings, const std::string &hostname) {
 }
 
 template <typename T>
-void setupTestPool(T&& pool, const std::chrono::milliseconds &job_sleep_period=50ms,
+void setupTestPool(T &&pool, const std::chrono::milliseconds &job_sleep_period=50ms,
         const bool &start_resource_keeper=true, const bool &start_healthcare=false) {
 
     pool.setMinSpare(min_spare_connections);
@@ -192,5 +192,45 @@ go_bandit([]() {
             std::this_thread::sleep_for(10ms);
             AssertThat(pool.poolState().available < min_spare_connections, IsTrue());
         });
+
+        it("can log dns error", [&]() {
+
+            auto &settings = getSettingsRef();
+            std::string hostname{"definitiely.not.resolvable.hostname"};
+
+            StreamCapture<std::ostream> capture(std::cerr);
+
+            auto &&connectionPool = makeDnsaConnectionPool<true, true, true, true, true>(
+                [&]() {
+                    return std::async(
+                        std::launch::async,
+                        [&]() {
+                            return std::make_shared<Connection>(
+                                settings.database,
+                                settings.user,
+                                settings.password,
+                                settings.host,
+                                settings.port
+                            );
+                        });
+                },
+                hostname,
+                std::make_shared<Loggers::Full>()
+            );
+
+            // ensure that at least one log method is called
+            connectionPool.startDnsAwarePoolManagement();
+            connectionPool.stopDnsAwarePoolManagement();
+
+            // save stream data, restore std::cerr
+            std::string streamCaptureResult = capture.getString();
+            capture.restore();
+
+            // check that hostname is present in stream data
+            AssertThat(streamCaptureResult.find(hostname), !Equals(std::string::npos));
+        });
+
     });
+
+
 });

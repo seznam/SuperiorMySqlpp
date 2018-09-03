@@ -7,6 +7,7 @@ libsuperiormysqlpp (0.3.4) UNRELEASED; urgency=medium
   * Removed useless private method DBDriver::Result::close() and substituted with method freeResult()
 
   [ Adam Stepan ]
+  * Add a hostname argument to DNS-related logger methods
   * Propagate return values from mysql_*row_seek methods
   * Fix dnsa test
 
