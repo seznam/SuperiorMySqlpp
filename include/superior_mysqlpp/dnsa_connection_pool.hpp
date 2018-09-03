@@ -73,7 +73,7 @@ namespace SuperiorMySqlpp
         };
 
         /**
-         * Mix in class that checks and logs DNS changes.
+         * Mixin class that checks and logs DNS changes.
          * It is used as pool management class in DnsaConnectionPool.
          */
         template<typename Base, bool terminateOnFailure>
@@ -145,7 +145,8 @@ namespace SuperiorMySqlpp
              * This function is called when unexpected error is thrown during dns resolution error handling.
              * It's called only if logger throws exception.
              */
-            void onUnexpectedError(void) const noexcept {
+            void onUnexpectedError() const noexcept
+            {
                 if(terminateOnFailure) {
                     std::terminate();
                 }
@@ -156,13 +157,19 @@ namespace SuperiorMySqlpp
              * We cannot afford to let any exceptions to be propagated from logging functions
              * since it would result in call to std::terminate().
              */
-            void job(void) const {
-                try {
+            void job() const
+            {
+                try
+                {
                     runJobLoop();
-                } catch(std::exception &e) {
+                }
+                catch(std::exception &e)
+                {
                     getBase().getLogger()->logSharedPtrPoolDnsAwarePoolManagementError(getBase().getId(), e);
                     onUnexpectedError();
-                } catch(...) {
+                }
+                catch(...)
+                {
                     getBase().getLogger()->logSharedPtrPoolDnsAwarePoolManagementError(getBase().getId());
                     onUnexpectedError();
                 }
@@ -240,11 +247,11 @@ namespace SuperiorMySqlpp
             }
 
             /**
-             * Returns true if jobThread is in joinable state.
+             * Returns true if DNS mangement job is running.
              */
             auto isDnsAwarePoolManagementThreadRunning() const
             {
-                // XXX: this is ambigious, it can return false if jobThread is detached
+                // XXX: this is ambiguous, it can return false if jobThread is detached
                 return jobThread.joinable();
             }
 
