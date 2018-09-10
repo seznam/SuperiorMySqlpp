@@ -24,13 +24,13 @@ namespace SuperiorMySqlpp { namespace Converters
         struct ToIntegerParserImpl
         {
             static_assert(std::numeric_limits<T>::digits10, "length > digits10");
-            static inline void call(T& result, const char*& str) noexcept(validate)
+            static inline void call(T& result, const char*& str) noexcept(!validate)
             {
                 static constexpr T base = pow(10UL, length-1);
                 char c = *str;
                 if (validate)
                 {
-                    if (c < '0' || c > '9')
+                    if (!(c >= '0' && c <= '9')) //This is sometimes faster then using ||
                     {
                         throw std::out_of_range("Character is not between 0 and 9!");
                     }
@@ -45,12 +45,12 @@ namespace SuperiorMySqlpp { namespace Converters
         struct ToIntegerParserImpl<T, 1, validate>
         {
             static_assert(std::numeric_limits<T>::digits10, "length > digits10");
-            static inline void call(T& result, const char*& str) noexcept(validate)
+            static inline void call(T& result, const char*& str) noexcept(!validate)
             {
                 char c = *str;
                 if (validate)
                 {
-                    if (c < '0' || c > '9')
+                    if (!(c>= '0' && c<= '9')) //This is sometimes faster then using ||
                     {
                         throw std::out_of_range("Character is not between 0 and 9!");
                     }
