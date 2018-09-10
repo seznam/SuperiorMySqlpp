@@ -11,7 +11,7 @@
 
 
 #include <chrono>
-
+#include <iostream>
 
 #include <superior_mysqlpp/connection_pool.hpp>
 #include <superior_mysqlpp/shared_ptr_pool/sleep_in_parts.hpp>
@@ -47,6 +47,7 @@ namespace SuperiorMySqlpp
              * @tparam const reference to std::string
              * @param hostname
              * @return Vector of strings that represent ip addresses for given hostname.
+             * @throws boost::system::system_error on resolver::resolve failure
              */
             std::vector<std::string> resolve(const std::string& hostname)
             {
@@ -86,6 +87,11 @@ namespace SuperiorMySqlpp
              *  Sleep can be aborted if _enabled_ is set to false.
              */
             std::chrono::milliseconds sleepTime{std::chrono::seconds{10}};
+            /**
+             * How often jobThread should check for shutdown request during sleep
+             * in the job loop.
+             */
+            std::chrono::milliseconds shutdownCheckPeriod{50};
             /* DNS resolution thread */
             std::thread jobThread{};
             /* Hostname to resolve */
@@ -147,7 +153,7 @@ namespace SuperiorMySqlpp
              */
             void onUnexpectedError() const noexcept
             {
-                if(terminateOnFailure) {
+                if (terminateOnFailure) {
                     std::terminate();
                 }
             }
@@ -163,14 +169,17 @@ namespace SuperiorMySqlpp
                 {
                     runJobLoop();
                 }
-                catch(std::exception &e)
+                // handle std::bad_alloc and various logger's exceptions, if std::bad_alloc
+                // is thrown we cannot log anything beacause of the memory, so we just call
+                // onUnexpectedError
+                catch (std::bad_alloc)
                 {
-                    getBase().getLogger()->logSharedPtrPoolDnsAwarePoolManagementError(getBase().getId(), e);
                     onUnexpectedError();
                 }
-                catch(...)
+                catch (std::exception &error)
                 {
-                    getBase().getLogger()->logSharedPtrPoolDnsAwarePoolManagementError(getBase().getId());
+                    std::cerr << __PRETTY_FUNCTION__ << ": an unexpected exception was thrown: "
+                              << error.what() << std::endl;
                     onUnexpectedError();
                 }
             }
@@ -215,7 +224,7 @@ namespace SuperiorMySqlpp
 
                     getBase().getLogger()->logSharedPtrPoolDnsAwarePoolManagementCycleEnd(getBase().getId());
 
-                    sleepInParts(sleepTime, std::chrono::milliseconds{50}, [&](){ return enabled.load(); });
+                    sleepInParts(sleepTime, shutdownCheckPeriod, [&](){ return enabled.load(); });
                 }
 
                 getBase().getLogger()->logSharedPtrPoolDnsAwarePoolManagementStopped(getBase().getId());
