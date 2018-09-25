@@ -30,7 +30,7 @@ namespace SuperiorMySqlpp { namespace Converters
                 char c = *str;
                 if (validate)
                 {
-                    if (!(c >= '0' && c <= '9')) //This is sometimes faster then using ||
+                    if (!(c >= '0' && c <= '9')) // This is sometimes faster then using ||
                     {
                         throw std::out_of_range("Character is not between 0 and 9!");
                     }
@@ -50,7 +50,7 @@ namespace SuperiorMySqlpp { namespace Converters
                 char c = *str;
                 if (validate)
                 {
-                    if (!(c>= '0' && c<= '9')) //This is sometimes faster then using ||
+                    if (!(c >= '0' && c <= '9')) // This is sometimes faster then using ||
                     {
                         throw std::out_of_range("Character is not between 0 and 9!");
                     }
