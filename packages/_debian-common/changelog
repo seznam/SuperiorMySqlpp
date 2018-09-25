@@ -10,8 +10,9 @@ libsuperiormysqlpp (0.3.4) UNRELEASED; urgency=medium
   * Add a hostname argument to DNS-related logger methods
   * Propagate return values from mysql_*row_seek methods
   * Fix dnsa test
+  * Add noexcept qualifier to database driver methods
 
- -- Adam Stepan <adam.stepan@firma.seznam.cz>  Mon, 20 Aug 2018 15:56:20 +0200
+ -- Adam Stepan <adam.stepan@firma.seznam.cz>  Thu, 16 Aug 2018 09:19:27 +0200
 
 libsuperiormysqlpp (0.3.2) unstable; urgency=medium
 

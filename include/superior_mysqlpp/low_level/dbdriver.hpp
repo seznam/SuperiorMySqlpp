@@ -113,7 +113,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
          * Internal thread-safe ID counter.
          * @return ID counter reference.
          */
-        static auto& getGlobalIdRef()
+        static auto& getGlobalIdRef() noexcept
         {
             static std::atomic<std::uint_fast64_t> globalId{1};
             return globalId;
@@ -123,7 +123,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
          * Returns current MySQL handler settings.
          * @return Reference to internal MYSQL structure.
          */
-        MYSQL& getMysql()
+        MYSQL& getMysql() noexcept
         {
             return mysql;
         }
@@ -132,7 +132,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
          * Returns current MySQL handler settings.
          * @return Pointer to internal MYSQL structure.
          */
-        MYSQL* getMysqlPtr()
+        MYSQL* getMysqlPtr() noexcept
         {
             return &mysql;
         }
@@ -199,7 +199,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
          * Returns current logger instance.
          * @return Shared pointer to logger instance.
          */
-        auto& getLoggerPtr()
+        auto& getLoggerPtr() noexcept
         {
             return loggerPtr;
         }
@@ -208,7 +208,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
          * Returns current logger instance.
          * @return Constant shared pointer to logger instance.
          */
-        const auto& getLoggerPtr() const
+        const auto& getLoggerPtr() const noexcept
         {
             return loggerPtr;
         }
@@ -363,7 +363,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
          *
          * @return Charset name as a C-string.
          */
-        auto getCharacterSetName()
+        auto getCharacterSetName() noexcept
         {
             return mysql_character_set_name(getMysqlPtr());
         }
@@ -432,7 +432,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
          * Returns connection state.
          * @return True whether connection is active.
          */
-        bool isConnected() const
+        bool isConnected() const noexcept
         {
             return connected;
         }
@@ -505,7 +505,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
              *
              * @param index Row number in a result set.
              */
-            void seekRow(size_t index)
+            void seekRow(size_t index) noexcept
             {
                 mysql_data_seek(resultPtr, index);
             }
@@ -517,7 +517,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
              * @param offset Row offset, not a row index. Typically returned value from #tellRowOffset is used.
              * @return The previous value of the row cursor
              */
-            auto seekRowOffset(MYSQL_ROW_OFFSET offset)
+            auto seekRowOffset(MYSQL_ROW_OFFSET offset) noexcept
             {
                 return mysql_row_seek(resultPtr, offset);
             }
@@ -530,7 +530,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
              *
              * @return The current offset of the row cursor.
              */
-            auto tellRowOffset()
+            auto tellRowOffset() noexcept
             {
                 return mysql_row_tell(resultPtr);
             }
@@ -542,7 +542,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
              *
              * @return The MYSQL_FIELD structure for the current column. NULL if no columns are left.
              */
-            auto fetchField()
+            auto fetchField() noexcept
             {
                 return mysql_fetch_field(resultPtr);
             }
@@ -554,7 +554,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
              * @param index Column index to fetch details of.
              * @return The MYSQL_FIELD structure for the specified column.
              */
-            auto fetchFieldDirect(unsigned int index)
+            auto fetchFieldDirect(unsigned int index) noexcept
             {
                 return mysql_fetch_field_direct(resultPtr, index);
             }
@@ -566,7 +566,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
              *
              * @return An array of MYSQL_FIELD structures for all columns of a result set.
              */
-            auto fetchFields()
+            auto fetchFields() noexcept
             {
                 return mysql_fetch_fields(resultPtr);
             }
@@ -577,7 +577,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
              *
              * @return An array of unsigned long integers representing the size of each column (not including any terminating null bytes).
              */
-            auto fetchLengths()
+            auto fetchLengths() noexcept
             {
                 return mysql_fetch_lengths(resultPtr);
             }
@@ -588,7 +588,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
              *
              * @return MYSQL_ROW with next row results. NULL if there are no more rows or on error.
              */
-            auto fetchRow()
+            auto fetchRow() noexcept
             {
                 return mysql_fetch_row(resultPtr);
             }
@@ -601,7 +601,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
              * @param offset Field number index, use 0 for first column.
              * @return Previous offset value.
              */
-            auto fieldSeek(MYSQL_FIELD_OFFSET offset)
+            auto fieldSeek(MYSQL_FIELD_OFFSET offset) noexcept
             {
                 return mysql_field_seek(resultPtr, offset);
             }
@@ -612,7 +612,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
              *
              * @return The current offset of the field cursor.
              */
-            auto fieldTell()
+            auto fieldTell() noexcept
             {
                 return mysql_field_tell(resultPtr);
             }
@@ -636,7 +636,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
              *
              * @return Unsigned integer representing the number of columns in a result set.
              */
-            auto getFieldsCount()
+            auto getFieldsCount() noexcept
             {
                 return mysql_num_fields(resultPtr);
             }
@@ -647,7 +647,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
              *
              * @return Number of rows in a result set.
              */
-            auto getRowsCount()
+            auto getRowsCount() noexcept
             {
                 return mysql_num_rows(resultPtr);
             }
@@ -659,7 +659,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
              *
              * @return Pointer to MYSQL_RES structure with current result set.
              */
-            auto detail_getResultPtr()
+            auto detail_getResultPtr() noexcept
             {
                 return resultPtr;
             }
@@ -672,7 +672,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
          *
          * @return Number of columns of the last performed query.
          */
-        auto getFieldsCount()
+        auto getFieldsCount() noexcept
         {
             return mysql_field_count(getMysqlPtr());
         }
@@ -695,7 +695,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
          *
          * @return MySQL client library version as an integer value.
          */
-        static auto getClientVersion()
+        static auto getClientVersion() noexcept
         {
             return mysql_get_client_version();
         }
@@ -717,7 +717,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
          *
          * @return Instance of MY_CHARSET_INFO structure.
          */
-        auto getCharacterSetInfo()
+        auto getCharacterSetInfo() noexcept
         {
             MY_CHARSET_INFO characterSet;
             mysql_get_character_set_info(getMysqlPtr(), &characterSet);
@@ -730,7 +730,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
          *
          * @return Integer representing protocol version of current connection.
          */
-        auto getProtocolInfo()
+        auto getProtocolInfo() noexcept
         {
             return mysql_get_proto_info(getMysqlPtr());
         }
@@ -753,7 +753,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
          *
          * @return MySQL server version as an integer value.
          */
-        auto getServerVersion()
+        auto getServerVersion() noexcept
         {
             return mysql_get_server_version(getMysqlPtr());
         }
@@ -785,7 +785,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
          *
          * @return Last ID value for AUTO_INCREMENT column.
          */
-        auto getInsertId()
+        auto getInsertId() noexcept
         {
             return mysql_insert_id(getMysqlPtr());
         }
@@ -829,7 +829,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
          *
          * @return Number of affected rows by last statement.
          */
-        auto affectedRows()
+        auto affectedRows() noexcept
         {
             return mysql_affected_rows(getMysqlPtr());
         }
@@ -840,7 +840,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
          *
          * @return True if there are more results.
          */
-        bool hasMoreResults()
+        bool hasMoreResults() noexcept
         {
             return mysql_more_results(getMysqlPtr());
         }
@@ -1021,7 +1021,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
                 const char* certificate,
                 const char* certificationAuthority,
                 const char* trustedCertificationAuthorityDirectory,
-                const char* cipherList)
+                const char* cipherList) noexcept
         {
             mysql_ssl_set(getMysqlPtr(), key, certificate, certificationAuthority,
                     trustedCertificationAuthorityDirectory, cipherList);
@@ -1052,7 +1052,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
          *
          * @return Number of errors, warning and notes during the last SQL statement.
          */
-        auto warningsCount()
+        auto warningsCount() noexcept
         {
             return mysql_warning_count(getMysqlPtr());
         }
@@ -1077,7 +1077,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
              * Internal thread-safe ID counter.
              * @return ID counter reference.
              */
-            static auto& getGlobalIdRef()
+            static auto& getGlobalIdRef() noexcept
             {
                 static std::atomic<std::uint_fast64_t> globalId{1};
                 return globalId;
@@ -1168,7 +1168,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
              * Returns parent DBDriver ID.
              * @return DBDriver ID.
              */
-            auto getDriverId() const
+            auto getDriverId() const noexcept
             {
                 return driverId;
             }
@@ -1177,7 +1177,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
              * Returns unique statement's ID.
              * @return Statement's ID.
              */
-            auto getId() const
+            auto getId() const noexcept
             {
                 return id;
             }
@@ -1216,17 +1216,17 @@ namespace SuperiorMySqlpp { namespace LowLevel
                 }
             }
 
-            auto freeResult()
+            auto freeResult() noexcept
             {
                 return mysql_stmt_free_result(statementPtr);
             }
 
-            auto fieldCount()
+            auto fieldCount() noexcept
             {
                 return mysql_stmt_field_count(statementPtr);
             }
 
-            auto insertedId()
+            auto insertedId() noexcept
             {
                 return mysql_stmt_insert_id(statementPtr);
             }
@@ -1370,7 +1370,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
              *
              * @return Number of affected rows by last statement.
              */
-            auto affectedRows()
+            auto affectedRows() noexcept
             {
                 return mysql_stmt_affected_rows(statementPtr);
             }
@@ -1381,7 +1381,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
              *
              * @return Number of parameters in a statement.
              */
-            auto paramCount()
+            auto paramCount() noexcept
             {
                 return mysql_stmt_param_count(statementPtr);
             }
@@ -1412,7 +1412,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
              *
              * @param index Row number in a result set.
              */
-            void seekRow(size_t index)
+            void seekRow(size_t index) noexcept
             {
                 mysql_stmt_data_seek(statementPtr, index);
             }
@@ -1424,7 +1424,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
              * @param offset Row offset, not a row index. Typically returned value from #tellRowOffset is used.
              * @return The previous value of row cursor.
              */
-            auto seekRowOffset(MYSQL_ROW_OFFSET offset)
+            auto seekRowOffset(MYSQL_ROW_OFFSET offset) noexcept
             {
                 return mysql_stmt_row_seek(statementPtr, offset);
             }
@@ -1437,7 +1437,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
              *
              * @return The current offset of the row cursor.
              */
-            auto tellRowOffset()
+            auto tellRowOffset() noexcept
             {
                 return mysql_stmt_row_tell(statementPtr);
             }
@@ -1449,7 +1449,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
              *
              * @return Number of rows in the statement's result set.
              */
-            auto getRowsCount()
+            auto getRowsCount() noexcept
             {
                 return mysql_stmt_num_rows(statementPtr);
             }
@@ -1509,7 +1509,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
              *
              * @return Pointer to MYSQL_STMT structure with prepared statement.
              */
-            auto detail_getStatementPtr()
+            auto detail_getStatementPtr() noexcept
             {
                 return statementPtr;
             }
@@ -1573,7 +1573,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
          * Returns unique instance's ID.
          * @return Instance's ID.
          */
-        auto getId() const
+        auto getId() const noexcept
         {
             return id;
         }
@@ -1585,7 +1585,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
          *
          * @return Pointer to MYSQL structure with current connection settings.
          */
-        MYSQL* detail_getMysqlPtr()
+        MYSQL* detail_getMysqlPtr() noexcept
         {
             return getMysqlPtr();
         }
@@ -1598,7 +1598,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
      * @param rhs DBDriver instance.
      * @return True if both DBDriver instances are the same.
      */
-    inline bool operator==(const DBDriver& lhs, const DBDriver& rhs)
+    inline bool operator==(const DBDriver& lhs, const DBDriver& rhs) noexcept
     {
         return lhs.getId() == rhs.getId();
     }
