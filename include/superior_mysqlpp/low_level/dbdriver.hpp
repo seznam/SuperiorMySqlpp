@@ -221,7 +221,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
          * @param value Logger instance.
          */
         template<typename T>
-        void setLoggerPtr(T&& value) noexcept
+        void setLoggerPtr(T&& value)
         {
             loggerPtr = std::forward<T>(value);
         }
