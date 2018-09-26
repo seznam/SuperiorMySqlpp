@@ -18,6 +18,7 @@
 #include <type_traits>
 #include <cinttypes>
 #include <atomic>
+#include <cstring>
 
 #include <superior_mysqlpp/logging.hpp>
 #include <superior_mysqlpp/exceptions.hpp>
@@ -319,23 +320,50 @@ namespace SuperiorMySqlpp { namespace LowLevel
             return escapeStringNoConnection(original.c_str(), original.length());
         }
 
+        // XXX: makeHexString functions can be implemented by one function using constexpr-if from c++17
         /**
          * Converts string to HEX string suitable for using in SQL statements.
          * Useful for binary data for instance.
          * @see https://dev.mysql.com/doc/refman/5.7/en/mysql-hex-string.html
          *
-         * @tparam Type supporting std::begin, std::end and default conversion to char array (char[]).
+         * @param from Original string.
+         * @param fromlen Length of original string.
+         * @return HEX string.
+         */
+        std::string makeHexString(const char *from, std::size_t fromlen)
+        {
+            std::string result(fromlen * 2 + 1, '\0');
+
+            auto length = mysql_hex_string(&result.front(), from, fromlen);
+            result.resize(length);
+
+            return result;
+        }
+
+        /**
+         * Converts string to HEX string suitable for using in SQL statements.
+         * Useful for binary data for instance.
+         * @see https://dev.mysql.com/doc/refman/5.7/en/mysql-hex-string.html
+         *
          * @param from Original string.
          * @return HEX string.
          */
-        template<typename Iterable>
-        std::string makeHexString(const Iterable& from)
+        std::string makeHexString(const char *from)
         {
-            auto fromSize = std::end(from) - std::begin(from);
-            auto buffer = std::make_unique<char[]>(fromSize*2 + 1);
-            auto length = mysql_hex_string(buffer.get(), from, fromSize);
+            return makeHexString(from, std::strlen(from));
+        }
 
-            return std::string(buffer.get(), length);
+        /**
+         * Converts string to HEX string suitable for using in SQL statements.
+         * Useful for binary data for instance.
+         * @see https://dev.mysql.com/doc/refman/5.7/en/mysql-hex-string.html
+         *
+         * @param from Original string.
+         * @return HEX string.
+         */
+        std::string makeHexString(const std::string &from)
+        {
+            return makeHexString(from.data(), from.size());
         }
 
         /**
