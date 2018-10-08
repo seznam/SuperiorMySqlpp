@@ -125,8 +125,8 @@ namespace Converters
              * 
              * @param str String to be converted.
              * @param length Length of the string.
-             * @throws std::runtime_error exception if length is not between 1 and 3.
              * @return Parsed integer value.
+             * @throws std::runtime_error exception if length is not between 1 and 3.
              */
             static inline std::uint8_t call(const char* str, unsigned int length)
             {
@@ -162,8 +162,8 @@ namespace Converters
              * 
              * @param str String to be converted.
              * @param length Length of the string.
-             * @throws std::runtime_error exception if length is not between 1 and 5.
              * @return Parsed integer value.
+             * @throws std::runtime_error exception if length is not between 1 and 5.
              */
             static inline std::uint16_t call(const char* str, unsigned int length)
             {
@@ -205,8 +205,8 @@ namespace Converters
              * 
              * @param str String to be converted.
              * @param length Length of the string.
-             * @throws std::runtime_error exception if length is not between 1 and 10.
              * @return Parsed integer value.
+             * @throws std::runtime_error exception if length is not between 1 and 10.
              */
             static inline std::uint32_t call(const char* str, unsigned int length)
             {
@@ -263,8 +263,8 @@ namespace Converters
              * 
              * @param str String to be converted.
              * @param length Length of the string.
-             * @throws std::runtime_error exception if length is not between 1 and 20.
              * @return Parsed integer value.
+             * @throws std::runtime_error exception if length is not between 1 and 20.
              */
             static inline std::uint64_t call(const char* str, unsigned int length)
             {
