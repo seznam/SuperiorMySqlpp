@@ -15,9 +15,8 @@
 namespace SuperiorMySqlpp
 {
     /**
-     * Class Datetime offers automatic initialization and updating to the current date and time. 
-     * Includes support for second fractions.
-     * The supported range is '1000-01-01 00:00:00' to '9999-12-31 23:59:59'.
+     * Class Datetime is used for values that contain both date and time parts and is bound to MYSQL_TYPE_DATETIME.
+     * The supported range is '1000-01-01 00:00:00.000000' to '9999-12-31 23:59:59.999999'.
      * 
      * @see https://dev.mysql.com/doc/refman/5.7/en/datetime.html
      */
@@ -162,10 +161,10 @@ namespace SuperiorMySqlpp
 
 
     /**
-     * Timestamp class derived from Datetime offers automatic initialization and updating to the current date and time.
+     * Timestamp class is used for values that contain both date and time parts and is bound to MYSQL_TYPE_TIMESTAMP.
      * MySQL converts Timestamp values from the current time zone to UTC for storage, and back from UTC to the current time zone for retrieval.
-     * The supported range is '1970-01-01 00:00:01' UTC to '2038-01-19 03:14:07' UTC.
-     * 
+     * The supported range is '1970-01-01 00:00:01.000000' to '2038-01-19 03:14:07.999999'.
+     *
      * @see https://dev.mysql.com/doc/refman/5.7/en/datetime.html
      */
     class Timestamp : public Datetime
