@@ -5,6 +5,7 @@ libsuperiormysqlpp (0.3.3) UNRELEASED; urgency=medium
 
   [ Tomas Prochazka ]
   * Removed useless private method DBDriver::Result::close() and substituted with method freeResult()
+  * Fix: Correction of noexcept specifiers in integer converter
 
   [ Adam Stepan ]
   * Add a hostname argument to DNS-related logger methods

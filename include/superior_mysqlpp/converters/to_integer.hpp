@@ -53,7 +53,7 @@ namespace Converters
              * @param str String to be parsed.
              * @throws std::out_of_range exception if a character is not between 0 and 9.
              */
-            static inline void call(T& result, const char*& str) noexcept(validate)
+            static inline void call(T& result, const char*& str) noexcept(!validate)
             {
                 static constexpr T base = pow(10UL, length-1);
                 char c = *str;
@@ -88,7 +88,7 @@ namespace Converters
              * @param str Character to be parsed.
              * @throws std::out_of_range exception if a character is not between 0 and 9.
              */
-            static inline void call(T& result, const char*& str) noexcept(validate)
+            static inline void call(T& result, const char*& str) noexcept(!validate)
             {
                 char c = *str;
                 if (validate)
