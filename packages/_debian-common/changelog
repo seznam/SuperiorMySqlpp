@@ -4,9 +4,17 @@ libsuperiormysqlpp (0.3.3) UNRELEASED; urgency=medium
   * Add ConnectionConfiguration
 
   [ Tomas Prochazka ]
+  * Removed useless private method DBDriver::Result::close() and substituted with method freeResult()
   * Fix: Correction of noexcept specifiers in integer converter
 
- -- Michal Fizek <michal.fizek@firma.seznam.cz>  Mon, 23 Apr 2018 14:17:57 +0200
+  [ Adam Stepan ]
+  * Add a hostname argument to DNS-related logger methods
+  * Propagate return values from mysql_*row_seek methods
+  * Fix dnsa test
+  * Add noexcept qualifier to database driver methods
+  * Fix behavior of makeHexString
+
+ -- Adam Stepan <adam.stepan@firma.seznam.cz>  Thu, 16 Aug 2018 09:09:37 +0200
 
 libsuperiormysqlpp (0.3.2) unstable; urgency=medium
 
