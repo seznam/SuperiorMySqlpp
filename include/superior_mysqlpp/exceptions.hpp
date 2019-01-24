@@ -108,11 +108,28 @@ namespace SuperiorMySqlpp
     };
 
     /**
-     * @brief This exception is thrown, when you attempt to read more rows in function `psReadValues`
+     * @brief Base class for multiple rows error
      */
-    class UnexpectedMultipleRowsError : public SuperiorMySqlppError
-    {
+    class UnexpectedRowsCountError : public SuperiorMySqlppError {
     public:
         using SuperiorMySqlppError::SuperiorMySqlppError;
+    };
+
+    /**
+     * @brief This exception is thrown, when you attempt to read more rows in function `psReadValues`
+     */
+    class UnexpectedMultipleRowsError : public UnexpectedRowsCountError
+    {
+    public:
+        using UnexpectedRowsCountError::UnexpectedRowsCountError;
+    };
+
+    /**
+     * @brief Error when no results are returned
+     */
+    class UnexpectedZeroRowsError : public UnexpectedRowsCountError
+    {
+    public:
+        using UnexpectedRowsCountError::UnexpectedRowsCountError;
     };
 }

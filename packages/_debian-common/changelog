@@ -2,6 +2,7 @@ libsuperiormysqlpp (0.4.0) UNRELEASED; urgency=medium
 
   [ Michal Merc ]
   * refactor: Remove szn-debian-wheezy support
+  * Extend psReadValues exceptions
 
  -- Radek Smejdir <radek.smejdir@firma.seznam.cz>  Tue, 12 Mar 2019 13:37:35 +0100
 
