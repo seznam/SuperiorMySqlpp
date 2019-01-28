@@ -141,7 +141,7 @@ namespace SuperiorMySqlpp
      * @param values References to variables to be loaded from query
      *               Their type must be compatible with query result types
      * @throws UnexpectedZeroRowsError if result is empty
-     * @throws UnexpectedMultipleRowserror if more than one row is being loaded
+     * @throws UnexpectedMultipleRowsError if more than one row is being loaded
      */
     template<typename PreparedStatementType, typename... Args, typename = typename std::enable_if<std::is_base_of<detail::StatementBase, std::remove_reference_t<PreparedStatementType>>::value>::type>
     void psReadValues(PreparedStatementType &&ps, Args&... values)
@@ -152,8 +152,9 @@ namespace SuperiorMySqlpp
         {
             if (ps.getRowsCount() == 0) {
                 throw UnexpectedZeroRowsError("psReadValues() has to have a single-row result!");
+            } else {
+                throw UnexpectedMultipleRowsError("psReadValues() can read only one row per query!");
             }
-            throw UnexpectedMultipleRowsError("psReadValues() can read only one row per query!");
         }
 
         std::tuple<Args&...>(values...) = ps.getResult();
