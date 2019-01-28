@@ -111,25 +111,15 @@ namespace SuperiorMySqlpp
      * @brief Base class for multiple rows error
      */
     class UnexpectedRowsCountError : public SuperiorMySqlppError {
+        size_t numRows_;
     public:
-        using SuperiorMySqlppError::SuperiorMySqlppError;
+        UnexpectedRowsCountError(const std::string &message, size_t numRows)
+            : SuperiorMySqlppError { messge }, numRows_(numRows) {}
+
+        inline size_t numRows() const
+        {
+            return numRows_;
+        }
     };
 
-    /**
-     * @brief This exception is thrown, when you attempt to read more rows in function `psReadValues`
-     */
-    class UnexpectedMultipleRowsError : public UnexpectedRowsCountError
-    {
-    public:
-        using UnexpectedRowsCountError::UnexpectedRowsCountError;
-    };
-
-    /**
-     * @brief Error when no results are returned
-     */
-    class UnexpectedZeroRowsError : public UnexpectedRowsCountError
-    {
-    public:
-        using UnexpectedRowsCountError::UnexpectedRowsCountError;
-    };
 }
