@@ -150,9 +150,12 @@ namespace SuperiorMySqlpp
 
         if (ps.getRowsCount() != 1 || !ps.fetch())
         {
-            if (ps.getRowsCount() == 0) {
+            if (ps.getRowsCount() == 0)
+            {
                 throw UnexpectedZeroRowsError("psReadValues() has to have a single-row result!");
-            } else {
+            }
+            else
+            {
                 throw UnexpectedMultipleRowsError("psReadValues() can read only one row per query!");
             }
         }
