@@ -603,7 +603,7 @@ go_bandit([](){
         it("can work with psReadValues (throws multiple rows error)", [&](){
             int id{};
             BlobData blob{}, binary{}, varbinary{};
-            AssertThrows(UnexpectedRowsCountError,
+            AssertThrows(UnexpectedRowCountError,
                 psReadValues("SELECT `id`, `blob`, `binary`, `varbinary` FROM `test_superior_sqlpp`.`binary_data` ORDER BY `id`", connection, id, blob, binary, varbinary)
             );
         });

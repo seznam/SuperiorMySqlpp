@@ -140,8 +140,7 @@ namespace SuperiorMySqlpp
      * @param ps Prepared statement object (only static statements are currently supported)
      * @param values References to variables to be loaded from query
      *               Their type must be compatible with query result types
-     * @throws UnexpectedZeroRowsError if result is empty
-     * @throws UnexpectedMultipleRowsError if more than one row is being loaded
+     * @throws UnexpectedRowCountError if number of results is not exactly 1
      */
     template<typename PreparedStatementType, typename... Args, typename = typename std::enable_if<std::is_base_of<detail::StatementBase, std::remove_reference_t<PreparedStatementType>>::value>::type>
     void psReadValues(PreparedStatementType &&ps, Args&... values)
@@ -150,7 +149,7 @@ namespace SuperiorMySqlpp
 
         if (ps.getRowsCount() != 1 || !ps.fetch())
         {
-            throw UnexpectedRowsCountError("psReadValues() must read exactly one row at a time", ps.getRowsCount());
+            throw UnexpectedRowCountError("psReadValues() must read exactly one row", ps.getRowsCount());
         }
 
         std::tuple<Args&...>(values...) = ps.getResult();
