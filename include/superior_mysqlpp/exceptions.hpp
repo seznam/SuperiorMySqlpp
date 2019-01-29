@@ -111,14 +111,14 @@ namespace SuperiorMySqlpp
      * @brief Error for unexpected row count
      */
     class UnexpectedRowCountError : public SuperiorMySqlppError {
-        size_t numRows_;
+        size_t numRows;
     public:
         UnexpectedRowCountError(const std::string &message, size_t numRows)
-            : SuperiorMySqlppError { message }, numRows_(numRows) {}
+            : SuperiorMySqlppError { message }, numRows(numRows) {}
 
-        inline size_t numRows() const
+        inline size_t getNumRows() const
         {
-            return numRows_;
+            return numRows;
         }
     };
 
