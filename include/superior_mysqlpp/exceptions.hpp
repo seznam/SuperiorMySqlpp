@@ -108,7 +108,7 @@ namespace SuperiorMySqlpp
     };
 
     /**
-     * @brief Error for unexpected row count
+     * @brief Error for unexpected row count, accessible via `getRowCount()` method
      */
     class UnexpectedRowCountError : public SuperiorMySqlppError
     {

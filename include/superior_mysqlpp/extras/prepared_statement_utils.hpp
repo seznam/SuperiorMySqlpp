@@ -149,7 +149,7 @@ namespace SuperiorMySqlpp
 
         if (ps.getRowsCount() != 1 || !ps.fetch())
         {
-            throw UnexpectedRowCountError("psReadValues() must read exactly one row", ps.getRowsCount());
+            throw UnexpectedRowCountError("psReadValues() expected exactly one row, got " + std::to_string(ps.getRowsCount()) + " rows", ps.getRowsCount());
         }
 
         std::tuple<Args&...>(values...) = ps.getResult();

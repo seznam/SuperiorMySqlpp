@@ -293,10 +293,10 @@ resulting in exception.
 
 **psReadValues**
 ```c++
-auto preparedStatement = connection.makePreparedStatement<ResultBindings<Sql::Int, Sql::Int>("SELECT ... FROM ...");
+auto preparedStatement = connection.makePreparedStatement<ResultBindings<Sql::Int, Sql::Int>>("SELECT ... FROM ...");
 int arg1, arg2;
 
-psReadValues(preparedStatement, arg1, arg2);)
+psReadValues(preparedStatement, arg1, arg2);
 ```
 or
 ```c++
@@ -304,7 +304,7 @@ int arg1, arg2;
 psReadValues("SELECT ... FROM ...", connection, arg1, arg2);
 ```
 Note: This function is made only for reading single row. In case you are reading more than one row,
-an *UnexpectedMultipleRowsError* exception is thrown.
+an *UnexpectedRowCountError* exception is thrown.
 
 ## RowStreamAdapter
 Syntactic sugar is provided for extracting values from `Row` using a familiar stream operator.
