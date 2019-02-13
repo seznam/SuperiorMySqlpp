@@ -162,8 +162,9 @@ endif
 define any-package
 package-$1-dbuild:
 	cd packages/$1/ && $(docker_build) --tag=package-$1-dbuild .
-	docker run --name $(IMAGE_PREFIX)dbuild-$1 -t -v /var/run/docker.sock:/var/run/docker.sock -v `pwd`:/dbuild/sources $(docker_run_concurrency) --cap-add SYS_PTRACE package-$1-dbuild
-	docker rm $(IMAGE_PREFIX)dbuild-$1 2>&1 1>/dev/null
+	docker run --rm --name $(IMAGE_PREFIX)dbuild-$1 --tty $(docker_run_concurrency) --cap-add SYS_PTRACE \
+		--volume=/var/run/docker.sock:/var/run/docker.sock --volume=`pwd`:/dbuild/sources \
+		package-$1-dbuild
 
 .PHONY: package-$1-dbuild
 
