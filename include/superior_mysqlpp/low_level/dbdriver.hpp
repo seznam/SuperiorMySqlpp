@@ -100,6 +100,8 @@ namespace SuperiorMySqlpp { namespace LowLevel
     private:
         /** Connection status. */
         bool connected = false;
+        /** Validity status */
+        bool valid = false;
         /** Internal ID; each instance have unique ID. */
         const std::uint_fast64_t id;
         /** Connection handler settings. */
@@ -146,16 +148,20 @@ namespace SuperiorMySqlpp { namespace LowLevel
          */
         void mysqlInit()
         {
-            detail::MysqlLibraryInitWrapper::initialize();
+            if (!valid) {
+                detail::MysqlLibraryInitWrapper::initialize();
 
-            if (mysql_init(getMysqlPtr()) == nullptr)
-            {
-                throw MysqlInternalError("Could not initialize MYSQL library. (mysql_init failed)");
-            }
+                if (mysql_init(getMysqlPtr()) == nullptr)
+                {
+                    throw MysqlInternalError("Could not initialize MYSQL library. (mysql_init failed)");
+                }
 
-            if (mysql_thread_safe())
-            {
-                detail::MySqlThreadRaii::setup();
+                if (mysql_thread_safe())
+                {
+                    detail::MySqlThreadRaii::setup();
+                }
+
+                valid = true;
             }
         }
 
@@ -165,10 +171,11 @@ namespace SuperiorMySqlpp { namespace LowLevel
          */
         void mysqlClose()
         {
-            if (connected)
+            if (valid)
             {
                 getLogger()->logMySqlClose(id);
                 mysql_close(getMysqlPtr());
+                valid = false;
                 connected = false;
             }
         }
@@ -201,7 +208,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
               loggerPtr { std::move(drv.loggerPtr) }
         {
             drv.connected = false;
-            mysqlInit();
+            drv.valid = false;
         }
 
         DBDriver& operator=(DBDriver&&) = delete;
@@ -431,8 +438,9 @@ namespace SuperiorMySqlpp { namespace LowLevel
             if (connected)
             {
                 mysqlClose();
-                mysqlInit();
             }
+
+            mysqlInit();
 
             getLogger()->logMySqlConnecting(id, host, user, database, port, socketName);
             if (mysql_real_connect(getMysqlPtr(), host, user, password, database, port, socketName, CLIENT_MULTI_STATEMENTS) == nullptr)
