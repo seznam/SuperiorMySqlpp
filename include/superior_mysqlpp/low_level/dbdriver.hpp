@@ -165,8 +165,12 @@ namespace SuperiorMySqlpp { namespace LowLevel
          */
         void mysqlClose()
         {
-            getLogger()->logMySqlClose(id);
-            mysql_close(getMysqlPtr());
+            if (connected)
+            {
+                getLogger()->logMySqlClose(id);
+                mysql_close(getMysqlPtr());
+                connected = false;
+            }
         }
 
 
@@ -192,7 +196,14 @@ namespace SuperiorMySqlpp { namespace LowLevel
         DBDriver(const DBDriver&) = delete;
         DBDriver& operator=(const DBDriver&) = delete;
 
-        DBDriver(DBDriver&&) = default;
+        DBDriver(DBDriver&& drv)
+            : connected { drv.connected }, id { drv.id }, mysql { drv.mysql },
+              loggerPtr { std::move(drv.loggerPtr) }
+        {
+            drv.connected = false;
+            mysqlInit();
+        }
+
         DBDriver& operator=(DBDriver&&) = delete;
 
 
