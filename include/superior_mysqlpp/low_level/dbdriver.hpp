@@ -204,7 +204,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
         DBDriver& operator=(const DBDriver&) = delete;
 
         DBDriver(DBDriver&& drv)
-            : connected { drv.connected }, id { drv.id }, mysql { drv.mysql },
+            : connected { drv.connected }, id { drv.id }, mysql(drv.mysql),
               loggerPtr { std::move(drv.loggerPtr) }
         {
             drv.connected = false;
