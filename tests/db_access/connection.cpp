@@ -149,6 +149,12 @@ go_bandit([](){
 
             Connection connection{socketConfig};
         });
+
+        it("does not crash when stealing connection", [&]() {
+            auto& s = getSettingsRef();
+            Connection connection{s.database, s.user, s.password, s.host, s.port};
+            Connection conn2 = std::move(connection);
+        });
     });
 });
 
