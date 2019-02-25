@@ -103,7 +103,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
         /** Validity status */
         bool valid = false;
         /** Internal ID; each instance have unique ID. */
-        const std::uint_fast64_t id;
+        /* const */ std::uint_fast64_t id;
         /** Connection handler settings. */
         MYSQL mysql;
         /** Logger instance pointer. */
@@ -209,6 +209,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
         {
             drv.connected = false;
             drv.valid = false;
+            drv.id = getGlobalIdRef().fetch_add(1);
         }
 
         DBDriver& operator=(DBDriver&&) = delete;
