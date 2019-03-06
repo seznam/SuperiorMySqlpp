@@ -98,12 +98,8 @@ namespace SuperiorMySqlpp { namespace LowLevel
     class DBDriver
     {
     private:
-        /** Connection status. */
-        bool connected = false;
-        /** Validity status */
-        bool valid = false;
         /** Internal ID; each instance have unique ID. */
-        /* const */ std::uint_fast64_t id;
+        std::uint_fast64_t id;
         /** Connection handler settings. */
         MYSQL mysql;
         /** Logger instance pointer. */
@@ -148,7 +144,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
          */
         void mysqlInit()
         {
-            if (!valid) {
+            if (!isConnected()) {
                 detail::MysqlLibraryInitWrapper::initialize();
 
                 if (mysql_init(getMysqlPtr()) == nullptr)
@@ -161,7 +157,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
                     detail::MySqlThreadRaii::setup();
                 }
 
-                valid = true;
+                id = getGlobalIdRef().fetch_add(1);
             }
         }
 
@@ -171,12 +167,11 @@ namespace SuperiorMySqlpp { namespace LowLevel
          */
         void mysqlClose()
         {
-            if (valid)
+            if (isConnected())
             {
                 getLogger()->logMySqlClose(id);
                 mysql_close(getMysqlPtr());
-                valid = false;
-                connected = false;
+                id = 0;
             }
         }
 
@@ -187,9 +182,8 @@ namespace SuperiorMySqlpp { namespace LowLevel
          * @param loggerPtr Custom logger (optional).
          */
         DBDriver(Loggers::SharedPointer_t loggerPtr=DefaultLogger::getLoggerPtr())
-            : id{getGlobalIdRef().fetch_add(1)}, loggerPtr{std::move(loggerPtr)}
+            : id{0}, loggerPtr{std::move(loggerPtr)}
         {
-            mysqlInit();
         }
 
         /**
@@ -204,12 +198,9 @@ namespace SuperiorMySqlpp { namespace LowLevel
         DBDriver& operator=(const DBDriver&) = delete;
 
         DBDriver(DBDriver&& drv)
-            : connected { drv.connected }, valid { drv.valid }, id { drv.id }, mysql(drv.mysql),
-              loggerPtr { std::move(drv.loggerPtr) }
+            : id{drv.id}, mysql(drv.mysql), loggerPtr{drv.loggerPtr}
         {
-            drv.connected = false;
-            drv.valid = false;
-            drv.id = getGlobalIdRef().fetch_add(1);
+            drv.id = 0;
         }
 
         DBDriver& operator=(DBDriver&&) = delete;
@@ -436,11 +427,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
         {
             using namespace std::string_literals;
 
-            if (connected)
-            {
-                mysqlClose();
-            }
-
+            mysqlClose();
             mysqlInit();
 
             getLogger()->logMySqlConnecting(id, host, user, database, port, socketName);
@@ -469,10 +456,10 @@ namespace SuperiorMySqlpp { namespace LowLevel
                     message << socketName;
                 }
 
+                mysqlClose();
                 throw MysqlInternalError(message.str(), mysql_error(getMysqlPtr()), mysql_errno(getMysqlPtr()));
             }
 
-            connected = true;
             getLogger()->logMySqlConnected(id);
         }
 
@@ -482,7 +469,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
          */
         bool isConnected() const noexcept
         {
-            return connected;
+            return id != 0;
         }
 
 
