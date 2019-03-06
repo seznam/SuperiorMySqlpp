@@ -98,7 +98,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
     class DBDriver
     {
     private:
-        /** Internal ID; each instance have unique ID. */
+        /** Internal ID; each instance have unique ID. 0 means invalid/not connected state */
         std::uint_fast64_t id;
         /** Connection handler settings. */
         MYSQL mysql;
