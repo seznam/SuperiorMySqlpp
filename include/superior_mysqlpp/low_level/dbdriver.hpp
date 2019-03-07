@@ -144,20 +144,16 @@ namespace SuperiorMySqlpp { namespace LowLevel
          */
         void mysqlInit()
         {
-            if (!isConnected()) {
-                detail::MysqlLibraryInitWrapper::initialize();
+            detail::MysqlLibraryInitWrapper::initialize();
 
-                if (mysql_init(getMysqlPtr()) == nullptr)
-                {
-                    throw MysqlInternalError("Could not initialize MYSQL library. (mysql_init failed)");
-                }
+            if (mysql_init(getMysqlPtr()) == nullptr)
+            {
+                throw MysqlInternalError("Could not initialize MYSQL library. (mysql_init failed)");
+            }
 
-                if (mysql_thread_safe())
-                {
-                    detail::MySqlThreadRaii::setup();
-                }
-
-                id = getGlobalIdRef().fetch_add(1);
+            if (mysql_thread_safe())
+            {
+                detail::MySqlThreadRaii::setup();
             }
         }
 
@@ -170,9 +166,9 @@ namespace SuperiorMySqlpp { namespace LowLevel
             if (isConnected())
             {
                 getLogger()->logMySqlClose(id);
-                mysql_close(getMysqlPtr());
                 id = 0;
             }
+            mysql_close(getMysqlPtr());
         }
 
 
@@ -184,6 +180,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
         DBDriver(Loggers::SharedPointer_t loggerPtr=DefaultLogger::getLoggerPtr())
             : id{0}, loggerPtr{std::move(loggerPtr)}
         {
+            mysqlInit();
         }
 
         /**
@@ -201,6 +198,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
             : id{drv.id}, mysql(drv.mysql), loggerPtr{drv.loggerPtr}
         {
             drv.id = 0;
+            drv.mysqlInit();
         }
 
         DBDriver& operator=(DBDriver&&) = delete;
@@ -427,8 +425,12 @@ namespace SuperiorMySqlpp { namespace LowLevel
         {
             using namespace std::string_literals;
 
-            mysqlClose();
-            mysqlInit();
+            if (isConnected()) {
+                mysqlClose();
+                mysqlInit();
+            }
+
+            id = getGlobalIdRef().fetch_add(1);
 
             getLogger()->logMySqlConnecting(id, host, user, database, port, socketName);
             if (mysql_real_connect(getMysqlPtr(), host, user, password, database, port, socketName, CLIENT_MULTI_STATEMENTS) == nullptr)
@@ -456,7 +458,6 @@ namespace SuperiorMySqlpp { namespace LowLevel
                     message << socketName;
                 }
 
-                mysqlClose();
                 throw MysqlInternalError(message.str(), mysql_error(getMysqlPtr()), mysql_errno(getMysqlPtr()));
             }
 
