@@ -19,6 +19,9 @@ libsuperiormysqlpp (0.3.3) UNRELEASED; urgency=medium
 
   [ Peter Opatril ]
   * Avoid calling memcpy for zero sized ArrayBase.
+  * fix: Improve assertions on compatibility with C client
+  * fix: Typo bug in Nullable::swap
+  * fix: Incorrect error handling of ResultMetadata
 
  -- Adam Stepan <adam.stepan@firma.seznam.cz>  Thu, 16 Aug 2018 09:09:37 +0200
 
