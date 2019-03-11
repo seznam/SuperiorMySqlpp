@@ -12,6 +12,9 @@
 
 namespace SuperiorMySqlpp
 {
+    /**
+     * Base class for all array based SQL types
+     */
     template<std::size_t N>
     class ArrayBase
     {
@@ -54,11 +57,15 @@ namespace SuperiorMySqlpp
             return std::min(itemsCount, static_cast<ItemsCount_t>(N));
         }
 
-        void assign(const ArrayBase& other)
+        template<std::size_t NN = N>
+        std::enable_if_t<(NN > 0),void> assign(const ArrayBase& other)
         {
             std::memcpy(array.data(), other.array.data(), other.size());
             itemsCount = other.size();
         }
+
+        template<std::size_t NN = N>
+        std::enable_if_t<(NN == 0),void> assign(const ArrayBase&) {}
 
     public:
         ItemsCount_t& counterRef()
