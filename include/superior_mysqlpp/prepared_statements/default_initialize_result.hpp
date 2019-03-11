@@ -12,7 +12,7 @@ namespace SuperiorMySqlpp
 {
     /**
      * Generic template and default implementation of initialization of storage for one field of result.
-     * Uses static method aproach as templated specialization is required.
+     * Uses static method approach as templated specialization is required.
      * This common default variant does not need to do anything, but advanced types like SuperiorMySqlpp::Nullable do.
      */
     template<typename DecayedType>

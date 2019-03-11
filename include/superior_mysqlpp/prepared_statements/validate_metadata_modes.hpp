@@ -54,7 +54,6 @@ namespace SuperiorMySqlpp
      * Function for given field type returns "pseudo-typeid" shared by same types.
      * @param type SuperiorMySqlpp::FieldTypes enumeration.
      * @return Arbitary integer that is however unique for each group of same types
-     * !!!!!
      */
     inline int getSameTypeId(FieldTypes type)
     {
@@ -127,10 +126,10 @@ namespace SuperiorMySqlpp
     /**
      * @brief Tests whether one argument is convertible to the other
      * Implementation depends on selected validation strategy
-     * @params from Input field type
-     * @params from_is_unsigned Flag indicating signedness of input
-     * @params to Output field type
-     * @params fo_is_unsigned Flag indicating signedness of output
+     * @params from Input field type.
+     * @params from_is_unsigned Flag indicating signedness of input.
+     * @params to Output field type.
+     * @params to_is_unsigned Flag indicating signedness of output.
      * @return true if type of parameter from is compatible with parameter to.
      */
 
