@@ -14,6 +14,9 @@ libsuperiormysqlpp (0.3.3) UNRELEASED; urgency=medium
   * Add noexcept qualifier to database driver methods
   * Fix behavior of makeHexString
 
+  [ Michal Merc ]
+  * fix: crash when destructing moved DBDriver
+
  -- Adam Stepan <adam.stepan@firma.seznam.cz>  Thu, 16 Aug 2018 09:09:37 +0200
 
 libsuperiormysqlpp (0.3.2) unstable; urgency=medium
