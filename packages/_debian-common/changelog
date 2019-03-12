@@ -1,4 +1,4 @@
-libsuperiormysqlpp (0.3.3) UNRELEASED; urgency=medium
+libsuperiormysqlpp (0.3.3) unstable; urgency=medium
 
   [ Radek Smejdir ]
   * Add ConnectionConfiguration
@@ -23,7 +23,7 @@ libsuperiormysqlpp (0.3.3) UNRELEASED; urgency=medium
   * fix: Typo bug in Nullable::swap
   * fix: Incorrect error handling of ResultMetadata
 
- -- Adam Stepan <adam.stepan@firma.seznam.cz>  Thu, 16 Aug 2018 09:09:37 +0200
+ -- Radek Smejdir <radek.smejdir@firma.seznam.cz>  Tue, 12 Mar 2019 13:09:59 +0100
 
 libsuperiormysqlpp (0.3.2) unstable; urgency=medium
 

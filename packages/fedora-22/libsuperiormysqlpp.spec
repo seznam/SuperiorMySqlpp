@@ -1,6 +1,6 @@
 Name:           libsuperiormysqlpp-dev
 Version:        0.3.3
-Release:        development%{?dist}
+Release:        1%{?dist}
 Summary:        C++ mysql library development files
 
 License:        LGPLv3+
@@ -14,7 +14,7 @@ Requires(preun): info
 
 Suggests: boost-devel >= 1.49.0
 
-%description 
+%description
 C++ mysql library development files
 
 %prep
@@ -34,7 +34,7 @@ make %{_smp_mflags} clean package-fedora-22-clean
 
 %preun
 
-%files 
+%files
 /usr/include/*
 /usr/lib/pkgconfig/*
 
