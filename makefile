@@ -7,7 +7,7 @@ include ./common.mk
 # if set then must end with '/'
 DESTDIR :=
 
-VERSION := 0.3.3
+VERSION := 0.3.4
 version_numbers :=$(subst ., ,$(VERSION))
 version_major :=$(word 1,$(version_numbers))
 
