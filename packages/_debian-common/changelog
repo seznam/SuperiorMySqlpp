@@ -1,6 +1,7 @@
-libsuperiormysqlpp (0.3.4) UNRELEASED; urgency=medium
+libsuperiormysqlpp (0.4.0) UNRELEASED; urgency=medium
 
-  *
+  [ Michal Merc ]
+  * refactor: Remove szn-debian-wheezy support
 
  -- Radek Smejdir <radek.smejdir@firma.seznam.cz>  Tue, 12 Mar 2019 13:37:35 +0100
 
