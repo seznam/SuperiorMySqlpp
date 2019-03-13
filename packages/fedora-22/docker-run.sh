@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 
-cp -r /dbuild/sources /dbuild/building
+cp --recursive /dbuild/sources /dbuild/building
 cd /dbuild/building
 make -j${CONCURRENCY} clean
 

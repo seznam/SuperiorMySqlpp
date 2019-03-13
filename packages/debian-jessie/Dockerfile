@@ -3,7 +3,7 @@ MAINTAINER Seznam.cz a.s.
 
 ENV CONCURRENCY 32
 
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install --assume-yes \
     apt-transport-https \
     devscripts \
     dpkg-dev \

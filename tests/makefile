@@ -16,7 +16,7 @@ PRE ?= # command to run before test execution (good place for sudo)
 CXX ?=g++
 
 HAVE_CLANG := 0
-ifeq ($(shell $(CXX) -v 2>&1 | grep -c "clang version"), 1)
+ifeq ($(shell $(CXX) --version 2>&1 | grep --count "clang version"), 1)
     HAVE_CLANG := 1
 endif
 
@@ -75,7 +75,7 @@ print-variables:
 
 # rule for all dirs (makefile does not get "%/:")
 %/.:
-	$(Q) mkdir -p $@
+	$(Q) mkdir --parents $@
 	$(info Generating test files for ODR...)
 
 odr/main.odr.cpp: $(filter-out $(wildcard ./odr/.), ./odr/.)
@@ -123,6 +123,6 @@ clean-files =find ./ -type f -path "$1" -exec $(RM) {} \;
 
 clean:
 	$(RM) $(program) $(odr)
-	$(RM) -fR ./odr/
+	$(RM) --recursive --force ./odr/
 	$(call clean-files,*.d)
 	$(call clean-files,*.o)

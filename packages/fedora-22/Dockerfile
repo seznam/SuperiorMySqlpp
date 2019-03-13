@@ -4,7 +4,7 @@ MAINTAINER Seznam.cz a.s.
 ENV CONCURRENCY 32
 
 RUN \
-dnf install -y \
+dnf install --assumeyes \
     dnf-plugins-core \
     findutils \
     hostname \
