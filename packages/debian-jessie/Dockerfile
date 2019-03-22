@@ -3,13 +3,15 @@ MAINTAINER Seznam.cz a.s.
 
 ENV CONCURRENCY 32
 
-RUN \
-echo "deb http://http.debian.net/debian jessie-backports main" >> /etc/apt/sources.list.d/jessie_backports.list \
-&& apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y \
+    apt-transport-https \
     devscripts \
     dpkg-dev \
     equivs \
-    make
+    make \
+&& echo "deb [arch=amd64] https://download.docker.com/linux/debian jessie stable" >> /etc/apt/sources.list.d/docker.list \
+&& curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add - >/dev/null 2>&1 \
+&& apt-get update
 
 VOLUME /dbuild/sources
 
