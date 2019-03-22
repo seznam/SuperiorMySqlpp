@@ -108,11 +108,25 @@ namespace SuperiorMySqlpp
     };
 
     /**
-     * @brief This exception is thrown, when you attempt to read more rows in function `psReadValues`
+     * @brief Error for unexpected row count. Number of rows accessible via `getRowCount()` method
      */
-    class UnexpectedMultipleRowsError : public SuperiorMySqlppError
+    class UnexpectedRowCountError : public SuperiorMySqlppError
     {
     public:
-        using SuperiorMySqlppError::SuperiorMySqlppError;
+        UnexpectedRowCountError(const std::string& message,
+                                size_t rowCount_)
+            : SuperiorMySqlppError { message }
+            , rowCount(rowCount_)
+        {
+        }
+
+        inline size_t getRowCount() const
+        {
+            return rowCount;
+        }
+
+    private:
+        size_t rowCount;
     };
+
 }

@@ -569,7 +569,12 @@ go_bandit([](){
             }
         });
 
-        it("can work with psReadValues (passing query string)", [&](){
+    });
+    describe("Test prepared statement utils", [&](){
+        auto& s = getSettingsRef();
+        Connection connection{s.database, s.user, s.password, s.host, s.port};
+
+        it("can pass query string into psReadValues", [&](){
             int id{};
             BlobData blob{}, binary{}, varbinary{};
             psReadValues("SELECT `id`, `blob`, `binary`, `varbinary` FROM `test_superior_sqlpp`.`binary_data` ORDER BY `id` LIMIT 1", connection, id, blob, binary, varbinary);
@@ -583,7 +588,7 @@ go_bandit([](){
             AssertThat(varbinary.getStringView(), Equals("ij\0kl"s));
         });
 
-        it("can work with psReadValues (passing PreparedStatement object)", [&](){
+        it("can pass PreparedStatement object into psReadValues", [&](){
             int id{};
             BlobData blob{}, binary{}, varbinary{};
             auto preparedStatement = connection.makePreparedStatement<ResultBindings<int, BlobData, BlobData, BlobData>>(
@@ -600,11 +605,17 @@ go_bandit([](){
             AssertThat(varbinary.getStringView(), Equals("ij\0kl"s));
         });
 
-        it("can work with psReadValues (throws multiple rows error)", [&](){
+        it("throws exception in psReadValues when zero rows is returned", [&](){
             int id{};
-            BlobData blob{}, binary{}, varbinary{};
-            AssertThrows(UnexpectedMultipleRowsError,
-                psReadValues("SELECT `id`, `blob`, `binary`, `varbinary` FROM `test_superior_sqlpp`.`binary_data` ORDER BY `id`", connection, id, blob, binary, varbinary)
+            AssertThrows(UnexpectedRowCountError,
+                psReadValues("SELECT `id` FROM `test_superior_sqlpp`.`binary_data` LIMIT 0", connection, id)
+            );
+        });
+
+        it("throws exception in psReadValues when more than one row is returned", [&](){
+            int id{};
+            AssertThrows(UnexpectedRowCountError,
+                psReadValues("SELECT `id` FROM `test_superior_sqlpp`.`binary_data`", connection, id)
             );
         });
 
