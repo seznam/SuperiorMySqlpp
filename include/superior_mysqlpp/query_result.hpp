@@ -79,12 +79,6 @@ namespace SuperiorMySqlpp
             Row fetchRow() &
             {
                 auto mysqlRow = getResult().fetchRow();
-
-                if (mysqlRow == nullptr && mysql_errno(getResult().detail_getResultPtr()->handle) != 0)
-                {
-                    throw QueryError { "Failed to fetch row, lost connection to server" };
-                }
-
                 return {getResult(), mysqlRow, fieldsCount};
             }
 

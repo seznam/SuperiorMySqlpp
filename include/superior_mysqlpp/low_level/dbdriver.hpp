@@ -624,9 +624,16 @@ namespace SuperiorMySqlpp { namespace LowLevel
              *
              * @return MYSQL_ROW with next row results. NULL if there are no more rows or on error.
              */
-            auto fetchRow() noexcept
+            auto fetchRow()
             {
-                return mysql_fetch_row(resultPtr);
+                auto row = mysql_fetch_row(resultPtr);
+
+                if (row == nullptr && mysql_errno(resultPtr->handle) != 0)
+                {
+                    throw RuntimeError { "Failed to fetch row, probably lost connection to server" };
+                }
+
+                return row;
             }
 
             /**
