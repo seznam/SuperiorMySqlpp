@@ -626,11 +626,11 @@ namespace SuperiorMySqlpp { namespace LowLevel
              */
             auto fetchRow()
             {
-                auto row = mysql_fetch_row(resultPtr);
+                auto *row = mysql_fetch_row(resultPtr);
 
                 if (row == nullptr && mysql_errno(resultPtr->handle) != 0)
                 {
-                    throw RuntimeError { "Failed to fetch row, probably lost connection to server" };
+                    throw RuntimeError { std::string("Failed to fetch row: '") + mysql_error(resultPtr->handle) + "'" };
                 }
 
                 return row;
