@@ -624,7 +624,18 @@ namespace SuperiorMySqlpp { namespace LowLevel
              *
              * @return MYSQL_ROW with next row results. NULL if there are no more rows or on error.
              */
-            auto fetchRow()
+            auto fetchRow() noexcept
+            {
+                return mysql_fetch_row(resultPtr);
+            }
+
+            /**
+             * Retrieves the next row of a result set. Method checks for error and throws appropriate exception.
+             * @see https://dev.mysql.com/doc/refman/5.7/en/mysql-fetch-row.html
+             *
+             * @return MYSQL_ROW with next row results. NULL if there are no more rows.
+             */
+            auto checkedFetchRow()
             {
                 auto *row = mysql_fetch_row(resultPtr);
 
