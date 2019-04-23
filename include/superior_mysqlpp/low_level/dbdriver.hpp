@@ -630,6 +630,24 @@ namespace SuperiorMySqlpp { namespace LowLevel
             }
 
             /**
+             * Retrieves the next row of a result set. Method checks for error and throws appropriate exception.
+             * @see https://dev.mysql.com/doc/refman/5.7/en/mysql-fetch-row.html
+             *
+             * @return MYSQL_ROW with next row results. NULL if there are no more rows.
+             */
+            auto checkedFetchRow()
+            {
+                auto *row = mysql_fetch_row(resultPtr);
+
+                if (row == nullptr && mysql_errno(resultPtr->handle) != 0)
+                {
+                    throw RuntimeError { std::string("Failed to fetch row: '") + mysql_error(resultPtr->handle) + "'" };
+                }
+
+                return row;
+            }
+
+            /**
              * Sets the field cursor to the given offset / index.
              * The next call to #fetchField retrieves the field definition of the column associated with that offset.
              * @see https://dev.mysql.com/doc/refman/5.7/en/mysql-field-seek.html

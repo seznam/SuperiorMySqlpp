@@ -76,11 +76,6 @@ namespace SuperiorMySqlpp
             QueryResult& operator=(QueryResult&&) = delete;
 
             Row fetchRow() && = delete;
-            Row fetchRow() &
-            {
-                auto mysqlRow = getResult().fetchRow();
-                return {getResult(), mysqlRow, fieldsCount};
-            }
 
             ResultMetadata& getMetadata() && = delete;
             ResultMetadata& getMetadata() const && = delete;
@@ -165,6 +160,12 @@ namespace SuperiorMySqlpp
         {
             return getResult().getRowsCount();
         }
+
+        Row fetchRow() &
+        {
+            auto mysqlRow = getResult().checkedFetchRow();
+            return {getResult(), mysqlRow, fieldsCount};
+        }
     };
 
 
@@ -198,6 +199,12 @@ namespace SuperiorMySqlpp
         auto tellRowOffset()
         {
             return getResult().tellRowOffset();
+        }
+
+        Row fetchRow() &
+        {
+            auto mysqlRow = getResult().fetchRow();
+            return {getResult(), mysqlRow, fieldsCount};
         }
     };
 }
