@@ -75,7 +75,7 @@ namespace SuperiorMySqlpp
              * Seeks to an arbitrary row in a statement result set.
              * @param index Row number of seeked target.
              */
-            void seekRow(LowLevel::DBDriver::RowIndex_t index)
+            void seekRow(LowLevel::DBDriver::RowIndex index)
             {
                 statement.seekRow(index);
             }
@@ -511,4 +511,3 @@ namespace SuperiorMySqlpp
         };
     }
 }
-

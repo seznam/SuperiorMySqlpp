@@ -204,7 +204,22 @@ namespace SuperiorMySqlpp { namespace LowLevel
          * Type for indexing rows.
          * Underlying type inferred from usage in C MySQL client.
          */
-        using RowIndex = unsigned long long;
+        using RowIndex = my_ulonglong;
+
+        /**
+         * Type for referring to number of rows.
+         */
+        using RowCount = RowIndex;
+
+        /**
+         * Type for referring to number of fields of a row.
+         */
+        using FieldCount = unsigned int;
+
+        /**
+         * Type for referring to number of bytes for a field.
+         */
+        using FieldSize = unsigned int;
 
         /**
          * Returns current logger instance.
@@ -340,7 +355,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
          * @param fromlen Length of original string.
          * @return HEX string.
          */
-        std::string makeHexString(const char *from, std::size_t fromlen)
+        std::string makeHexString(const char* from, std::size_t fromlen)
         {
             std::string result(fromlen * 2 + 1, '\0');
 
@@ -358,7 +373,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
          * @param from Original string.
          * @return HEX string.
          */
-        std::string makeHexString(const char *from)
+        std::string makeHexString(const char* from)
         {
             return makeHexString(from, std::strlen(from));
         }
@@ -401,7 +416,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
          *
          * @return Charset name as a C-string.
          */
-        auto getCharacterSetName() noexcept
+        const char* getCharacterSetName() noexcept
         {
             return mysql_character_set_name(getMysqlPtr());
         }
@@ -554,7 +569,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
              * @param offset Row offset, not a row index. Typically returned value from #tellRowOffset is used.
              * @return The previous value of the row cursor
              */
-            auto seekRowOffset(MYSQL_ROW_OFFSET offset) noexcept
+            MYSQL_ROW_OFFSET seekRowOffset(MYSQL_ROW_OFFSET offset) noexcept
             {
                 return mysql_row_seek(resultPtr, offset);
             }
@@ -579,7 +594,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
              *
              * @return The MYSQL_FIELD structure for the current column. NULL if no columns are left.
              */
-            auto fetchField() noexcept
+            MYSQL_FIELD* fetchField() noexcept
             {
                 return mysql_fetch_field(resultPtr);
             }
@@ -591,7 +606,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
              * @param index Column index to fetch details of.
              * @return The MYSQL_FIELD structure for the specified column.
              */
-            auto fetchFieldDirect(unsigned int index) noexcept
+            MYSQL_FIELD* fetchFieldDirect(unsigned int index) noexcept
             {
                 return mysql_fetch_field_direct(resultPtr, index);
             }
@@ -603,7 +618,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
              *
              * @return An array of MYSQL_FIELD structures for all columns of a result set.
              */
-            auto fetchFields() noexcept
+            MYSQL_FIELD* fetchFields() noexcept
             {
                 return mysql_fetch_fields(resultPtr);
             }
@@ -614,8 +629,10 @@ namespace SuperiorMySqlpp { namespace LowLevel
              *
              * @return An array of unsigned long integers representing the size of each column (not including any terminating null bytes).
              */
-            auto fetchLengths() noexcept
+            FieldSize* fetchLengths() noexcept
             {
+                static_assert(std::is_same<decltype(mysql_fetch_lengths(resultPtr)), FieldSize *>::value,
+                    "Expectation about type FieldSize does not match actual value source.");
                 return mysql_fetch_lengths(resultPtr);
             }
 
@@ -625,7 +642,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
              *
              * @return MYSQL_ROW with next row results. NULL if there are no more rows or on error.
              */
-            auto fetchRow() noexcept
+            MYSQL_ROW fetchRow() noexcept
             {
                 return mysql_fetch_row(resultPtr);
             }
@@ -636,9 +653,9 @@ namespace SuperiorMySqlpp { namespace LowLevel
              *
              * @return MYSQL_ROW with next row results. NULL if there are no more rows.
              */
-            auto checkedFetchRow()
+            MYSQL_ROW checkedFetchRow()
             {
-                auto *row = mysql_fetch_row(resultPtr);
+                auto* row = mysql_fetch_row(resultPtr);
 
                 if (row == nullptr && mysql_errno(resultPtr->handle) != 0)
                 {
@@ -656,7 +673,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
              * @param offset Field number index, use 0 for first column.
              * @return Previous offset value.
              */
-            auto fieldSeek(MYSQL_FIELD_OFFSET offset) noexcept
+            MYSQL_FIELD_OFFSET fieldSeek(MYSQL_FIELD_OFFSET offset) noexcept
             {
                 return mysql_field_seek(resultPtr, offset);
             }
@@ -667,7 +684,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
              *
              * @return The current offset of the field cursor.
              */
-            auto fieldTell() noexcept
+            MYSQL_FIELD_OFFSET fieldTell() noexcept
             {
                 return mysql_field_tell(resultPtr);
             }
@@ -691,7 +708,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
              *
              * @return Unsigned integer representing the number of columns in a result set.
              */
-            auto getFieldsCount() noexcept
+            FieldCount getFieldsCount() noexcept
             {
                 return mysql_num_fields(resultPtr);
             }
@@ -702,7 +719,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
              *
              * @return Number of rows in a result set.
              */
-            auto getRowsCount() noexcept
+            RowCount getRowsCount() noexcept
             {
                 return mysql_num_rows(resultPtr);
             }
@@ -727,7 +744,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
          *
          * @return Number of columns of the last performed query.
          */
-        auto getFieldsCount() noexcept
+        FieldCount getFieldsCount() noexcept
         {
             return mysql_field_count(getMysqlPtr());
         }
@@ -772,7 +789,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
          *
          * @return Instance of MY_CHARSET_INFO structure.
          */
-        auto getCharacterSetInfo() noexcept
+        MY_CHARSET_INFO getCharacterSetInfo() noexcept
         {
             MY_CHARSET_INFO characterSet;
             mysql_get_character_set_info(getMysqlPtr(), &characterSet);
@@ -884,7 +901,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
          *
          * @return Number of affected rows by last statement.
          */
-        auto affectedRows() noexcept
+        RowCount affectedRows() noexcept
         {
             return mysql_affected_rows(getMysqlPtr());
         }
@@ -1276,8 +1293,11 @@ namespace SuperiorMySqlpp { namespace LowLevel
                 return mysql_stmt_free_result(statementPtr);
             }
 
-            auto fieldCount() noexcept
+            FieldCount fieldCount() noexcept
             {
+                static_assert(std::is_same<decltype(mysql_stmt_field_count(statementPtr)), FieldCount>::value,
+                    "Expectation about type FieldCount does not match actual value source.");
+                
                 return mysql_stmt_field_count(statementPtr);
             }
 
@@ -1286,7 +1306,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
                 return mysql_stmt_insert_id(statementPtr);
             }
 
-            auto resultMetadata()
+            Result resultMetadata()
             {
                 auto resultPtr = mysql_stmt_result_metadata(statementPtr);
                 if (resultPtr == nullptr)
@@ -1425,7 +1445,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
              *
              * @return Number of affected rows by last statement.
              */
-            auto affectedRows() noexcept
+            RowCount affectedRows() noexcept
             {
                 return mysql_stmt_affected_rows(statementPtr);
             }
@@ -1479,7 +1499,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
              * @param offset Row offset, not a row index. Typically returned value from #tellRowOffset is used.
              * @return The previous value of row cursor.
              */
-            auto seekRowOffset(MYSQL_ROW_OFFSET offset) noexcept
+            MYSQL_ROW_OFFSET seekRowOffset(MYSQL_ROW_OFFSET offset) noexcept
             {
                 return mysql_stmt_row_seek(statementPtr, offset);
             }
@@ -1504,7 +1524,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
              *
              * @return Number of rows in the statement's result set.
              */
-            auto getRowsCount() noexcept
+            RowCount getRowsCount() noexcept
             {
                 return mysql_stmt_num_rows(statementPtr);
             }
@@ -1586,7 +1606,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
          * @return Results management instance.
          * @throws MysqlInternalError When any error occurred.
          */
-        auto storeResult()
+        Result storeResult()
         {
             auto result = mysql_store_result(getMysqlPtr());
             if (result == nullptr)
@@ -1613,7 +1633,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
          * @return Results management instance.
          * @throws MysqlInternalError When any error occurred.
          */
-        auto useResult()
+        Result useResult()
         {
             auto result = mysql_use_result(getMysqlPtr());
             if (result == nullptr)
