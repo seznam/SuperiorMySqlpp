@@ -11,6 +11,10 @@ libsuperiormysqlpp (0.4.0) UNRELEASED; urgency=medium
   * refactor: typo DefaultLogger::isDestoyed -> DefaultLogger::isDestroyed;
     old method is deprecated
 
+  [ Peter Opatril ]
+  * fix: Base type of BadNullableAccess
+  * refactor: useless const_cast
+
  -- Radek Smejdir <radek.smejdir@firma.seznam.cz>  Tue, 12 Mar 2019 13:37:35 +0100
 
 libsuperiormysqlpp (0.3.3) unstable; urgency=medium
