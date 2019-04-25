@@ -12,8 +12,10 @@ libsuperiormysqlpp (0.4.0) UNRELEASED; urgency=medium
     old method is deprecated
 
   [ Peter Opatril ]
-  * fix: Base type of BadNullableAccess
+  * fix: base type of BadNullableAccess
   * refactor: useless const_cast
+  * refactor: unused using declarations
+  * refactor: redundant cyclic include dependency
 
  -- Radek Smejdir <radek.smejdir@firma.seznam.cz>  Tue, 12 Mar 2019 13:37:35 +0100
 
