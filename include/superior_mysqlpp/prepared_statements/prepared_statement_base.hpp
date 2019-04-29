@@ -181,15 +181,6 @@ namespace SuperiorMySqlpp
             std::vector<detail::NullableBase*> nullableBindings;
 
         public:
-            /**
-             * Appears unused, probably can be removed.
-             * Is defined exactly like (private) DBDriver::size_t, so
-             * it was presumably added for similiar purpose.
-             * !!!!!
-             */
-            using size_t = unsigned long long;
-
-        public:
             using StoreOrUseResultBase<storeResult>::StoreOrUseResultBase;
 
         private:
@@ -359,11 +350,6 @@ namespace SuperiorMySqlpp
             template<typename ResultBindings>
             void validateResultMetadata(const ResultBindings& resultBindings)
             {
-                using namespace std::string_literals;
-                using std::to_string;
-                using std::begin;
-                using std::end;
-
                 if (validateMode==ValidateMetadataMode::Disabled && warnMode==ValidateMetadataMode::Disabled)
                 {
                     return;
@@ -372,10 +358,10 @@ namespace SuperiorMySqlpp
                 auto&& metadata = this->getResultMetadata();
 
                 std::size_t index = 0;
-                auto bindingsIt=begin(resultBindings);
-                auto bindingsEndIt=end(resultBindings);
-                auto metadataIt=begin(metadata);
-                auto metadataEndIt=end(metadata);
+                auto bindingsIt=std::begin(resultBindings);
+                auto bindingsEndIt=std::end(resultBindings);
+                auto metadataIt=std::begin(metadata);
+                auto metadataEndIt=std::end(metadata);
                 while (bindingsIt!=bindingsEndIt && metadataIt!=metadataEndIt)
                 {
                     auto&& binding = *bindingsIt;
