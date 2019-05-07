@@ -1,3 +1,9 @@
+libsuperiormysqlpp (0.4.1) UNRELEASED; urgency=medium
+
+  *
+
+ -- Radek Smejdir <radek.smejdir@firma.seznam.cz>  Tue, 07 May 2019 14:34:57 +0200
+
 libsuperiormysqlpp (0.4.0) unstable; urgency=medium
 
   !!! ---- BREAKING API CHANGE ---- !!!
