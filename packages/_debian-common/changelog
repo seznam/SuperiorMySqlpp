@@ -1,8 +1,9 @@
 libsuperiormysqlpp (0.4.1) UNRELEASED; urgency=medium
 
-  *
+  * refactor: Logging system (DRY)
+  * feat: Default logger logs errors
 
- -- Radek Smejdir <radek.smejdir@firma.seznam.cz>  Tue, 07 May 2019 14:34:57 +0200
+ -- Peter Opatril <petr.opatril@firma.seznam.cz>  Fri, 24 May 2019 14:07:13 +0000
 
 libsuperiormysqlpp (0.4.0) unstable; urgency=medium
 
