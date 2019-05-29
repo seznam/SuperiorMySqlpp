@@ -54,4 +54,25 @@ namespace SuperiorMySqlpp
         constexpr std::size_t tuple_size = std::tuple_size<Tuple>::value;
         return detail::invokeViaTupleImpl(f, t, std::make_index_sequence<tuple_size>{});
     }
+
+    /**
+     * Writes variable number of arguments into arbitrary std(-like) stream.
+     * @param stream Stream reference.
+     * @param arg Perfectly forwarded argument
+     * @return Stream reference
+     */
+    template <typename Stream, typename Arg>
+    Stream &streamify(Stream &stream, Arg &&arg)
+    {
+        return stream << std::forward<Arg>(arg);
+    }
+
+    /**
+     * @overload
+     */
+    template <typename Stream, typename Arg, typename... Args>
+    Stream &streamify(Stream &stream, Arg &&arg, Args&&...args)
+    {
+        return streamify(streamify(stream, arg), std::forward<Args>(args)...);
+    }
 }

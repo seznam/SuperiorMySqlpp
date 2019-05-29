@@ -12,40 +12,32 @@
 #include <cinttypes>
 #include <atomic>
 #include <mutex>
+#include <utility>
 
 #include <superior_mysqlpp/types/string_view.hpp>
 #include <superior_mysqlpp/types/spin_guard.hpp>
 #include <superior_mysqlpp/prepared_statements/validate_metadata_modes.hpp>
 #include <superior_mysqlpp/prepared_statements/get_binding_type.hpp>
+#include <superior_mysqlpp/utils.hpp>
 
 
 namespace SuperiorMySqlpp {
 
-    namespace detail
-    {
-        template<typename... Args>
-        void dummy(Args&&...) {}
-    }
+    namespace detail {
 
-    template<typename Stream, typename T>
-    auto& stringify_helper(Stream& stream, T&& value)
-    {
-        return stream << value;
-    }
+        /**
+         * Helper function printing its arguments into std::cerr via operator <<
+         * @remark Parameters are perfect forwarded and are followed by implicit std::endl.
+         * @param lock Reference to atomic lock used to gate the output
+         * @param args Variable number of arguments of any type
+         */
+        template <typename... Args>
+        void logStderr(std::atomic_flag &lock, Args&&... args) {
+            SuperiorMySqlpp::SpinGuard guard{lock};
+            (void) guard; // Unused variable otherwise
+            streamify(std::cerr, std::forward<Args>(args)...) << std::endl;
+        }
 
-    template<typename Stream, typename T, typename... Args>
-    void stringify_helper(Stream& stream, T&& value, Args&&... args)
-    {
-        stringify_helper(stream, value);
-        stringify_helper(stream, std::forward<Args>(args)...);
-    }
-
-    template<typename... Args>
-    std::string stringify(Args&&... args)
-    {
-        std::stringstream ss{};
-        stringify_helper(ss, std::forward<Args>(args)...);
-        return ss.str();
     }
 
     #define __deprecated_logger_method \
@@ -62,7 +54,6 @@ namespace SuperiorMySqlpp {
          * You are to choose to derive either from class Interface or class Base
          * so you shall either implement all logging functions or only those you want.
          */
-
 
         class Interface
         {
@@ -273,49 +264,6 @@ namespace SuperiorMySqlpp {
         };
 
 
-
-        class Default final : public Base
-        {
-        private:
-            mutable std::atomic_flag lock{};
-
-        public:
-            using Base::Base;
-            virtual ~Default() override = default;
-
-            virtual void logMySqlStmtMetadataWarning(
-                    std::uint_fast64_t connectionId,
-                    std::uint_fast64_t id,
-                    std::size_t index,
-                    ValidateMetadataMode warnMode,
-                    FieldTypes bindingType,
-                    bool bindingIsUnsigned,
-                    FieldTypes resultType,
-                    bool resultIsUnsigned
-            ) const noexcept override
-            {
-                SpinGuard guard{lock};
-                std::cerr << stringify("Connection [", connectionId, "]: PS [", id, "]: ")
-                   << "Result types at index " << index << " don't match!\n"
-                   << "In warn mode " << getValidateMetadataModeName(warnMode) << ":\n"
-                   << "expected type =" << detail::getBindingTypeFullName(bindingType, bindingIsUnsigned)
-                   << "= is not compatible with "
-                   << "result type =" << detail::getBindingTypeFullName(resultType, resultIsUnsigned) << "=\n" << std::flush;
-            }
-
-            virtual void logMySqlStmtMetadataNullableToNonNullableWarning(
-                    std::uint_fast64_t connectionId,
-                    std::uint_fast64_t id,
-                    std::size_t index
-            ) const noexcept override
-            {
-                std::cerr << stringify("Connection [", connectionId, "]: PS [", id, "]: ")
-                    << "Result types at index " << index << " don't match!\n"
-                    << "You can't read nullable value into non-nullable one!!!\n" << std::flush;
-            }
-        };
-
-
         class Full final : public Interface
         {
         private:
@@ -326,318 +274,354 @@ namespace SuperiorMySqlpp {
             virtual ~Full() override = default;
 
 
-            virtual void logMySqlConnecting(std::uint_fast64_t id, const char* host, const char* user,
-                                            const char* database, std::uint16_t port, const char* socketPath) const noexcept override
+            virtual void logMySqlConnecting(
+                    std::uint_fast64_t id,
+                    const char* host,
+                    const char* user,
+                    const char* database,
+                    std::uint16_t port,
+                    const char* socketPath
+                ) const noexcept override
             {
-                SpinGuard guard{lock};
-                std::cerr << stringify("Connection [", id, "]: Connecting to \"", (host)? host : "", "\". {user=\"", (user)? user : "",
-                        "\", database=\"", (database)? database : "", "\", socketPath=\"", (socketPath)? socketPath : "",
-                        "\", port=", port, "}\n") << std::flush;
+                detail::logStderr(lock,
+                    "Connection [", id, "]: Connecting to \"", (host)? host : "", "\". {user=\"", (user)? user : "",
+                    "\", database=\"", (database)? database : "", "\", socketPath=\"", (socketPath)? socketPath : "",
+                    "\", port=", port, "}"
+                );
             }
 
             virtual void logMySqlConnected(std::uint_fast64_t id) const noexcept override
             {
-                SpinGuard guard{lock};
-                std::cerr << stringify("Connection [", id, "]: Connected.\n") << std::flush;
+                detail::logStderr(lock, "Connection [", id, "]: Connected.");
             }
 
             virtual void logMySqlClose(std::uint_fast64_t id) const noexcept override
             {
-                SpinGuard guard{lock};
-                std::cerr << stringify("Connection [", id, "]: Closed.\n") << std::flush;
+                detail::logStderr(lock, "Connection [", id, "]: Closed.");
             }
 
             virtual void logMySqlPing(std::uint_fast64_t connectionId) const noexcept override
             {
-                SpinGuard guard{lock};
-                std::cerr << stringify("Connection [", connectionId, "]: Ping.\n") << std::flush;
+                detail::logStderr(lock, "Connection [", connectionId, "]: Ping.");
             }
 
             virtual void logMySqlQuery(std::uint_fast64_t connectionId, const StringView& query) const noexcept override
             {
-                SpinGuard guard{lock};
-                std::cerr << stringify("Connection [", connectionId, "]: Query: \"", query, "\".\n") << std::flush;
+                detail::logStderr(lock, "Connection [", connectionId, "]: Query: \"", query, "\".");
             }
 
             virtual void logMySqlStartTransaction(std::uint_fast64_t connectionId) const noexcept override
             {
-                SpinGuard guard{lock};
-                std::cerr << stringify("Connection [", connectionId, "]: Start transaction.\n") << std::flush;
+                detail::logStderr(lock, "Connection [", connectionId, "]: Start transaction.");
             }
 
             virtual void logMySqlCommitTransaction(std::uint_fast64_t connectionId) const noexcept override
             {
-                SpinGuard guard{lock};
-                std::cerr << stringify("Connection [", connectionId, "]: Commit transaction.\n") << std::flush;
+                detail::logStderr(lock, "Connection [", connectionId, "]: Commit transaction.");
             }
 
             virtual void logMySqlRollbackTransaction(std::uint_fast64_t connectionId) const noexcept override
             {
-                SpinGuard guard{lock};
-                std::cerr << stringify("Connection [", connectionId, "]: Rollback transaction.\n") << std::flush;
+                detail::logStderr(lock, "Connection [", connectionId, "]: Rollback transaction.");
             }
 
             virtual void logMySqlStmtPrepare(std::uint_fast64_t connectionId, std::uint_fast64_t id, const StringView& statement) const noexcept override
             {
-                SpinGuard guard{lock};
-                std::cerr << stringify("Connection [", connectionId, "]: PS [", id, "]: Prepare: \"", statement, "\".\n") << std::flush;
+                detail::logStderr(lock, "Connection [", connectionId, "]: PS [", id, "]: Prepare: \"", statement, "\".");
             }
 
             virtual void logMySqlStmtExecute(std::uint_fast64_t connectionId, std::uint_fast64_t id) const noexcept override
             {
-                SpinGuard guard{lock};
-                std::cerr << stringify("Connection [", connectionId, "]: PS [", id, "]: Executing.\n") << std::flush;
+                detail::logStderr(lock, "Connection [", connectionId, "]: PS [", id, "]: Executing.");
             }
 
-            virtual void logMySqlStmtMetadataWarning(
-                     std::uint_fast64_t connectionId,
-                     std::uint_fast64_t id,
-                     std::size_t index,
-                     ValidateMetadataMode warnMode,
-                     FieldTypes bindingType,
-                     bool isBindingUnsigned,
-                     FieldTypes resultType,
-                     bool isResultUnsigned
-            ) const noexcept override
+            static void logMySqlStmtMetadataWarningStatic(
+                    std::atomic_flag &lock,
+                    std::uint_fast64_t connectionId,
+                    std::uint_fast64_t id,
+                    std::size_t index,
+                    ValidateMetadataMode warnMode,
+                    FieldTypes bindingType,
+                    bool isBindingUnsigned,
+                    FieldTypes resultType,
+                    bool isResultUnsigned
+                ) noexcept
             {
-                SpinGuard guard{lock};
-                std::cerr << stringify("Connection [", connectionId, "]: PS [", id, "]: Result types at index ", index, " does not match!\n",
-                        "In validate mode ", getValidateMetadataModeName(warnMode), ":\nexpected type =",
-                        detail::getBindingTypeFullName(bindingType, isBindingUnsigned),
-                        "= is not compatible with result type =", detail::getBindingTypeFullName(resultType, isResultUnsigned), "="
-                ) << std::flush;
+                detail::logStderr(lock,
+                    "Connection [", connectionId, "]: PS [", id, "]: ",
+                    "Result types at index ", index, " don't match!\n",
+                    "In warn mode ", getValidateMetadataModeName(warnMode), ":\n",
+                    "expected type =", detail::getBindingTypeFullName(bindingType, isBindingUnsigned),
+                    "= is not compatible with ",
+                    "result type =", detail::getBindingTypeFullName(resultType, isResultUnsigned), "="
+                );
+            }
+            virtual void logMySqlStmtMetadataWarning(
+                    std::uint_fast64_t connectionId,
+                    std::uint_fast64_t id,
+                    std::size_t index,
+                    ValidateMetadataMode warnMode,
+                    FieldTypes bindingType,
+                    bool isBindingUnsigned,
+                    FieldTypes resultType,
+                    bool isResultUnsigned
+                ) const noexcept override
+            {
+                logMySqlStmtMetadataWarningStatic(
+                    lock,
+                    connectionId,
+                    id,
+                    index,
+                    warnMode,
+                    bindingType,
+                    isBindingUnsigned,
+                    resultType,
+                    isResultUnsigned
+                );
             }
 
+            static void logMySqlStmtMetadataNullableToNonNullableWarningStatic(std::atomic_flag &lock, std::uint_fast64_t connectionId, std::uint_fast64_t id, std::size_t index) noexcept
+            {
+                detail::logStderr(lock,
+                    "Connection [", connectionId, "]: PS [", id, "]: Result types at index ", index, " don't match!\n",
+                    "You can't read nullable value into non-nullable one!!!");
+            }
             virtual void logMySqlStmtMetadataNullableToNonNullableWarning(std::uint_fast64_t connectionId, std::uint_fast64_t id, std::size_t index) const noexcept override
             {
-                SpinGuard guard{lock};
-                std::cerr << stringify("Connection [", connectionId, "]: PS [", id, "]: Result types at index ", index, " don't match!\n",
-                                       "You can't read nullable value into non-nullable one!!!\n") << std::flush;
+                logMySqlStmtMetadataNullableToNonNullableWarningStatic(lock, connectionId, id, index);
             }
 
             virtual void logMySqlStmtClose(std::uint_fast64_t connectionId, std::uint_fast64_t id) const noexcept override
             {
-                SpinGuard guard{lock};
-                std::cerr << stringify("Connection [", connectionId, "]: PS [", id, "]: Closing.\n") << std::flush;
+                detail::logStderr(lock, "Connection [", connectionId, "]: PS [", id, "]: Closing.");
             }
 
+            static void logMySqlStmtCloseErrorStatic(std::atomic_flag &lock, std::uint_fast64_t connectionId, std::uint_fast64_t id, const StringView& mysqlError) noexcept
+            {
+                detail::logStderr(lock, "Connection [", connectionId, "]: PS [", id, "]: Closing statement failed with error:\n", mysqlError);
+            }
             virtual void logMySqlStmtCloseError(std::uint_fast64_t connectionId, std::uint_fast64_t id, const StringView& mysqlError) const noexcept override
             {
-                SpinGuard guard{lock};
-                std::cerr << stringify("Connection [", connectionId, "]: PS [", id, "]: Closing statement failed with error:\n", mysqlError) << std::flush;
+                logMySqlStmtCloseErrorStatic(lock, connectionId, id, mysqlError);
             }
 
+            static void logMySqlTransactionRollbackFailedStatic(std::atomic_flag &lock, std::uint_fast64_t connectionId, std::exception& e) noexcept
+            {
+                detail::logStderr(lock, "Connection [", connectionId, "]: Rollback failed with error:\n", e.what());
+            }
             virtual void logMySqlTransactionRollbackFailed(std::uint_fast64_t connectionId, std::exception& e) const noexcept override
             {
-                SpinGuard guard{lock};
-                std::cerr << stringify("Connection [", connectionId, "]: Rollback failed with error:\n", e.what(), "\n") << std::flush;
+                logMySqlTransactionRollbackFailedStatic(lock, connectionId, e);
             }
 
+            static void logMySqlTransactionRollbackFailedStatic(std::atomic_flag &lock, std::uint_fast64_t connectionId) noexcept
+            {
+                detail::logStderr(lock, "Connection [", connectionId, "]: Rollback failed with unknown error!!!");
+            }
             virtual void logMySqlTransactionRollbackFailed(std::uint_fast64_t connectionId) const noexcept override
             {
-                SpinGuard guard{lock};
-                std::cerr << stringify("Connection [", connectionId, "]: Rollback failed with unknown error!!!\n") << std::flush;
+                logMySqlTransactionRollbackFailedStatic(lock, connectionId);
             }
 
 
             virtual void logSharedPtrPoolEmergencyResourceCreation(std::uint_fast64_t poolId) const noexcept override
             {
-                SpinGuard guard{lock};
-                std::cerr << stringify("Pool [", poolId, "]: Emergency resource creation.\n") << std::flush;
+                detail::logStderr(lock, "Pool [", poolId, "]: Emergency resource creation.");
             }
 
             virtual void logSharedPtrPoolErasingResource(std::uint_fast64_t poolId, void* resourceAddress) const noexcept override
             {
-                SpinGuard guard{lock};
-                std::cerr << stringify("Pool [", poolId, "]: Erasing resource at address: ", resourceAddress, ".\n") << std::flush;
+                detail::logStderr(lock, "Pool [", poolId, "]: Erasing resource at address: ", resourceAddress, ".");
             }
 
             virtual void logSharedPtrPoolClearPool(std::uint_fast64_t poolId) const noexcept override
             {
-                SpinGuard guard{lock};
-                std::cerr << stringify("Pool [", poolId, "]: CLEARING POOL!!!\n") << std::flush;
+                detail::logStderr(lock, "Pool [", poolId, "]: CLEARING POOL!!!");
             }
 
             virtual void logSharedPtrPoolEmergencyResourceAdded(std::uint_fast64_t poolId) const noexcept override
             {
-                SpinGuard guard{lock};
-                std::cerr << stringify("Pool [", poolId, "]: Emergency resource added.\n") << std::flush;
+                detail::logStderr(lock, "Pool [", poolId, "]: Emergency resource added.");
             }
 
             virtual void logSharedPtrPoolEmergencyResourceAdditionSkippedForNewPopulation(std::uint_fast64_t poolId) const noexcept override
             {
-                SpinGuard guard{lock};
-                std::cerr << stringify("Pool [", poolId, "]: Emergency resource addition has been skipped due to new population arising .\n") << std::flush;
+                detail::logStderr(lock, "Pool [", poolId, "]: Emergency resource addition has been skipped due to new population arising .");
             }
 
             virtual void logSharedPtrPoolResourceCountKeeperCycleStart(std::uint_fast64_t id) const noexcept override
             {
-                SpinGuard guard{lock};
-                std::cerr << stringify("Pool [", id, "]: Resource count keeper cycle start.\n") << std::flush;
+                detail::logStderr(lock, "Pool [", id, "]: Resource count keeper cycle start.");
             }
 
             virtual void logSharedPtrPoolResourceCountKeeperStoped(std::uint_fast64_t id) const noexcept override
             {
-                SpinGuard guard{lock};
-                std::cerr << stringify("Pool [", id, "]: Resource count keeper stopped.\n") << std::flush;
+                detail::logStderr(lock, "Pool [", id, "]: Resource count keeper stopped.");
             }
 
             virtual void logSharedPtrPoolResourceCountKeeperTooLittleResources(
                     std::uint_fast64_t id, std::size_t availableCount, std::size_t needed, std::size_t used, std::size_t size
                 ) const noexcept override
             {
-                SpinGuard guard{lock};
-                std::cerr << stringify("Pool [", id, "]: Resource count keeper too little resources. ",
-                        "AvailableCount: ", availableCount, "; needed: ", needed, "; used: ", used, "; size: ", size,"\n") << std::flush;
+                detail::logStderr(lock, "Pool [", id, "]: Resource count keeper too little resources. ",
+                        "AvailableCount: ", availableCount, "; needed: ", needed, "; used: ", used, "; size: ", size,"");
             }
 
             virtual void logSharedPtrPoolResourceCountKeeperStateOK(
                     std::uint_fast64_t id, std::size_t availableCount, std::size_t used, std::size_t size
                 ) const noexcept override
             {
-                SpinGuard guard{lock};
-                std::cerr << stringify("Pool [", id, "]: Resource count keeper state of resources OK. ",
-                        "AvailableCount: ", availableCount, "; used: ", used, "; size: ", size,"\n") << std::flush;
+                detail::logStderr(lock, "Pool [", id, "]: Resource count keeper state of resources OK. ",
+                        "AvailableCount: ", availableCount, "; used: ", used, "; size: ", size,"");
             }
 
             virtual void logSharedPtrPoolResourceCountKeeperAddedResources(std::uint_fast64_t id, std::size_t count) const noexcept override
             {
-                SpinGuard guard{lock};
-                std::cerr << stringify("Pool [", id, "]: Resource count keeper added ", count, " resources.\n") << std::flush;
+                detail::logStderr(lock, "Pool [", id, "]: Resource count keeper added ", count, " resources.");
             }
 
             virtual void logSharedPtrPoolResourceCountKeeperAdditionSkippedForNewPopulation(std::uint_fast64_t poolId) const noexcept override
             {
-                SpinGuard guard{lock};
-                std::cerr << stringify("Pool [", poolId, "]: Resource count keeper - resource additions has been skipped due to new population arising .\n") << std::flush;
+                detail::logStderr(lock, "Pool [", poolId, "]: Resource count keeper - resource additions has been skipped due to new population arising .");
             }
 
+            static void logSharedPtrPoolResourceCountKeeperAddingResourcesExceptionStatic(std::atomic_flag &lock, std::uint_fast64_t id, std::size_t count, const std::exception& e) noexcept
+            {
+                detail::logStderr(lock, "Pool [", id, "]: Resource count keeper adding ", count, " resources ERROR:\n", e.what());
+            }
             virtual void logSharedPtrPoolResourceCountKeeperAddingResourcesException(std::uint_fast64_t id, std::size_t count, const std::exception& e) const noexcept override
             {
-                SpinGuard guard{lock};
-                std::cerr << stringify("Pool [", id, "]: Resource count keeper adding ", count, " resources ERROR: ", e.what(), "!\n") << std::flush;
+                logSharedPtrPoolResourceCountKeeperAddingResourcesExceptionStatic(lock, id, count, e);
             }
 
+            static void logSharedPtrPoolResourceCountKeeperAddingResourcesExceptionStatic(std::atomic_flag &lock, std::uint_fast64_t id, std::size_t count) noexcept
+            {
+                detail::logStderr(lock, "Pool [", id, "]: Resource count keeper adding ", count, " resources unknown ERROR!");
+            }
             virtual void logSharedPtrPoolResourceCountKeeperAddingResourcesException(std::uint_fast64_t id, std::size_t count) const noexcept override
             {
-                SpinGuard guard{lock};
-                std::cerr << stringify("Pool [", id, "]: Resource count keeper adding ", count, " resources unknown ERROR!\n") << std::flush;
+                logSharedPtrPoolResourceCountKeeperAddingResourcesExceptionStatic(lock, id, count);
             }
 
             virtual void logSharedPtrPoolResourceCountKeeperTooManyResources(std::uint_fast64_t id, std::size_t availableCount, std::size_t needed) const noexcept override
             {
-                SpinGuard guard{lock};
-                std::cerr << stringify("Pool [", id, "]: Resource count keeper too many resources. ",
-                        "AvailableCount: ", availableCount, "; needed: ", needed,"\n") << std::flush;
+                detail::logStderr(lock, "Pool [", id, "]: Resource count keeper too many resources. ",
+                        "AvailableCount: ", availableCount, "; needed: ", needed,"");
             }
 
             virtual void logSharedPtrPoolResourceCountKeeperDisposingResources(std::uint_fast64_t id, std::size_t count) const noexcept override
             {
-                SpinGuard guard{lock};
-                std::cerr << stringify("Pool [", id, "]: Resource count keeper disposing ", count, " resources.\n") << std::flush;
+                detail::logStderr(lock, "Pool [", id, "]: Resource count keeper disposing ", count, " resources.");
             }
 
+            static void logSharedPtrPoolResourceCountKeeperErrorStatic(std::atomic_flag &lock, std::uint_fast64_t id, const std::exception& e) noexcept
+            {
+                detail::logStderr(lock, "Pool [", id, "]: Resource count keeper ERROR:\n", e.what());
+            }
             virtual void logSharedPtrPoolResourceCountKeeperError(std::uint_fast64_t id, const std::exception& e) const noexcept override
             {
-                SpinGuard guard{lock};
-                std::cerr << stringify("Pool [", id, "]: Resource count keeper ERROR: ", e.what(), "!\n") << std::flush;
+                logSharedPtrPoolResourceCountKeeperErrorStatic(lock, id, e);
             }
 
+            static void logSharedPtrPoolResourceCountKeeperErrorStatic(std::atomic_flag &lock, std::uint_fast64_t id) noexcept
+            {
+                detail::logStderr(lock, "Pool [", id, "]: Resource count keeper unknown ERROR!");
+            }
             virtual void logSharedPtrPoolResourceCountKeeperError(std::uint_fast64_t id) const noexcept override
             {
-                SpinGuard guard{lock};
-                std::cerr << stringify("Pool [", id, "]: Resource count keeper unknown ERROR!\n") << std::flush;
+                logSharedPtrPoolResourceCountKeeperErrorStatic(lock, id);
             }
 
 
             virtual void logSharedPtrPoolHealthCareJobCycleStart(std::uint_fast64_t id) const noexcept override
             {
-                SpinGuard guard{lock};
-                std::cerr << stringify("Pool [", id, "]: Health care job cycle start.\n") << std::flush;
+                detail::logStderr(lock, "Pool [", id, "]: Health care job cycle start.");
             }
 
             virtual void logSharedPtrPoolHealthCareJobLockedPtr(std::uint_fast64_t id, void* ptr) const noexcept override
             {
-                SpinGuard guard{lock};
-                std::cerr << stringify("Pool [", id, "]: Health care job locked pointer: ", ptr, "\n") << std::flush;
+                detail::logStderr(lock, "Pool [", id, "]: Health care job locked pointer: ", ptr);
             }
 
             virtual void logSharedPtrPoolHealthCareJobUnableToLockPtr(std::uint_fast64_t id, void* ptr) const noexcept override
             {
-                SpinGuard guard{lock};
-                std::cerr << stringify("Pool [", id, "]: Health care job unable to lock pointer: ", ptr, "\n") << std::flush;
+                detail::logStderr(lock, "Pool [", id, "]: Health care job unable to lock pointer: ", ptr);
             }
 
             virtual void logSharedPtrPoolHealthCareJobLockedSize(std::uint_fast64_t id, std::size_t size) const noexcept override
             {
-                SpinGuard guard{lock};
-                std::cerr << stringify("Pool [", id, "]: Health care job locked size: ", size, "\n") << std::flush;
+                detail::logStderr(lock, "Pool [", id, "]: Health care job locked size: ", size);
             }
 
             virtual void logSharedPtrPoolHealthCareJobHealthCheckForPtr(std::uint_fast64_t id, void* ptr) const noexcept override
             {
-                SpinGuard guard{lock};
-                std::cerr << stringify("Pool [", id, "]: Health care job running check for: ", ptr, "\n") << std::flush;
+                detail::logStderr(lock, "Pool [", id, "]: Health care job running check for: ", ptr);
             }
 
             virtual void logSharedPtrPoolHealthCareJobErasingPtr(std::uint_fast64_t id, void* ptr) const noexcept override
             {
-                SpinGuard guard{lock};
-                std::cerr << stringify("Pool [", id, "]: Health care job erasing resource: ", ptr, "\n") << std::flush;
+                detail::logStderr(lock, "Pool [", id, "]: Health care job erasing resource: ", ptr);
             }
 
             virtual void logSharedPtrPoolHealthCareJobLeavingHealthyResource(std::uint_fast64_t id, void* ptr) const noexcept override
             {
-                SpinGuard guard{lock};
-                std::cerr << stringify("Pool [", id, "]: Health care job leaving healthy resource: ", ptr, "\n") << std::flush;
+                detail::logStderr(lock, "Pool [", id, "]: Health care job leaving healthy resource: ", ptr);
             }
 
             virtual void logSharedPtrPoolHealthCareJobHealthCheckCompleted(std::uint_fast64_t id, std::size_t compled, std::size_t locked) const noexcept override
             {
-                SpinGuard guard{lock};
-                std::cerr << stringify("Pool [", id, "]: Health care job health check completed for ", compled, " of ", locked, ".\n") << std::flush;
+                detail::logStderr(lock, "Pool [", id, "]: Health care job health check completed for ", compled, " of ", locked, ".");
             }
 
+            static void logSharedPtrPoolHealthCareJobHealthCheckErrorStatic(std::atomic_flag &lock, std::uint_fast64_t id, const std::exception& e) noexcept
+            {
+                detail::logStderr(lock, "Pool [", id, "]: Health care job health check ERROR:\n", e.what());
+            }
             virtual void logSharedPtrPoolHealthCareJobHealthCheckError(std::uint_fast64_t id, const std::exception& e) const noexcept override
             {
-                SpinGuard guard{lock};
-                std::cerr << stringify("Pool [", id, "]: Health care job health check ERROR: ", e.what(), "!\n") << std::flush;
+                logSharedPtrPoolHealthCareJobHealthCheckErrorStatic(lock, id, e);
             }
 
+            static void logSharedPtrPoolHealthCareJobHealthCheckErrorStatic(std::atomic_flag &lock, std::uint_fast64_t id) noexcept
+            {
+                detail::logStderr(lock, "Pool [", id, "]: Health care job health check unknown ERROR!");
+            }
             virtual void logSharedPtrPoolHealthCareJobHealthCheckError(std::uint_fast64_t id) const noexcept override
             {
-                SpinGuard guard{lock};
-                std::cerr << stringify("Pool [", id, "]: Health care job health check unknown ERROR!\n") << std::flush;
+                logSharedPtrPoolHealthCareJobHealthCheckErrorStatic(lock, id);
             }
 
             virtual void logSharedPtrPoolHealthCareJobHealthCheckFinished(std::uint_fast64_t id) const noexcept override
             {
-                SpinGuard guard{lock};
-                std::cerr << stringify("Pool [", id, "]: Health care job health check finished.\n") << std::flush;
+                detail::logStderr(lock, "Pool [", id, "]: Health care job health check finished.");
             }
 
             virtual void logSharedPtrPoolHealthCareJobCycleFinished(std::uint_fast64_t id) const noexcept override
             {
-                SpinGuard guard{lock};
-                std::cerr << stringify("Pool [", id, "]: Health care job cycle finished.\n") << std::flush;
+                detail::logStderr(lock, "Pool [", id, "]: Health care job cycle finished.");
             }
 
             virtual void logSharedPtrPoolHealthCareJobStopped(std::uint_fast64_t id) const noexcept override
             {
-                SpinGuard guard{lock};
-                std::cerr << stringify("Pool [", id, "]: Health care job stopped.\n") << std::flush;
+                detail::logStderr(lock, "Pool [", id, "]: Health care job stopped.");
             }
 
+            static void logSharedPtrPoolHealthCareJobErrorStatic(std::atomic_flag &lock, std::uint_fast64_t id, const std::exception& e) noexcept
+            {
+                detail::logStderr(lock, "Pool [", id, "]: Health care job ERROR:\n", e.what());
+            }
             virtual void logSharedPtrPoolHealthCareJobError(std::uint_fast64_t id, const std::exception& e) const noexcept override
             {
-                SpinGuard guard{lock};
-                std::cerr << stringify("Pool [", id, "]: Health care job ERROR: ", e.what(), "!\n") << std::flush;
+                logSharedPtrPoolHealthCareJobErrorStatic(lock, id, e);
             }
 
+            static void logSharedPtrPoolHealthCareJobErrorStatic(std::atomic_flag &lock, std::uint_fast64_t id) noexcept
+            {
+                detail::logStderr(lock, "Pool [", id, "]: Health care job unknown ERROR!");
+            }
             virtual void logSharedPtrPoolHealthCareJobError(std::uint_fast64_t id) const noexcept override
             {
-                SpinGuard guard{lock};
-                std::cerr << stringify("Pool [", id, "]: Health care job unknown ERROR!\n") << std::flush;
+                logSharedPtrPoolHealthCareJobErrorStatic(lock, id);
             }
 
             __deprecated_logger_method virtual void logSharedPtrPoolDnsAwarePoolManagementCycleStart(std::uint_fast64_t /*poolId*/) const noexcept override {}
@@ -651,50 +635,176 @@ namespace SuperiorMySqlpp {
 
             virtual void logSharedPtrPoolDnsAwarePoolManagementCycleStart(std::uint_fast64_t poolId, const std::string &hostname) const noexcept override
             {
-                SpinGuard guard{lock};
-                std::cerr << stringify("Pool [", poolId, ", hostname=", hostname, "]: DnsAwarePoolManagement: Cycle start.\n") << std::flush;
+                detail::logStderr(lock, "Pool [", poolId, ", hostname=", hostname, "]: DnsAwarePoolManagement: Cycle start.");
             }
 
             virtual void logSharedPtrPoolDnsAwarePoolManagementChangeDetected(std::uint_fast64_t poolId, const std::string &hostname) const noexcept override
             {
-                SpinGuard guard{lock};
-                std::cerr << stringify("Pool [", poolId, ", hostname=", hostname, "]: DnsAwarePoolManagement: Change detected.\n") << std::flush;
+                detail::logStderr(lock, "Pool [", poolId, ", hostname=", hostname, "]: DnsAwarePoolManagement: Change detected.");
             }
 
             virtual void logSharedPtrPoolDnsAwarePoolManagementCycleEnd(std::uint_fast64_t poolId, const std::string &hostname) const noexcept override
             {
-                SpinGuard guard{lock};
-                std::cerr << stringify("Pool [", poolId, ", hostname=", hostname, "]: DnsAwarePoolManagement: Cycle end.\n") << std::flush;
+                detail::logStderr(lock, "Pool [", poolId, ", hostname=", hostname, "]: DnsAwarePoolManagement: Cycle end.");
             }
 
             virtual void logSharedPtrPoolDnsAwarePoolManagementStopped(std::uint_fast64_t poolId, const std::string &hostname) const noexcept override
             {
-                SpinGuard guard{lock};
-                std::cerr << stringify("Pool [", poolId, ", hostname=", hostname, "]: DnsAwarePoolManagement: Stopped.\n") << std::flush;
+                detail::logStderr(lock, "Pool [", poolId, ", hostname=", hostname, "]: DnsAwarePoolManagement: Stopped.");
+            }
+
+            static void logSharedPtrPoolDnsAwarePoolManagementCheckErrorStatic(std::atomic_flag &lock, std::uint_fast64_t poolId, std::exception& e, const std::string &hostname) noexcept
+            {
+                detail::logStderr(lock, "Pool [", poolId, ", hostname=", hostname, "]: DnsAwarePoolManagement: Check error:\n", e.what());
+            }
+            virtual void logSharedPtrPoolDnsAwarePoolManagementCheckError(std::uint_fast64_t poolId, std::exception& e, const std::string &hostname) const noexcept override
+            {
+                logSharedPtrPoolDnsAwarePoolManagementCheckErrorStatic(lock, poolId, e, hostname);
+            }
+
+            static void logSharedPtrPoolDnsAwarePoolManagementCheckErrorStatic(std::atomic_flag &lock, std::uint_fast64_t poolId, const std::string &hostname) noexcept
+            {
+                detail::logStderr(lock, "Pool [", poolId, ", hostname=", hostname, "]: DnsAwarePoolManagement: Check unknown error!!!");
+            }
+            virtual void logSharedPtrPoolDnsAwarePoolManagementCheckError(std::uint_fast64_t poolId, const std::string &hostname) const noexcept override
+            {
+                logSharedPtrPoolDnsAwarePoolManagementCheckErrorStatic(lock, poolId, hostname);
+            }
+
+            static void logSharedPtrPoolDnsAwarePoolManagementErrorStatic(std::atomic_flag &lock, std::uint_fast64_t poolId, std::exception& e, const std::string &hostname) noexcept
+            {
+                detail::logStderr(lock, "Pool [", poolId, ", hostname=", hostname, "]: DnsAwarePoolManagement: Error:\n", e.what());
+            }
+            virtual void logSharedPtrPoolDnsAwarePoolManagementError(std::uint_fast64_t poolId, std::exception& e, const std::string &hostname) const noexcept override
+            {
+                logSharedPtrPoolDnsAwarePoolManagementErrorStatic(lock, poolId, e, hostname);
+            }
+
+            static void logSharedPtrPoolDnsAwarePoolManagementErrorStatic(std::atomic_flag &lock, std::uint_fast64_t poolId, const std::string &hostname) noexcept
+            {
+                detail::logStderr(lock, "Pool [", poolId, ", hostname=", hostname, "]: DnsAwarePoolManagement: Unknown error!!!");
+            }
+            virtual void logSharedPtrPoolDnsAwarePoolManagementError(std::uint_fast64_t poolId, const std::string &hostname) const noexcept override
+            {
+                logSharedPtrPoolDnsAwarePoolManagementErrorStatic(lock, poolId, hostname);
+            }
+        };
+
+
+        class Default final : public Base
+        {
+        private:
+            mutable std::atomic_flag lock{};
+        public:
+            using Base::Base;
+            virtual ~Default() override = default;
+
+            virtual void logMySqlStmtMetadataWarning(
+                    std::uint_fast64_t connectionId,
+                    std::uint_fast64_t id,
+                    std::size_t index,
+                    ValidateMetadataMode warnMode,
+                    FieldTypes bindingType,
+                    bool bindingIsUnsigned,
+                    FieldTypes resultType,
+                    bool resultIsUnsigned
+                ) const noexcept override
+            {
+                Full::logMySqlStmtMetadataWarningStatic(
+                    lock,
+                    connectionId,
+                    id,
+                    index,
+                    warnMode,
+                    bindingType,
+                    bindingIsUnsigned,
+                    resultType,
+                    resultIsUnsigned
+                );
+            }
+
+            virtual void logMySqlStmtMetadataNullableToNonNullableWarning(
+                    std::uint_fast64_t connectionId,
+                    std::uint_fast64_t id,
+                    std::size_t index
+                ) const noexcept override
+            {
+                Full::logMySqlStmtMetadataNullableToNonNullableWarningStatic(lock, connectionId, id, index);
+            }
+
+            virtual void logMySqlStmtCloseError(std::uint_fast64_t connectionId, std::uint_fast64_t id, const StringView& mysqlError) const noexcept override
+            {
+                Full::logMySqlStmtCloseErrorStatic(lock, connectionId, id, mysqlError);
+            }
+
+            virtual void logMySqlTransactionRollbackFailed(std::uint_fast64_t connectionId, std::exception& e) const noexcept override
+            {
+                Full::logMySqlTransactionRollbackFailedStatic(lock, connectionId, e);
+            }
+
+            virtual void logMySqlTransactionRollbackFailed(std::uint_fast64_t connectionId) const noexcept override
+            {
+                Full::logMySqlTransactionRollbackFailedStatic(lock, connectionId);
+            }
+
+            virtual void logSharedPtrPoolResourceCountKeeperAddingResourcesException(std::uint_fast64_t id, std::size_t count, const std::exception& e) const noexcept override
+            {
+                Full::logSharedPtrPoolResourceCountKeeperAddingResourcesExceptionStatic(lock, id, count, e);
+            }
+
+            virtual void logSharedPtrPoolResourceCountKeeperAddingResourcesException(std::uint_fast64_t id, std::size_t count) const noexcept override
+            {
+                Full::logSharedPtrPoolResourceCountKeeperAddingResourcesExceptionStatic(lock, id, count);
+            }
+
+            virtual void logSharedPtrPoolResourceCountKeeperError(std::uint_fast64_t id, const std::exception& e) const noexcept override
+            {
+                Full::logSharedPtrPoolResourceCountKeeperErrorStatic(lock, id, e);
+            }
+
+            virtual void logSharedPtrPoolResourceCountKeeperError(std::uint_fast64_t id) const noexcept override
+            {
+                Full::logSharedPtrPoolResourceCountKeeperErrorStatic(lock, id);
+            }
+
+            virtual void logSharedPtrPoolHealthCareJobHealthCheckError(std::uint_fast64_t id, const std::exception& e) const noexcept override
+            {
+                Full::logSharedPtrPoolHealthCareJobHealthCheckErrorStatic(lock, id, e);
+            }
+
+            virtual void logSharedPtrPoolHealthCareJobHealthCheckError(std::uint_fast64_t id) const noexcept override
+            {
+                Full::logSharedPtrPoolHealthCareJobHealthCheckErrorStatic(lock, id);
+            }
+
+            virtual void logSharedPtrPoolHealthCareJobError(std::uint_fast64_t id, const std::exception& e) const noexcept override
+            {
+                Full::logSharedPtrPoolHealthCareJobErrorStatic(lock, id, e);
+            }
+
+            virtual void logSharedPtrPoolHealthCareJobError(std::uint_fast64_t id) const noexcept override
+            {
+                Full::logSharedPtrPoolHealthCareJobErrorStatic(lock, id);
             }
 
             virtual void logSharedPtrPoolDnsAwarePoolManagementCheckError(std::uint_fast64_t poolId, std::exception& e, const std::string &hostname) const noexcept override
             {
-                SpinGuard guard{lock};
-                std::cerr << stringify("Pool [", poolId, ", hostname=", hostname, "]: DnsAwarePoolManagement: Check error:\n", e.what(), "\n") << std::flush;
+                Full::logSharedPtrPoolDnsAwarePoolManagementCheckErrorStatic(lock, poolId, e, hostname);
             }
 
             virtual void logSharedPtrPoolDnsAwarePoolManagementCheckError(std::uint_fast64_t poolId, const std::string &hostname) const noexcept override
             {
-                SpinGuard guard{lock};
-                std::cerr << stringify("Pool [", poolId, ", hostname=", hostname, "]: DnsAwarePoolManagement: Check unknown error!!!\n") << std::flush;
+                Full::logSharedPtrPoolDnsAwarePoolManagementCheckErrorStatic(lock, poolId, hostname);
             }
 
             virtual void logSharedPtrPoolDnsAwarePoolManagementError(std::uint_fast64_t poolId, std::exception& e, const std::string &hostname) const noexcept override
             {
-                SpinGuard guard{lock};
-                std::cerr << stringify("Pool [", poolId, ", hostname=", hostname, "]: DnsAwarePoolManagement: Error:\n", e.what(), "\n") << std::flush;
+                Full::logSharedPtrPoolDnsAwarePoolManagementErrorStatic(lock, poolId, e, hostname);
             }
 
             virtual void logSharedPtrPoolDnsAwarePoolManagementError(std::uint_fast64_t poolId, const std::string &hostname) const noexcept override
             {
-                SpinGuard guard{lock};
-                std::cerr << stringify("Pool [", poolId, ", hostname=", hostname, "]: DnsAwarePoolManagement: Unknown error!!!\n") << std::flush;
+                Full::logSharedPtrPoolDnsAwarePoolManagementErrorStatic(lock, poolId, hostname);
             }
         };
 
