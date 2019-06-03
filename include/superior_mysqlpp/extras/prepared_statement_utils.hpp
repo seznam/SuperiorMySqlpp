@@ -1,5 +1,6 @@
 #pragma once
 
+#include <superior_mysqlpp/extras/function_info.hpp>
 #include <superior_mysqlpp/connection.hpp>
 #include <superior_mysqlpp/exceptions.hpp>
 #include <superior_mysqlpp/prepared_statement.hpp>
@@ -11,18 +12,32 @@ namespace SuperiorMySqlpp
     namespace detail
     {
         /**
-         * @brief Makes prepared statement by deducing ResultBindings template arguments from function's signature
-         * @param connection Connection handle into database
-         * @param query Query for prepared statement
-         * @tparam storeResult Boolean indicating if results will be in `store` or `use` mode
-         * @tparam validateMode Indicates validate mode level
-         * @tparam warnMode Indicates warning mode level
-         * @tparam ignoreNullable Disables null type checking
+         * Converts tuples of arguments into prepared statement via `generate()` method
+         * @tparam ResultArgs tuple of arguments from result function
+         * @tparam ParamsArgs tuple of arguments from params function
          */
-        template <bool storeResult, ValidateMetadataMode validateMode, ValidateMetadataMode warnMode, bool ignoreNullable, typename CallableClass, typename... Args>
-        auto generatePreparedStatementImpl(Connection &connection, const std::string &query, void (CallableClass::*)(Args...) const volatile) {
-            return connection.makePreparedStatement<ResultBindings<std::remove_cv_t<std::remove_reference_t<Args>>...>, storeResult, validateMode, warnMode, ignoreNullable>(query);
-        }
+        template<typename ResultArgs, typename ParamsArgs>
+        struct ToPreparedStatement;
+
+        template<template<typename...> class ResultTuple, typename... ResultArgs, template<typename...> class ParamsTuple, typename... ParamsArgs>
+        struct ToPreparedStatement<ResultTuple<ResultArgs...>, ParamsTuple<ParamsArgs...>>
+        {
+            /**
+             * Constructs prepared statement
+             * @param connection Connection handle into database
+             * @param query Query for prepared statement
+             * @tparam storeResult Boolean indicating if results will be in `store` or `use` mode
+             * @tparam validateMode Indicates validate mode level
+             * @tparam warnMode Indicates warning mode level
+             * @tparam ignoreNullable Disables null type checking
+             */
+            template <bool storeResult, ValidateMetadataMode validateMode, ValidateMetadataMode warnMode, bool ignoreNullable>
+            static inline auto generate(Connection &connection, const std::string &query)
+            {
+                return PreparedStatement<ResultBindings<ResultArgs...>, ParamBindings<ParamsArgs...>, storeResult, validateMode, warnMode, ignoreNullable>
+                    { connection, query };
+            }
+        };
 
         /**
          * @brief Makes prepared statement by deducing ResultBindings template arguments from function's signature
@@ -33,13 +48,17 @@ namespace SuperiorMySqlpp
          * @tparam warnMode Indicates warning mode level
          * @tparam ignoreNullable Disables null type checking
          */
-        template <bool storeResult, ValidateMetadataMode validateMode, ValidateMetadataMode warnMode, bool ignoreNullable, typename CallableClass, typename... Args>
-        auto generatePreparedStatementImpl(Connection &connection, const std::string &query, void (CallableClass::*)(Args...) volatile) {
-            return connection.makePreparedStatement<ResultBindings<std::remove_cv_t<std::remove_reference_t<Args>>...>, storeResult, validateMode, warnMode, ignoreNullable>(query);
+        template <bool storeResult, ValidateMetadataMode validateMode, ValidateMetadataMode warnMode, bool ignoreNullable, typename Callable>
+        auto generatePreparedStatementImpl(Connection &connection, const std::string &query, Callable &&)
+        {
+            return ToPreparedStatement<
+                typename FunctionInfo<Callable>::raw_arguments,
+                std::tuple<>
+            >::template generate<storeResult, validateMode, warnMode, ignoreNullable>(connection, query);
         }
 
         /**
-         * @brief Makes prepared statement by deducing ResultBindings template arguments from function's signature
+         * @brief Makes prepared statement by deducing ResultBindings and ParamBindings template arguments from functions's signature
          * @param connection Connection handle into database
          * @param query Query for prepared statement
          * @tparam storeResult Boolean indicating if results will be in `store` or `use` mode
@@ -47,13 +66,18 @@ namespace SuperiorMySqlpp
          * @tparam warnMode Indicates warning mode level
          * @tparam ignoreNullable Disables null type checking
          */
-        template <bool storeResult, ValidateMetadataMode validateMode, ValidateMetadataMode warnMode, bool ignoreNullable, typename CallableClass, typename... Args>
-        auto generatePreparedStatementImpl(Connection &connection, const std::string &query, void (CallableClass::*)(Args...) const) {
-            return connection.makePreparedStatement<ResultBindings<std::remove_cv_t<std::remove_reference_t<Args>>...>, storeResult, validateMode, warnMode, ignoreNullable>(query);
+        template <bool storeResult, ValidateMetadataMode validateMode, ValidateMetadataMode warnMode, bool ignoreNullable, typename ResultCallable, typename ParamCallable>
+        auto generatePreparedStatementImpl2(Connection &connection, const std::string &query, ResultCallable &&, ParamCallable &&)
+        {
+            static_assert(FunctionInfo<ParamCallable>::arguments_are_lvalue_references::value, "Arguments must be lvalue references");
+            return ToPreparedStatement<
+                typename FunctionInfo<ResultCallable>::raw_arguments,
+                typename FunctionInfo<ParamCallable>::raw_arguments
+            >::template generate<storeResult, validateMode, warnMode, ignoreNullable>(connection, query);
         }
 
         /**
-         * @brief Makes prepared statement by deducing ResultBindings template arguments from function's signature
+         * @brief Makes prepared statement by deducing ParamBindings template arguments from functions's signature
          * @param connection Connection handle into database
          * @param query Query for prepared statement
          * @tparam storeResult Boolean indicating if results will be in `store` or `use` mode
@@ -61,38 +85,14 @@ namespace SuperiorMySqlpp
          * @tparam warnMode Indicates warning mode level
          * @tparam ignoreNullable Disables null type checking
          */
-        template <bool storeResult, ValidateMetadataMode validateMode, ValidateMetadataMode warnMode, bool ignoreNullable, typename CallableClass, typename... Args>
-        auto generatePreparedStatementImpl(Connection &connection, const std::string &query, void (CallableClass::*)(Args...)) {
-            return connection.makePreparedStatement<ResultBindings<std::remove_cv_t<std::remove_reference_t<Args>>...>, storeResult, validateMode, warnMode, ignoreNullable>(query);
-        }
-
-        /**
-         * @brief Makes prepared statement by deducing ResultBindings template arguments from lambda's signature
-         * @param connection Connection handle into database
-         * @param query Query for prepared statement
-         * @tparam storeResult Boolean indicating if results will be in `store` or `use` mode
-         * @tparam validateMode Indicates validate mode level
-         * @tparam warnMode Indicates warning mode level
-         * @tparam ignoreNullable Disables null type checking
-         */
-        template <bool storeResult, ValidateMetadataMode validateMode, ValidateMetadataMode warnMode, bool ignoreNullable, typename CallableClass>
-        auto generatePreparedStatementImpl(Connection &connection, const std::string &query, CallableClass&&) {
-            // This is actually only callable argument type deductor. We don't care about callable type, so we can decay Callable object
-            return generatePreparedStatementImpl<storeResult, validateMode, warnMode, ignoreNullable>(connection, query, &std::decay_t<CallableClass>::operator());
-        }
-
-        /**
-         * @brief Makes prepared statement by deducing ResultBindings template arguments from plain old C function's signature
-         * @param connection Connection handle into database
-         * @param query Query for prepared statement
-         * @tparam storeResult Boolean indicating if results will be in `store` or `use` mode
-         * @tparam validateMode Indicates validate mode level
-         * @tparam warnMode Indicates warning mode level
-         * @tparam ignoreNullable Disables null type checking
-         */
-        template <bool storeResult, ValidateMetadataMode validateMode, ValidateMetadataMode warnMode, bool ignoreNullable, typename... Args>
-        auto generatePreparedStatementImpl(Connection &connection, const std::string &query, void (*)(Args...)) {
-            return connection.makePreparedStatement<ResultBindings<std::remove_cv_t<std::remove_reference_t<Args>>...>, storeResult, validateMode, warnMode, ignoreNullable>(query);
+        template <bool storeResult, ValidateMetadataMode validateMode, ValidateMetadataMode warnMode, bool ignoreNullable, typename ResultCallable, typename ParamCallable>
+        auto generatePreparedStatementImpl2(Connection &connection, const std::string &query, ParamCallable &&)
+        {
+            static_assert(FunctionInfo<ParamCallable>::arguments_are_lvalue_references::value, "Arguments must be lvalue references");
+            return ToPreparedStatement<
+                std::tuple<>,
+                typename FunctionInfo<ParamCallable>::raw_arguments
+            >::template generate<storeResult, validateMode, warnMode, ignoreNullable>(connection, query);
         }
     }
 
@@ -133,6 +133,68 @@ namespace SuperiorMySqlpp
     {
         auto ps = detail::generatePreparedStatementImpl<storeResult, validateMode, warnMode, ignoreNullable>(connection, query, processingFunction);
         psReadQuery(ps, processingFunction);
+    }
+
+    /**
+     * @brief Builds prepared statement from query string and constructs prepared stament with updatable arguments
+     * @param query Query to be executed (in most cases there will be selections)
+     * @param connection Connection handle into database
+     * @param paramsSetter function setting statement's parameters, returning bool if input data are available
+     * @param processingFunction function to be invoked on every row
+     *                           Its parameters must correspond with result columns (their types and count)
+     * @tparam storeResult Boolean indicating if results will be in `store` or `use` mode
+     * @tparam validateMode Indicates validate mode level
+     * @tparam warnMode Indicates warning mode level
+     * @tparam ignoreNullable Disables null type checking
+     */
+    template<bool storeResult=detail::PreparedStatementsDefault::getStoreResult(),
+             ValidateMetadataMode validateMode=detail::PreparedStatementsDefault::getValidateMode(),
+             ValidateMetadataMode warnMode=detail::PreparedStatementsDefault::getWarnMode(),
+             bool ignoreNullable=detail::PreparedStatementsDefault::getIgnoreNullable(),
+             typename ResultCallable,
+             typename ParamCallable,
+             typename ConnType>
+    void psQuery(const std::string &query, ConnType &&connection, ParamCallable &&paramsSetter, ResultCallable &&processingFunction)
+    {
+        auto ps = detail::generatePreparedStatementImpl2<storeResult, validateMode, warnMode, ignoreNullable>(connection, query, processingFunction, paramsSetter);
+
+        while (invokeViaTuple(paramsSetter, ps.getParams()))
+        {
+            ps.updateParamsBindings();
+            ps.execute();
+
+            while (ps.fetch())
+            {
+                invokeViaTuple(processingFunction, ps.getResult());
+            }
+        }
+    }
+
+    /**
+     * @brief Builds prepared statement from query string and constructs prepared stament with updatable arguments
+     * @param query Query to be executed (in most cases there will be selections)
+     * @param connection Connection handle into database
+     * @param paramsSetter function setting statement's parameters, returning bool if input data are available
+     * @tparam storeResult Boolean indicating if results will be in `store` or `use` mode
+     * @tparam validateMode Indicates validate mode level
+     * @tparam warnMode Indicates warning mode level
+     * @tparam ignoreNullable Disables null type checking
+     */
+    template<bool storeResult=detail::PreparedStatementsDefault::getStoreResult(),
+             ValidateMetadataMode validateMode=detail::PreparedStatementsDefault::getValidateMode(),
+             ValidateMetadataMode warnMode=detail::PreparedStatementsDefault::getWarnMode(),
+             bool ignoreNullable=detail::PreparedStatementsDefault::getIgnoreNullable(),
+             typename ParamCallable,
+             typename ConnType>
+    void psQuery(const std::string &query, ConnType &&connection, ParamCallable &&paramsSetter)
+    {
+        auto ps = detail::generatePreparedStatementImpl2<storeResult, validateMode, warnMode, ignoreNullable>(connection, query, paramsSetter);
+
+        while (invokeViaTuple(paramsSetter, ps.getParams()))
+        {
+            ps.updateParamsBindings();
+            ps.execute();
+        }
     }
 
     /**

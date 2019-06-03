@@ -636,7 +636,7 @@ go_bandit([](){
         });
 
         it("can work with psReadQuery (valid types, passing query string)", [&](){
-            psReadQuery("SELECT `id`, `blob`, `binary`, `varbinary` FROM `test_superior_sqlpp`.`binary_data` ORDER BY `id` LIMIT 1", 
+            psReadQuery("SELECT `id`, `blob`, `binary`, `varbinary` FROM `test_superior_sqlpp`.`binary_data` ORDER BY `id` LIMIT 1",
               connection, [&](int id, const BlobData &blob, const BlobData &binary, const BlobData &varbinary) {
                 AssertThat(id, Equals(42));
                 AssertThat(blob.size(), Equals(5u));
@@ -649,8 +649,19 @@ go_bandit([](){
         });
 
         it("can work with prepared statement helper functions - psReadQuery (invalid data types)", [&](){
-            AssertThrows(PreparedStatementTypeError, psReadQuery("SELECT `id`, `blob`, `binary`, `varbinary` FROM `test_superior_sqlpp`.`binary_data` ORDER BY `id` LIMIT 1", 
+            AssertThrows(PreparedStatementTypeError, psReadQuery("SELECT `id`, `blob`, `binary`, `varbinary` FROM `test_superior_sqlpp`.`binary_data` ORDER BY `id` LIMIT 1",
                 connection, [&](int , int, const BlobData &, const BlobData &) {}));
+        });
+
+        it("can work with psQuery helper function", [&](){
+            const int target = 5;
+            int counter = 0;
+            psQuery("SELECT ?", connection,
+                [&](int &arg) { arg = counter++; return counter == target; },
+                [&](int arg) {
+                    AssertThat(arg, Equals(counter - 1));
+                }
+            );
         });
     });
 });

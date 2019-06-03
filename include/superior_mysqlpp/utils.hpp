@@ -37,7 +37,7 @@ namespace SuperiorMySqlpp
          * @param t Tuple of arguments to be unpacked
          */
         template<typename Function, typename Tuple, std::size_t... I>
-        auto invokeViaTupleImpl(Function f, const Tuple &t, std::index_sequence<I...>)
+        auto invokeViaTupleImpl(Function f, Tuple &&t, std::index_sequence<I...>)
         {
             return f(std::get<I>(t)...);
         }
@@ -49,10 +49,10 @@ namespace SuperiorMySqlpp
      * @param t Tuple of arguments to be unpacked
      */
     template<typename Function, typename Tuple>
-    auto invokeViaTuple(Function f, const Tuple &t)
+    auto invokeViaTuple(Function f, Tuple &&t)
     {
-        constexpr std::size_t tuple_size = std::tuple_size<Tuple>::value;
-        return detail::invokeViaTupleImpl(f, t, std::make_index_sequence<tuple_size>{});
+        constexpr std::size_t tuple_size = std::tuple_size<std::decay_t<Tuple>>::value;
+        return detail::invokeViaTupleImpl(f, std::forward<Tuple>(t), std::make_index_sequence<tuple_size>{});
     }
 
     /**
