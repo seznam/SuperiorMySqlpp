@@ -306,6 +306,39 @@ psReadValues("SELECT ... FROM ...", connection, arg1, arg2);
 Note: This function is made only for reading single row. In case you are reading more than one row,
 an *UnexpectedRowCountError* exception is thrown.
 
+**psQuery**
+```c++
+int myData = 0;
+
+psQuery(
+    "SELECT ?",
+    connection,
+    [&](int &value) -> bool {
+        value = myData;
+        return (myData++) < 5; // Return true, if data are set, false otherwise (no more input data available)
+    },
+    [&](int value) {
+        printf("Got value: %d\n", value);
+    }
+)
+```
+
+Or without result callback
+
+```c++
+int myData = 0;
+
+psQuery(
+    "INSERT INTO ... (column1, column2) VALUES (?, ?)",
+    connection,
+    [&](int &column1, int &column2) -> bool {
+        column1 = myData;
+        column2 = myData * 2;
+        return (myData++) < 5; // Return true, if data are set, false otherwise (no more input data available)
+    }
+)
+```
+
 ## RowStreamAdapter
 Syntactic sugar is provided for extracting values from `Row` using a familiar stream operator.
 When a NULL value is encountered, value is default-constructed.

@@ -1,6 +1,5 @@
 #pragma once
 
-#include <superior_mysqlpp/extras/function_info.hpp>
 #include <superior_mysqlpp/connection.hpp>
 #include <superior_mysqlpp/exceptions.hpp>
 #include <superior_mysqlpp/prepared_statement.hpp>
@@ -40,24 +39,6 @@ namespace SuperiorMySqlpp
         };
 
         /**
-         * @brief Makes prepared statement by deducing ResultBindings template arguments from function's signature
-         * @param connection Connection handle into database
-         * @param query Query for prepared statement
-         * @tparam storeResult Boolean indicating if results will be in `store` or `use` mode
-         * @tparam validateMode Indicates validate mode level
-         * @tparam warnMode Indicates warning mode level
-         * @tparam ignoreNullable Disables null type checking
-         */
-        template <bool storeResult, ValidateMetadataMode validateMode, ValidateMetadataMode warnMode, bool ignoreNullable, typename Callable>
-        auto generatePreparedStatementImpl(Connection &connection, const std::string &query, Callable &&)
-        {
-            return ToPreparedStatement<
-                typename FunctionInfo<Callable>::raw_arguments,
-                std::tuple<>
-            >::template generate<storeResult, validateMode, warnMode, ignoreNullable>(connection, query);
-        }
-
-        /**
          * @brief Makes prepared statement by deducing ResultBindings and ParamBindings template arguments from functions's signature
          * @param connection Connection handle into database
          * @param query Query for prepared statement
@@ -67,30 +48,11 @@ namespace SuperiorMySqlpp
          * @tparam ignoreNullable Disables null type checking
          */
         template <bool storeResult, ValidateMetadataMode validateMode, ValidateMetadataMode warnMode, bool ignoreNullable, typename ResultCallable, typename ParamCallable>
-        auto generatePreparedStatementImpl2(Connection &connection, const std::string &query, ResultCallable &&, ParamCallable &&)
+        auto generatePreparedStatement(Connection &connection, const std::string &query, ResultCallable &&, ParamCallable &&)
         {
             static_assert(FunctionInfo<ParamCallable>::arguments_are_lvalue_references::value, "Arguments must be lvalue references");
             return ToPreparedStatement<
                 typename FunctionInfo<ResultCallable>::raw_arguments,
-                typename FunctionInfo<ParamCallable>::raw_arguments
-            >::template generate<storeResult, validateMode, warnMode, ignoreNullable>(connection, query);
-        }
-
-        /**
-         * @brief Makes prepared statement by deducing ParamBindings template arguments from functions's signature
-         * @param connection Connection handle into database
-         * @param query Query for prepared statement
-         * @tparam storeResult Boolean indicating if results will be in `store` or `use` mode
-         * @tparam validateMode Indicates validate mode level
-         * @tparam warnMode Indicates warning mode level
-         * @tparam ignoreNullable Disables null type checking
-         */
-        template <bool storeResult, ValidateMetadataMode validateMode, ValidateMetadataMode warnMode, bool ignoreNullable, typename ResultCallable, typename ParamCallable>
-        auto generatePreparedStatementImpl2(Connection &connection, const std::string &query, ParamCallable &&)
-        {
-            static_assert(FunctionInfo<ParamCallable>::arguments_are_lvalue_references::value, "Arguments must be lvalue references");
-            return ToPreparedStatement<
-                std::tuple<>,
                 typename FunctionInfo<ParamCallable>::raw_arguments
             >::template generate<storeResult, validateMode, warnMode, ignoreNullable>(connection, query);
         }
@@ -131,7 +93,7 @@ namespace SuperiorMySqlpp
              typename ConnType>
     void psReadQuery(const std::string &query, ConnType &&connection, Callable &&processingFunction)
     {
-        auto ps = detail::generatePreparedStatementImpl<storeResult, validateMode, warnMode, ignoreNullable>(connection, query, processingFunction);
+        auto ps = detail::generatePreparedStatement<storeResult, validateMode, warnMode, ignoreNullable>(connection, query, processingFunction, [](){});
         psReadQuery(ps, processingFunction);
     }
 
@@ -156,7 +118,7 @@ namespace SuperiorMySqlpp
              typename ConnType>
     void psQuery(const std::string &query, ConnType &&connection, ParamCallable &&paramsSetter, ResultCallable &&processingFunction)
     {
-        auto ps = detail::generatePreparedStatementImpl2<storeResult, validateMode, warnMode, ignoreNullable>(connection, query, processingFunction, paramsSetter);
+        auto ps = detail::generatePreparedStatement<storeResult, validateMode, warnMode, ignoreNullable>(connection, query, processingFunction, paramsSetter);
 
         while (invokeViaTuple(paramsSetter, ps.getParams()))
         {
@@ -188,7 +150,7 @@ namespace SuperiorMySqlpp
              typename ConnType>
     void psQuery(const std::string &query, ConnType &&connection, ParamCallable &&paramsSetter)
     {
-        auto ps = detail::generatePreparedStatementImpl2<storeResult, validateMode, warnMode, ignoreNullable>(connection, query, paramsSetter);
+        auto ps = detail::generatePreparedStatement<storeResult, validateMode, warnMode, ignoreNullable>(connection, query, [](){}, paramsSetter);
 
         while (invokeViaTuple(paramsSetter, ps.getParams()))
         {
@@ -238,6 +200,5 @@ namespace SuperiorMySqlpp
     {
         psReadValues(connection.template makePreparedStatement<ResultBindings<Args...>, storeResult, validateMode, warnMode, ignoreNullable>(query), values...);
     }
-
 }
 
