@@ -588,23 +588,6 @@ go_bandit([](){
             AssertThat(varbinary.getStringView(), Equals("ij\0kl"s));
         });
 
-        it("can pass PreparedStatement object into psReadValues", [&](){
-            int id{};
-            BlobData blob{}, binary{}, varbinary{};
-            auto preparedStatement = connection.makePreparedStatement<ResultBindings<int, BlobData, BlobData, BlobData>>(
-                "SELECT `id`, `blob`, `binary`, `varbinary` FROM `test_superior_sqlpp`.`binary_data` ORDER BY `id` LIMIT 1"
-            );
-            psReadValues(preparedStatement, id, blob, binary, varbinary);
-
-            AssertThat(id, Equals(42));
-            AssertThat(blob.size(), Equals(5u));
-            AssertThat(binary.size(), Equals(10u));
-            AssertThat(varbinary.size(), Equals(5u));
-            AssertThat(blob.getStringView()=="ab0cd"s, IsTrue());
-            AssertThat(binary.getStringView(), Equals("ef\0gh\0\0\0\0\0"s));
-            AssertThat(varbinary.getStringView(), Equals("ij\0kl"s));
-        });
-
         it("throws exception in psReadValues when zero rows is returned", [&](){
             int id{};
             AssertThrows(UnexpectedRowCountError,
@@ -617,22 +600,6 @@ go_bandit([](){
             AssertThrows(UnexpectedRowCountError,
                 psReadValues("SELECT `id` FROM `test_superior_sqlpp`.`binary_data`", connection, id)
             );
-        });
-
-        it("can work with psReadQuery (valid types, passing PreparedStatement object)", [&](){
-            auto preparedStatement = connection.makePreparedStatement<ResultBindings<int, BlobData, BlobData, BlobData>>(
-                "SELECT `id`, `blob`, `binary`, `varbinary` FROM `test_superior_sqlpp`.`binary_data` ORDER BY `id` LIMIT 1"
-            );
-
-            psReadQuery(preparedStatement, [&](int id, const BlobData &blob, const BlobData &binary, const BlobData &varbinary) {
-                AssertThat(id, Equals(42));
-                AssertThat(blob.size(), Equals(5u));
-                AssertThat(binary.size(), Equals(10u));
-                AssertThat(varbinary.size(), Equals(5u));
-                AssertThat(blob.getStringView()=="ab0cd"s, IsTrue());
-                AssertThat(binary.getStringView(), Equals("ef\0gh\0\0\0\0\0"s));
-                AssertThat(varbinary.getStringView(), Equals("ij\0kl"s));
-            });
         });
 
         it("can work with psReadQuery (valid types, passing query string)", [&](){
@@ -654,14 +621,36 @@ go_bandit([](){
         });
 
         it("can work with psQuery helper function", [&](){
-            const int target = 5;
-            int counter = 0;
-            psQuery("SELECT ?", connection,
-                [&](int &arg) { arg = counter++; return counter == target; },
-                [&](int arg) {
-                    AssertThat(arg, Equals(counter - 1));
+            // Pretend that this is some kind of container on the function's input
+            std::array<int, 4> foreignKeys = { 1, 2, 3, 4 };
+
+            std::array<std::vector<int>, 4> ids;
+
+            auto foreignKeysIterator = std::begin(foreignKeys);
+
+            // Select ids, where foreign key is equal to some value (?)
+            psQuery(
+                "SELECT `id`, `f_id` FROM `psquery_test` WHERE `f_id` = ?",
+                connection,
+                [&](int &f_id) -> bool {
+                    if (foreignKeysIterator == std::end(foreignKeys))
+                    {
+                        return false;
+                    }
+
+                    f_id = *foreignKeysIterator++;
+                    return true;
+                },
+                [&](int id, int f_id)
+                {
+                    ids[f_id - 1].emplace_back(id);
                 }
             );
+
+            AssertThat(ids[0].size(), Equals(4UL));
+            AssertThat(ids[1].size(), Equals(2UL));
+            AssertThat(ids[2].size(), Equals(1UL));
+            AssertThat(ids[3].size(), Equals(1UL));
         });
     });
 });

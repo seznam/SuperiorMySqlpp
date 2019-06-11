@@ -95,6 +95,17 @@ namespace SuperiorMySqlpp
         struct are_arguments_lrefs<Args&...> : std::true_type {};
 
         /**
+         * Function information flags
+         */
+        enum : uint64_t
+        {
+            FunctionFlag_IsConst = 1ULL << 0ULL,
+            FunctionFlag_IsVolatile = 1ULL << 1ULL,
+            FunctionFlag_IsLvalueRefCtx = 1ULL << 3ULL,
+            FunctionFlag_IsRvalueRefCtx = 1ULL << 4ULL
+        };
+
+        /**
          * @brief Generic function info obtained from FunctionInfo trait
          * 
          * @tparam ResultType type returned by function
@@ -102,12 +113,14 @@ namespace SuperiorMySqlpp
          * @tparam IsVolatile true_type, if function has been marked volatile
          * @tparam Args function arguments
          */
-        template<typename ResultType, typename IsConst, typename IsVolatile, typename... Args>
+        template<typename ResultType, uint64_t Flags, typename... Args>
         struct FunctionInfoImpl
         {
             using result_type   = ResultType;
-            using is_const      = IsConst;
-            using is_volatile   = IsVolatile;
+            using is_const      = std::integral_constant<bool, (Flags & FunctionFlag_IsConst) != 0>;
+            using is_volatile   = std::integral_constant<bool, (Flags & FunctionFlag_IsVolatile) != 0>;
+            using is_lvalue_ctx = std::integral_constant<bool, (Flags & FunctionFlag_IsLvalueRefCtx) != 0>;
+            using is_rvalue_ctx = std::integral_constant<bool, (Flags & FunctionFlag_IsRvalueRefCtx) != 0>;
             using arguments     = std::tuple<Args...>;
             using raw_arguments = std::tuple<std::remove_cv_t<std::remove_reference_t<Args>>...>;
 
@@ -116,7 +129,8 @@ namespace SuperiorMySqlpp
     }
 
     /**
-     * Returns information about function
+     * Type trait providing metadata about functions.
+     * Accepts functions, methods and functors (types with operator()).
      * 
      * @tparam T function prototype
      */
@@ -130,7 +144,7 @@ namespace SuperiorMySqlpp
      * @tparam Args function arguments
      */
     template<typename ResultType, typename... Args>
-    struct FunctionInfo<ResultType (Args...)> : detail::FunctionInfoImpl<ResultType, std::false_type, std::false_type, Args...> {};
+    struct FunctionInfo<ResultType (Args...)> : detail::FunctionInfoImpl<ResultType, 0, Args...> {};
 
     /**
      * @brief Plain old C function overload
@@ -139,7 +153,7 @@ namespace SuperiorMySqlpp
      * @tparam Args function arguments
      */
     template<typename ResultType, typename... Args>
-    struct FunctionInfo<ResultType (*)(Args...)> : detail::FunctionInfoImpl<ResultType, std::false_type, std::false_type, Args...> {};
+    struct FunctionInfo<ResultType (*)(Args...)> : detail::FunctionInfoImpl<ResultType, 0, Args...> {};
 
     /**
      * @brief Class member function overload
@@ -149,7 +163,7 @@ namespace SuperiorMySqlpp
      * @tparam Args function arguments
      */
     template<typename Class, typename ResultType, typename... Args>
-    struct FunctionInfo<ResultType (Class::*)(Args...)> : detail::FunctionInfoImpl<ResultType, std::false_type, std::false_type, Args...> {};
+    struct FunctionInfo<ResultType (Class::*)(Args...)> : detail::FunctionInfoImpl<ResultType, 0, Args...> {};
 
     /**
      * @brief Class const-member function overload
@@ -159,7 +173,7 @@ namespace SuperiorMySqlpp
      * @tparam Args function arguments
      */
     template<typename Class, typename ResultType, typename... Args>
-    struct FunctionInfo<ResultType (Class::*)(Args...) const> : detail::FunctionInfoImpl<ResultType, std::true_type, std::false_type, Args...> {};
+    struct FunctionInfo<ResultType (Class::*)(Args...) const> : detail::FunctionInfoImpl<ResultType, detail::FunctionFlag_IsConst, Args...> {};
 
     /**
      * @brief Class volatile-member function overload
@@ -169,7 +183,7 @@ namespace SuperiorMySqlpp
      * @tparam Args function arguments
      */
     template<typename Class, typename ResultType, typename... Args>
-    struct FunctionInfo<ResultType (Class::*)(Args...) volatile> : detail::FunctionInfoImpl<ResultType, std::false_type, std::true_type, Args...> {};
+    struct FunctionInfo<ResultType (Class::*)(Args...) volatile> : detail::FunctionInfoImpl<ResultType, detail::FunctionFlag_IsVolatile, Args...> {};
 
     /**
      * @brief Class const-volatile-member function overload
@@ -179,7 +193,87 @@ namespace SuperiorMySqlpp
      * @tparam Args function arguments
      */
     template<typename Class, typename ResultType, typename... Args>
-    struct FunctionInfo<ResultType (Class::*)(Args...) const volatile> : detail::FunctionInfoImpl<ResultType, std::true_type, std::true_type, Args...> {};
+    struct FunctionInfo<ResultType (Class::*)(Args...) const volatile> : detail::FunctionInfoImpl<ResultType, detail::FunctionFlag_IsConst | detail::FunctionFlag_IsVolatile, Args...> {};
+
+    /**
+     * @brief Class member lvalue-ref-context function overload
+     * 
+     * @tparam Class Class of member
+     * @tparam ResultType type returned by function
+     * @tparam Args function arguments
+     */
+    template<typename Class, typename ResultType, typename... Args>
+    struct FunctionInfo<ResultType (Class::*)(Args...) &> : detail::FunctionInfoImpl<ResultType, detail::FunctionFlag_IsLvalueRefCtx, Args...> {};
+
+    /**
+     * @brief Class const-member lvalue-ref-context function overload
+     * 
+     * @tparam Class Class of member
+     * @tparam ResultType type returned by function
+     * @tparam Args function arguments
+     */
+    template<typename Class, typename ResultType, typename... Args>
+    struct FunctionInfo<ResultType (Class::*)(Args...) const &> : detail::FunctionInfoImpl<ResultType, detail::FunctionFlag_IsConst | detail::FunctionFlag_IsLvalueRefCtx, Args...> {};
+
+    /**
+     * @brief Class volatile-member lvalue-ref-context function overload
+     * 
+     * @tparam Class Class of member
+     * @tparam ResultType type returned by function
+     * @tparam Args function arguments
+     */
+    template<typename Class, typename ResultType, typename... Args>
+    struct FunctionInfo<ResultType (Class::*)(Args...) volatile &> : detail::FunctionInfoImpl<ResultType, detail::FunctionFlag_IsVolatile | detail::FunctionFlag_IsLvalueRefCtx, Args...> {};
+
+    /**
+     * @brief Class const-volatile-member lvalue-ref-context function overload
+     * 
+     * @tparam Class Class of member
+     * @tparam ResultType type returned by function
+     * @tparam Args function arguments
+     */
+    template<typename Class, typename ResultType, typename... Args>
+    struct FunctionInfo<ResultType (Class::*)(Args...) const volatile &> : detail::FunctionInfoImpl<ResultType, detail::FunctionFlag_IsConst | detail::FunctionFlag_IsVolatile | detail::FunctionFlag_IsLvalueRefCtx, Args...> {};
+
+    /**
+     * @brief Class member rvalue-ref-context function overload
+     * 
+     * @tparam Class Class of member
+     * @tparam ResultType type returned by function
+     * @tparam Args function arguments
+     */
+    template<typename Class, typename ResultType, typename... Args>
+    struct FunctionInfo<ResultType (Class::*)(Args...) &&> : detail::FunctionInfoImpl<ResultType, detail::FunctionFlag_IsRvalueRefCtx, Args...> {};
+
+    /**
+     * @brief Class const-member rvalue-ref-context function overload
+     * 
+     * @tparam Class Class of member
+     * @tparam ResultType type returned by function
+     * @tparam Args function arguments
+     */
+    template<typename Class, typename ResultType, typename... Args>
+    struct FunctionInfo<ResultType (Class::*)(Args...) const &&> : detail::FunctionInfoImpl<ResultType, detail::FunctionFlag_IsConst | detail::FunctionFlag_IsRvalueRefCtx, Args...> {};
+
+    /**
+     * @brief Class volatile-member rvalue-ref-context function overload
+     * 
+     * @tparam Class Class of member
+     * @tparam ResultType type returned by function
+     * @tparam Args function arguments
+     */
+    template<typename Class, typename ResultType, typename... Args>
+    struct FunctionInfo<ResultType (Class::*)(Args...) volatile &&> : detail::FunctionInfoImpl<ResultType, detail::FunctionFlag_IsVolatile | detail::FunctionFlag_IsRvalueRefCtx, Args...> {};
+
+    /**
+     * @brief Class const-volatile-member rvalue-ref-context function overload
+     * 
+     * @tparam Class Class of member
+     * @tparam ResultType type returned by function
+     * @tparam Args function arguments
+     */
+    template<typename Class, typename ResultType, typename... Args>
+    struct FunctionInfo<ResultType (Class::*)(Args...) const volatile &&> : detail::FunctionInfoImpl<ResultType, detail::FunctionFlag_IsConst | detail::FunctionFlag_IsVolatile | detail::FunctionFlag_IsRvalueRefCtx, Args...> {};
 
     /**
      * @brief Lambda overload (by decaying its type to class member function)

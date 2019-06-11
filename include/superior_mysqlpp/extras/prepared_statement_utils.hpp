@@ -56,46 +56,35 @@ namespace SuperiorMySqlpp
                 typename FunctionInfo<ParamCallable>::raw_arguments
             >::template generate<storeResult, validateMode, warnMode, ignoreNullable>(connection, query);
         }
-    }
 
-    /**
-     * @brief Executes query, reads input data and passes them row by row to callback function
-     * @param ps Prepared statement object (only static statements are currently supported)
-     * @param processingFunction function to be invoked on every row
-     *                           Its parameters must correspond with result columns (their types and count)
-     */
-    template<typename PreparedStatementType, typename Callable, typename = typename std::enable_if<std::is_base_of<detail::StatementBase, std::remove_reference_t<PreparedStatementType>>::value>::type>
-    void psReadQuery(PreparedStatementType &&ps, Callable &&processingFunction)
-    {
-        ps.execute();
-        while (ps.fetch())
+        /**
+         * @brief Reads one and only one row from your own prepared statement into variables
+         * @param ps Prepared statement object (only static statements are currently supported)
+         * @param values References to variables to be loaded from query
+         *               Their type must be compatible with query result types
+         * @throws UnexpectedRowCountError if number of results is not exactly 1
+         */
+        template<typename PreparedStatementType, typename... Args, typename = typename std::enable_if<std::is_base_of<detail::StatementBase, std::remove_reference_t<PreparedStatementType>>::value>::type>
+        void psReadValuesImpl(PreparedStatementType &&ps, Args&... values)
         {
-            invokeViaTuple(processingFunction, ps.getResult());
+            ps.execute();
+
+            if (ps.getRowsCount() != 1 || !ps.fetch())
+            {
+                throw UnexpectedRowCountError("psReadValues() expected exactly one row, got " + std::to_string(ps.getRowsCount()) + " rows", ps.getRowsCount());
+            }
+
+            std::tuple<Args&...>(values...) = ps.getResult();
         }
     }
 
-    /**
-     * @brief Builds prepared statement from query string and invokes psReadQuery(ps, processingFunction)
-     * @param query Query to be executed (in most cases there will be selections)
-     * @param connection Connection handle into database
-     * @param processingFunction function to be invoked on every row
-     *                           Its parameters must correspond with result columns (their types and count)
-     * @tparam storeResult Boolean indicating if results will be in `store` or `use` mode
-     * @tparam validateMode Indicates validate mode level
-     * @tparam warnMode Indicates warning mode level
-     * @tparam ignoreNullable Disables null type checking
-     */
-    template<bool storeResult=detail::PreparedStatementsDefault::getStoreResult(),
-             ValidateMetadataMode validateMode=detail::PreparedStatementsDefault::getValidateMode(),
-             ValidateMetadataMode warnMode=detail::PreparedStatementsDefault::getWarnMode(),
-             bool ignoreNullable=detail::PreparedStatementsDefault::getIgnoreNullable(),
-             typename Callable,
-             typename ConnType>
-    void psReadQuery(const std::string &query, ConnType &&connection, Callable &&processingFunction)
+    struct NoCallback
     {
-        auto ps = detail::generatePreparedStatement<storeResult, validateMode, warnMode, ignoreNullable>(connection, query, processingFunction, [](){});
-        psReadQuery(ps, processingFunction);
-    }
+        inline constexpr bool operator()()
+        {
+            return false;
+        }
+    };
 
     /**
      * @brief Builds prepared statement from query string and constructs prepared stament with updatable arguments
@@ -118,22 +107,73 @@ namespace SuperiorMySqlpp
              typename ConnType>
     void psQuery(const std::string &query, ConnType &&connection, ParamCallable &&paramsSetter, ResultCallable &&processingFunction)
     {
+        static constexpr bool NoParamCallback = std::is_same<ParamCallable, NoCallback>::value;
+        static constexpr bool NoResultCallback = std::is_same<ResultCallable, NoCallback>::value;
+
         auto ps = detail::generatePreparedStatement<storeResult, validateMode, warnMode, ignoreNullable>(connection, query, processingFunction, paramsSetter);
 
-        while (invokeViaTuple(paramsSetter, ps.getParams()))
-        {
-            ps.updateParamsBindings();
+        do {
+            if (!NoParamCallback)
+            {
+                if (!invokeViaTuple(paramsSetter, ps.getParams()))
+                {
+                    break;
+                }
+                ps.updateParamsBindings();
+            }
+
             ps.execute();
 
-            while (ps.fetch())
+            if (!NoResultCallback)
             {
-                invokeViaTuple(processingFunction, ps.getResult());
+                while (ps.fetch())
+                {
+                    invokeViaTuple(processingFunction, ps.getResult());
+                }
             }
+        } while (!NoParamCallback);
+    }
+
+    /**
+     * @brief Executes query, reads input data and passes them row by row to callback function
+     * @param ps Prepared statement object (only static statements are currently supported)
+     * @param processingFunction function to be invoked on every row
+     *                           Its parameters must correspond with result columns (their types and count)
+     */
+    template<typename PreparedStatementType, typename Callable, typename = typename std::enable_if<std::is_base_of<detail::StatementBase, std::remove_reference_t<PreparedStatementType>>::value>::type>
+    [[deprecated("psReadQuery with already-created prepared statement is deprecated")]] void psReadQuery(PreparedStatementType &&ps, Callable &&processingFunction)
+    {
+        ps.execute();
+        while (ps.fetch())
+        {
+            invokeViaTuple(processingFunction, ps.getResult());
         }
     }
 
     /**
-     * @brief Builds prepared statement from query string and constructs prepared stament with updatable arguments
+     * @brief Helper function invoking psQuery without params setter
+     * @param query Query to be executed (in most cases there will be selections)
+     * @param connection Connection handle into database
+     * @param processingFunction function to be invoked on every row
+     *                           Its parameters must correspond with result columns (their types and count)
+     * @tparam storeResult Boolean indicating if results will be in `store` or `use` mode
+     * @tparam validateMode Indicates validate mode level
+     * @tparam warnMode Indicates warning mode level
+     * @tparam ignoreNullable Disables null type checking
+     */
+    template<bool storeResult=detail::PreparedStatementsDefault::getStoreResult(),
+             ValidateMetadataMode validateMode=detail::PreparedStatementsDefault::getValidateMode(),
+             ValidateMetadataMode warnMode=detail::PreparedStatementsDefault::getWarnMode(),
+             bool ignoreNullable=detail::PreparedStatementsDefault::getIgnoreNullable(),
+             typename Callable,
+             typename ConnType>
+    void psReadQuery(const std::string &query, ConnType &&connection, Callable &&processingFunction)
+    {
+        psQuery(query, connection, NoCallback {}, processingFunction);
+    }
+
+    /**
+     * @brief Helper function invoking psQuery without processing function
      * @param query Query to be executed (in most cases there will be selections)
      * @param connection Connection handle into database
      * @param paramsSetter function setting statement's parameters, returning bool if input data are available
@@ -146,17 +186,11 @@ namespace SuperiorMySqlpp
              ValidateMetadataMode validateMode=detail::PreparedStatementsDefault::getValidateMode(),
              ValidateMetadataMode warnMode=detail::PreparedStatementsDefault::getWarnMode(),
              bool ignoreNullable=detail::PreparedStatementsDefault::getIgnoreNullable(),
-             typename ParamCallable,
+             typename Callable,
              typename ConnType>
-    void psQuery(const std::string &query, ConnType &&connection, ParamCallable &&paramsSetter)
+    void psParamQuery(const std::string &query, ConnType &&connection, Callable &&paramsSetter)
     {
-        auto ps = detail::generatePreparedStatement<storeResult, validateMode, warnMode, ignoreNullable>(connection, query, [](){}, paramsSetter);
-
-        while (invokeViaTuple(paramsSetter, ps.getParams()))
-        {
-            ps.updateParamsBindings();
-            ps.execute();
-        }
+        psQuery(query, connection, paramsSetter, NoCallback {});
     }
 
     /**
@@ -167,16 +201,9 @@ namespace SuperiorMySqlpp
      * @throws UnexpectedRowCountError if number of results is not exactly 1
      */
     template<typename PreparedStatementType, typename... Args, typename = typename std::enable_if<std::is_base_of<detail::StatementBase, std::remove_reference_t<PreparedStatementType>>::value>::type>
-    void psReadValues(PreparedStatementType &&ps, Args&... values)
+    [[deprecated("psReadValues with already-created prepared statement is deprecated")]] void psReadValues(PreparedStatementType &&ps, Args&... values)
     {
-        ps.execute();
-
-        if (ps.getRowsCount() != 1 || !ps.fetch())
-        {
-            throw UnexpectedRowCountError("psReadValues() expected exactly one row, got " + std::to_string(ps.getRowsCount()) + " rows", ps.getRowsCount());
-        }
-
-        std::tuple<Args&...>(values...) = ps.getResult();
+        detail::psReadValuesImpl(ps, values...);
     }
 
     /**
@@ -198,7 +225,7 @@ namespace SuperiorMySqlpp
              typename ConnType>
     void psReadValues(const std::string &query, ConnType &&connection, Args&... values)
     {
-        psReadValues(connection.template makePreparedStatement<ResultBindings<Args...>, storeResult, validateMode, warnMode, ignoreNullable>(query), values...);
+        detail::psReadValuesImpl(connection.template makePreparedStatement<ResultBindings<Args...>, storeResult, validateMode, warnMode, ignoreNullable>(query), values...);
     }
 }
 
