@@ -50,10 +50,10 @@ namespace SuperiorMySqlpp
         template <bool storeResult, ValidateMetadataMode validateMode, ValidateMetadataMode warnMode, bool ignoreNullable, typename ResultCallable, typename ParamCallable>
         auto generatePreparedStatement(Connection &connection, const std::string &query, ResultCallable &&, ParamCallable &&)
         {
-            static_assert(FunctionInfo<ParamCallable>::arguments_are_lvalue_references::value, "Arguments must be lvalue references");
+            static_assert(FunctionInfo<ParamCallable>::template transform_args<AreArgumentsLvalueRefs>::value, "Arguments must be lvalue references");
             return ToPreparedStatement<
-                typename FunctionInfo<ResultCallable>::raw_arguments,
-                typename FunctionInfo<ParamCallable>::raw_arguments
+                typename FunctionInfo<ResultCallable>::template transform_args<RemoveCVRefArgs>::type,
+                typename FunctionInfo<ParamCallable>::template transform_args<RemoveCVRefArgs>::type
             >::template generate<storeResult, validateMode, warnMode, ignoreNullable>(connection, query);
         }
 
@@ -78,7 +78,7 @@ namespace SuperiorMySqlpp
         }
     }
 
-    struct NoCallback
+    struct EmptyParamCallback
     {
         inline constexpr bool operator()()
         {
@@ -107,8 +107,8 @@ namespace SuperiorMySqlpp
              typename ConnType>
     void psQuery(const std::string &query, ConnType &&connection, ParamCallable &&paramsSetter, ResultCallable &&processingFunction)
     {
-        static constexpr bool NoParamCallback = std::is_same<ParamCallable, NoCallback>::value;
-        static constexpr bool NoResultCallback = std::is_same<ResultCallable, NoCallback>::value;
+        static constexpr bool NoParamCallback = std::is_same<ParamCallable, EmptyParamCallback>::value;
+        static constexpr bool NoResultCallback = std::is_same<ResultCallable, EmptyParamCallback>::value;
 
         auto ps = detail::generatePreparedStatement<storeResult, validateMode, warnMode, ignoreNullable>(connection, query, processingFunction, paramsSetter);
 
@@ -167,9 +167,31 @@ namespace SuperiorMySqlpp
              bool ignoreNullable=detail::PreparedStatementsDefault::getIgnoreNullable(),
              typename Callable,
              typename ConnType>
-    void psReadQuery(const std::string &query, ConnType &&connection, Callable &&processingFunction)
+    [[deprecated("psReadQuery is deprecated, use psResultQuery")]] void psReadQuery(const std::string &query, ConnType &&connection, Callable &&processingFunction)
     {
-        psQuery(query, connection, NoCallback {}, processingFunction);
+        psQuery(query, connection, EmptyParamCallback {}, processingFunction);
+    }
+
+    /**
+     * @brief Helper function invoking psQuery without params setter
+     * @param query Query to be executed (in most cases there will be selections)
+     * @param connection Connection handle into database
+     * @param processingFunction function to be invoked on every row
+     *                           Its parameters must correspond with result columns (their types and count)
+     * @tparam storeResult Boolean indicating if results will be in `store` or `use` mode
+     * @tparam validateMode Indicates validate mode level
+     * @tparam warnMode Indicates warning mode level
+     * @tparam ignoreNullable Disables null type checking
+     */
+    template<bool storeResult=detail::PreparedStatementsDefault::getStoreResult(),
+             ValidateMetadataMode validateMode=detail::PreparedStatementsDefault::getValidateMode(),
+             ValidateMetadataMode warnMode=detail::PreparedStatementsDefault::getWarnMode(),
+             bool ignoreNullable=detail::PreparedStatementsDefault::getIgnoreNullable(),
+             typename Callable,
+             typename ConnType>
+    void psResultQuery(const std::string &query, ConnType &&connection, Callable &&processingFunction)
+    {
+        psQuery(query, connection, EmptyParamCallback {}, processingFunction);
     }
 
     /**
@@ -190,7 +212,7 @@ namespace SuperiorMySqlpp
              typename ConnType>
     void psParamQuery(const std::string &query, ConnType &&connection, Callable &&paramsSetter)
     {
-        psQuery(query, connection, paramsSetter, NoCallback {});
+        psQuery(query, connection, paramsSetter, EmptyParamCallback {});
     }
 
     /**

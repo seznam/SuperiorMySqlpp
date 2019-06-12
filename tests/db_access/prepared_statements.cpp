@@ -602,8 +602,8 @@ go_bandit([](){
             );
         });
 
-        it("can work with psReadQuery (valid types, passing query string)", [&](){
-            psReadQuery("SELECT `id`, `blob`, `binary`, `varbinary` FROM `test_superior_sqlpp`.`binary_data` ORDER BY `id` LIMIT 1",
+        it("can work with psResultQuery (valid types, passing query string)", [&](){
+            psResultQuery("SELECT `id`, `blob`, `binary`, `varbinary` FROM `test_superior_sqlpp`.`binary_data` ORDER BY `id` LIMIT 1",
               connection, [&](int id, const BlobData &blob, const BlobData &binary, const BlobData &varbinary) {
                 AssertThat(id, Equals(42));
                 AssertThat(blob.size(), Equals(5u));
@@ -615,14 +615,14 @@ go_bandit([](){
             });
         });
 
-        it("can work with prepared statement helper functions - psReadQuery (invalid data types)", [&](){
-            AssertThrows(PreparedStatementTypeError, psReadQuery("SELECT `id`, `blob`, `binary`, `varbinary` FROM `test_superior_sqlpp`.`binary_data` ORDER BY `id` LIMIT 1",
+        it("can work with prepared statement helper functions - psResultQuery (invalid data types)", [&](){
+            AssertThrows(PreparedStatementTypeError, psResultQuery("SELECT `id`, `blob`, `binary`, `varbinary` FROM `test_superior_sqlpp`.`binary_data` ORDER BY `id` LIMIT 1",
                 connection, [&](int , int, const BlobData &, const BlobData &) {}));
         });
 
         it("can work with psQuery helper function", [&](){
             // Pretend that this is some kind of container on the function's input
-            std::array<int, 4> foreignKeys = { 1, 2, 3, 4 };
+            std::array<int, 4> foreignKeys = {{ 1, 2, 3, 4 }};
 
             std::array<std::vector<int>, 4> ids;
 

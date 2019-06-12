@@ -79,22 +79,6 @@ namespace SuperiorMySqlpp
     namespace detail
     {
         /**
-         * Detects, if all template parameters are references
-         * 
-         * @tparam Args... Types to be checked
-         */
-        template<typename... Args>
-        struct are_arguments_lrefs : std::false_type {};
-
-        /**
-         * Detects, if all template parameters are references
-         *
-         * @tparam Args... Types to be checked
-         */
-        template<typename... Args>
-        struct are_arguments_lrefs<Args&...> : std::true_type {};
-
-        /**
          * Function information flags
          */
         enum : uint64_t
@@ -122,11 +106,38 @@ namespace SuperiorMySqlpp
             using is_lvalue_ctx = std::integral_constant<bool, (Flags & FunctionFlag_IsLvalueRefCtx) != 0>;
             using is_rvalue_ctx = std::integral_constant<bool, (Flags & FunctionFlag_IsRvalueRefCtx) != 0>;
             using arguments     = std::tuple<Args...>;
-            using raw_arguments = std::tuple<std::remove_cv_t<std::remove_reference_t<Args>>...>;
 
-            using arguments_are_lvalue_references = are_arguments_lrefs<Args...>;
+            template<template<typename...> class Trait>
+            using transform_args = Trait<Args...>;
         };
     }
+
+    /**
+     * Detects, if all template parameters are references
+     * 
+     * @tparam Args... Types to be checked
+     */
+    template<typename... Args>
+    struct AreArgumentsLvalueRefs : std::false_type {};
+
+    /**
+     * Detects, if all template parameters are references
+     *
+     * @tparam Args... Types to be checked
+     */
+    template<typename... Args>
+    struct AreArgumentsLvalueRefs<Args&...> : std::true_type {};
+
+    /**
+     * Removes any const/volatile/reference from Args
+     * 
+     * @tparam Args... Types to be checked
+     */
+    template<typename... Args>
+    struct RemoveCVRefArgs
+    {
+        using type = std::tuple<std::remove_cv_t<std::remove_reference_t<Args>>...>;
+    };
 
     /**
      * Type trait providing metadata about functions.
