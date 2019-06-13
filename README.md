@@ -265,7 +265,7 @@ while (preparedStatement.fetch())
 
 Invokes psQuery with param setter only.
 ```c++
-psResultQuery("INSERT INTO ... (col1, col2, ...) VALUES (?, ?, ...)", connection, [&](T1 &col1, T2& col2, ...) -> bool {
+psParamQuery("INSERT INTO ... (col1, col2, ...) VALUES (?, ?, ...)", connection, [&](T1 &col1, T2& col2, ...) -> bool {
     col1 = ...;
     col2 = ...;
     return true; // Or false, if we want to stop
