@@ -19,13 +19,14 @@ namespace SuperiorMySqlpp
         /**
          * Mapping of native C++ types to fitting MySQL field type.
          * @return FieldType enumeration of matching type.
-         * @remark This code is not completely portable - SQL types have exact size, C++ ones are architecture dependent.
+         * @remark Mapping between MySql and C types is based on specifications from underlying library
+         *         at https://dev.mysql.com/doc/refman/5.7/en/c-api-prepared-statement-type-codes.html
          */
         template<typename T>
         inline constexpr FieldTypes getBindingType() = delete;
 
         /**
-         * @remark Specialization for signed char, see generic version.
+         * @overload
          */
         template<>
         inline constexpr FieldTypes getBindingType<signed char>()
@@ -34,7 +35,7 @@ namespace SuperiorMySqlpp
         }
 
         /**
-         * @remark Specialization for short, see generic version.
+         * @overload
          */
         template<>
         inline constexpr FieldTypes getBindingType<short int>()
@@ -43,7 +44,7 @@ namespace SuperiorMySqlpp
         }
 
         /**
-         * @remark Specialization for int, see generic version.
+         * @overload
          */
         template<>
         inline constexpr FieldTypes getBindingType<int>()
@@ -52,16 +53,18 @@ namespace SuperiorMySqlpp
         }
 
         /**
-         * @remark Specialization for long int, see generic version.
+         * @overload
          */
         template<>
         inline constexpr FieldTypes getBindingType<long int>()
         {
+            static_assert(sizeof(long int) == sizeof(long long int),
+                "Underlying library doesn't specify what MySql type represent C type ==long int==. Let's assume it's identical to ==long long int==.");
             return FieldTypes::LongLong;
         }
 
         /**
-         * @remark Specialization for long long, see generic version.
+         * @overload
          */
         template<>
         inline constexpr FieldTypes getBindingType<long long int>()
@@ -70,7 +73,7 @@ namespace SuperiorMySqlpp
         }
 
         /**
-         * @remark Specialization for float, see generic version.
+         * @overload
          */
         template<>
         inline constexpr FieldTypes getBindingType<float>()
@@ -79,7 +82,7 @@ namespace SuperiorMySqlpp
         }
 
         /**
-         * @remark Specialization for double, see generic version.
+         * @overload
          */
         template<>
         inline constexpr FieldTypes getBindingType<double>()

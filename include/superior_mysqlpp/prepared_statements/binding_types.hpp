@@ -13,6 +13,11 @@ namespace SuperiorMySqlpp
 {
     namespace detail
     {
+        /**
+         * Enumeration of various kinds of bindings.
+         * Integral and floating types are ommited, those types
+         * are referred to by appropriate primitive C type instead.
+         */
         enum class BindingTypes
         {
             Nullable,
