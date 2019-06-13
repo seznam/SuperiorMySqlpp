@@ -88,7 +88,7 @@ namespace SuperiorMySqlpp
 
     struct EmptyResultCallback
     {
-        inline constexpr void operator()(){}
+        inline void operator()(){}
     };
 
     /**
