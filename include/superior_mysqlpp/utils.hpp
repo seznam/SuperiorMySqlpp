@@ -85,8 +85,8 @@ namespace SuperiorMySqlpp
         {
             FunctionFlag_IsConst = 1ULL << 0ULL,
             FunctionFlag_IsVolatile = 1ULL << 1ULL,
-            FunctionFlag_IsLvalueRefCtx = 1ULL << 3ULL,
-            FunctionFlag_IsRvalueRefCtx = 1ULL << 4ULL
+            FunctionFlag_ThisIsLvalueRef = 1ULL << 3ULL,
+            FunctionFlag_ThisIsRvalueRef = 1ULL << 4ULL
         };
 
         /**
@@ -103,8 +103,8 @@ namespace SuperiorMySqlpp
             using result_type   = ResultType;
             using is_const      = std::integral_constant<bool, (Flags & FunctionFlag_IsConst) != 0>;
             using is_volatile   = std::integral_constant<bool, (Flags & FunctionFlag_IsVolatile) != 0>;
-            using is_lvalue_ctx = std::integral_constant<bool, (Flags & FunctionFlag_IsLvalueRefCtx) != 0>;
-            using is_rvalue_ctx = std::integral_constant<bool, (Flags & FunctionFlag_IsRvalueRefCtx) != 0>;
+            using is_lvalue_ctx = std::integral_constant<bool, (Flags & FunctionFlag_ThisIsLvalueRef) != 0>;
+            using is_rvalue_ctx = std::integral_constant<bool, (Flags & FunctionFlag_ThisIsRvalueRef) != 0>;
             using arguments     = std::tuple<Args...>;
 
             template<template<typename...> class Trait>
@@ -214,7 +214,7 @@ namespace SuperiorMySqlpp
      * @tparam Args function arguments
      */
     template<typename Class, typename ResultType, typename... Args>
-    struct FunctionInfo<ResultType (Class::*)(Args...) &> : detail::FunctionInfoImpl<ResultType, detail::FunctionFlag_IsLvalueRefCtx, Args...> {};
+    struct FunctionInfo<ResultType (Class::*)(Args...) &> : detail::FunctionInfoImpl<ResultType, detail::FunctionFlag_ThisIsLvalueRef, Args...> {};
 
     /**
      * @brief Class const-member lvalue-ref-context function overload
@@ -224,7 +224,7 @@ namespace SuperiorMySqlpp
      * @tparam Args function arguments
      */
     template<typename Class, typename ResultType, typename... Args>
-    struct FunctionInfo<ResultType (Class::*)(Args...) const &> : detail::FunctionInfoImpl<ResultType, detail::FunctionFlag_IsConst | detail::FunctionFlag_IsLvalueRefCtx, Args...> {};
+    struct FunctionInfo<ResultType (Class::*)(Args...) const &> : detail::FunctionInfoImpl<ResultType, detail::FunctionFlag_IsConst | detail::FunctionFlag_ThisIsLvalueRef, Args...> {};
 
     /**
      * @brief Class volatile-member lvalue-ref-context function overload
@@ -234,7 +234,7 @@ namespace SuperiorMySqlpp
      * @tparam Args function arguments
      */
     template<typename Class, typename ResultType, typename... Args>
-    struct FunctionInfo<ResultType (Class::*)(Args...) volatile &> : detail::FunctionInfoImpl<ResultType, detail::FunctionFlag_IsVolatile | detail::FunctionFlag_IsLvalueRefCtx, Args...> {};
+    struct FunctionInfo<ResultType (Class::*)(Args...) volatile &> : detail::FunctionInfoImpl<ResultType, detail::FunctionFlag_IsVolatile | detail::FunctionFlag_ThisIsLvalueRef, Args...> {};
 
     /**
      * @brief Class const-volatile-member lvalue-ref-context function overload
@@ -244,7 +244,7 @@ namespace SuperiorMySqlpp
      * @tparam Args function arguments
      */
     template<typename Class, typename ResultType, typename... Args>
-    struct FunctionInfo<ResultType (Class::*)(Args...) const volatile &> : detail::FunctionInfoImpl<ResultType, detail::FunctionFlag_IsConst | detail::FunctionFlag_IsVolatile | detail::FunctionFlag_IsLvalueRefCtx, Args...> {};
+    struct FunctionInfo<ResultType (Class::*)(Args...) const volatile &> : detail::FunctionInfoImpl<ResultType, detail::FunctionFlag_IsConst | detail::FunctionFlag_IsVolatile | detail::FunctionFlag_ThisIsLvalueRef, Args...> {};
 
     /**
      * @brief Class member rvalue-ref-context function overload
@@ -254,7 +254,7 @@ namespace SuperiorMySqlpp
      * @tparam Args function arguments
      */
     template<typename Class, typename ResultType, typename... Args>
-    struct FunctionInfo<ResultType (Class::*)(Args...) &&> : detail::FunctionInfoImpl<ResultType, detail::FunctionFlag_IsRvalueRefCtx, Args...> {};
+    struct FunctionInfo<ResultType (Class::*)(Args...) &&> : detail::FunctionInfoImpl<ResultType, detail::FunctionFlag_ThisIsRvalueRef, Args...> {};
 
     /**
      * @brief Class const-member rvalue-ref-context function overload
@@ -264,7 +264,7 @@ namespace SuperiorMySqlpp
      * @tparam Args function arguments
      */
     template<typename Class, typename ResultType, typename... Args>
-    struct FunctionInfo<ResultType (Class::*)(Args...) const &&> : detail::FunctionInfoImpl<ResultType, detail::FunctionFlag_IsConst | detail::FunctionFlag_IsRvalueRefCtx, Args...> {};
+    struct FunctionInfo<ResultType (Class::*)(Args...) const &&> : detail::FunctionInfoImpl<ResultType, detail::FunctionFlag_IsConst | detail::FunctionFlag_ThisIsRvalueRef, Args...> {};
 
     /**
      * @brief Class volatile-member rvalue-ref-context function overload
@@ -274,7 +274,7 @@ namespace SuperiorMySqlpp
      * @tparam Args function arguments
      */
     template<typename Class, typename ResultType, typename... Args>
-    struct FunctionInfo<ResultType (Class::*)(Args...) volatile &&> : detail::FunctionInfoImpl<ResultType, detail::FunctionFlag_IsVolatile | detail::FunctionFlag_IsRvalueRefCtx, Args...> {};
+    struct FunctionInfo<ResultType (Class::*)(Args...) volatile &&> : detail::FunctionInfoImpl<ResultType, detail::FunctionFlag_IsVolatile | detail::FunctionFlag_ThisIsRvalueRef, Args...> {};
 
     /**
      * @brief Class const-volatile-member rvalue-ref-context function overload
@@ -284,7 +284,7 @@ namespace SuperiorMySqlpp
      * @tparam Args function arguments
      */
     template<typename Class, typename ResultType, typename... Args>
-    struct FunctionInfo<ResultType (Class::*)(Args...) const volatile &&> : detail::FunctionInfoImpl<ResultType, detail::FunctionFlag_IsConst | detail::FunctionFlag_IsVolatile | detail::FunctionFlag_IsRvalueRefCtx, Args...> {};
+    struct FunctionInfo<ResultType (Class::*)(Args...) const volatile &&> : detail::FunctionInfoImpl<ResultType, detail::FunctionFlag_IsConst | detail::FunctionFlag_IsVolatile | detail::FunctionFlag_ThisIsRvalueRef, Args...> {};
 
     /**
      * @brief Lambda overload (by decaying its type to class member function)
