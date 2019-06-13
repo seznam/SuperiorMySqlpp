@@ -261,23 +261,28 @@ while (preparedStatement.fetch())
 ```
 
 ### Convenience read functions
-**psReadQuery**
+**psParamQuery**
+
+Invokes psQuery with param setter only.
 ```c++
-auto preparedStatement = connection.makePreparedStatement<ResultBindings<Sql::Int, Sql::Int>("SELECT ... FROM ...");
-psReadQuery(preparedStatement, <Callable>);
+psParamQuery("INSERT INTO ... (col1, col2, ...) VALUES (?, ?, ...)", connection, [&](T1 &col1, T2& col2, ...) -> bool {
+    col1 = ...;
+    col2 = ...;
+    return true; // Or false, if we want to stop
+});
 ```
-or
+**psResultQuery**
 ```c++
-psReadQuery("SELECT ... FROM ...", connection, <Callable>);
+psResultQuery("SELECT ... FROM ...", connection, <Callable>);
 ```
 Where callable can be C function, lambda, or member function, however in the last case you need to use
 wrapper, for example wrapMember function (located in *superior_mysqlpp/extras/member_wrapper.hpp*).
 ```c++
-psReadQuery(..., [&](int arg1, int arg2){});
+psResultQuery("SELECT ... FROM ...", connection, [&](int arg1, int arg2){});
 ```
 ```c++
 void processRow(int arg1, int arg2) {}
-psReadQuery(..., &processRow);
+psResultQuery("SELECT ... FROM ...", connection, &processRow);
 ```
 ```c++
 class ProcessingClass {
@@ -286,7 +291,7 @@ public:
 };
 
 ProcessingClass pc;
-psReadQuery(..., wrapMember(&pc, &ProcessingClass::processRow));
+psResultQuery("SELECT ... FROM ...", connection, wrapMember(&pc, &ProcessingClass::processRow));
 ```
 This method doesn't throw exceptions, however query execution and row fetching can still fail,
 resulting in exception.
@@ -305,6 +310,23 @@ psReadValues("SELECT ... FROM ...", connection, arg1, arg2);
 ```
 Note: This function is made only for reading single row. In case you are reading more than one row,
 an *UnexpectedRowCountError* exception is thrown.
+
+**psQuery**
+```c++
+int myData = 0;
+
+psQuery(
+    "SELECT ?",
+    connection,
+    [&](int &value) -> bool {
+        value = myData;
+        return (myData++) < 5; // Return true, if data are set, false otherwise (no more input data available)
+    },
+    [&](int value) {
+        printf("Got value: %d\n", value);
+    }
+)
+```
 
 ## RowStreamAdapter
 Syntactic sugar is provided for extracting values from `Row` using a familiar stream operator.

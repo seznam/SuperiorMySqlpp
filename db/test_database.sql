@@ -132,3 +132,18 @@ INSERT INTO `row`(
     `id`,
     `nullable_value`)
 VALUES (1, 'value'), (2, NULL);
+
+DROP TABLE IF EXISTS `psquery_test`;
+CREATE TABLE `psquery_test` (
+    `id` INT(11) NOT NULL,
+    `f_id` INT(11) NOT NULL
+) ENGINE=INNODB DEFAULT CHARSET=UTF8;
+INSERT INTO `psquery_test` (`id`, `f_id`) VALUES
+    (1, 1),
+    (2, 4),
+    (3, 1),
+    (4, 2),
+    (5, 1),
+    (6, 2),
+    (7, 1),
+    (8, 3);
