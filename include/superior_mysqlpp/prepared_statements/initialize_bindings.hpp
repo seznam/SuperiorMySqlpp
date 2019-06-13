@@ -65,7 +65,7 @@ namespace SuperiorMySqlpp
 
             binding.buffer = &value;
             binding.buffer_type = detail::toMysqlEnum(getBindingType<Signed_t>());
-            binding.is_unsigned = std::is_unsigned<PureType_t>()? true : false;
+            binding.is_unsigned = std::is_unsigned<PureType_t>::value;
         }
 
         /**
