@@ -110,7 +110,7 @@ namespace SuperiorMySqlpp
              typename ResultCallable,
              typename ParamCallable,
              typename ConnType>
-    void psQuery(const std::string &query, ConnType &&connection, ParamCallable &&paramsSetter, ResultCallable &&processingFunction)
+    void psQuery(ConnType &&connection, const std::string &query, ParamCallable &&paramsSetter, ResultCallable &&processingFunction)
     {
         static constexpr bool hasParamCallback = !std::is_same<ParamCallable, EmptyParamCallback>::value;
         static constexpr bool hasResultCallback = !std::is_same<ResultCallable, EmptyResultCallback>::value;
@@ -173,7 +173,7 @@ namespace SuperiorMySqlpp
              typename ConnType>
     [[deprecated("psReadQuery is deprecated, use psResultQuery")]] void psReadQuery(const std::string &query, ConnType &&connection, Callable &&processingFunction)
     {
-        psQuery(query, connection, EmptyParamCallback {}, processingFunction);
+        psQuery(connection, query, EmptyParamCallback {}, processingFunction);
     }
 
     /**
@@ -193,9 +193,9 @@ namespace SuperiorMySqlpp
              bool ignoreNullable=detail::PreparedStatementsDefault::getIgnoreNullable(),
              typename Callable,
              typename ConnType>
-    void psResultQuery(const std::string &query, ConnType &&connection, Callable &&processingFunction)
+    void psResultQuery(ConnType &&connection, const std::string &query, Callable &&processingFunction)
     {
-        psQuery(query, connection, EmptyParamCallback {}, processingFunction);
+        psQuery(connection, query, EmptyParamCallback {}, processingFunction);
     }
 
     /**
@@ -214,9 +214,9 @@ namespace SuperiorMySqlpp
              bool ignoreNullable=detail::PreparedStatementsDefault::getIgnoreNullable(),
              typename Callable,
              typename ConnType>
-    void psParamQuery(const std::string &query, ConnType &&connection, Callable &&paramsSetter)
+    void psParamQuery(ConnType &&connection, const std::string &query, Callable &&paramsSetter)
     {
-        psQuery(query, connection, paramsSetter, EmptyResultCallback {});
+        psQuery(connection, query, paramsSetter, EmptyResultCallback {});
     }
 
     /**

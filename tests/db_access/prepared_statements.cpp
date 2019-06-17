@@ -603,8 +603,8 @@ go_bandit([](){
         });
 
         it("can work with psResultQuery (valid types, passing query string)", [&](){
-            psResultQuery("SELECT `id`, `blob`, `binary`, `varbinary` FROM `test_superior_sqlpp`.`binary_data` ORDER BY `id` LIMIT 1",
-              connection, [&](int id, const BlobData &blob, const BlobData &binary, const BlobData &varbinary) {
+            psResultQuery(connection, "SELECT `id`, `blob`, `binary`, `varbinary` FROM `test_superior_sqlpp`.`binary_data` ORDER BY `id` LIMIT 1",
+              [&](int id, const BlobData &blob, const BlobData &binary, const BlobData &varbinary) {
                 AssertThat(id, Equals(42));
                 AssertThat(blob.size(), Equals(5u));
                 AssertThat(binary.size(), Equals(10u));
@@ -616,8 +616,8 @@ go_bandit([](){
         });
 
         it("can work with prepared statement helper functions - psResultQuery (invalid data types)", [&](){
-            AssertThrows(PreparedStatementTypeError, psResultQuery("SELECT `id`, `blob`, `binary`, `varbinary` FROM `test_superior_sqlpp`.`binary_data` ORDER BY `id` LIMIT 1",
-                connection, [&](int , int, const BlobData &, const BlobData &) {}));
+            AssertThrows(PreparedStatementTypeError, psResultQuery(connection, "SELECT `id`, `blob`, `binary`, `varbinary` FROM `test_superior_sqlpp`.`binary_data` ORDER BY `id` LIMIT 1",
+                [&](int , int, const BlobData &, const BlobData &) {}));
         });
 
         it("can work with psQuery helper function", [&](){
@@ -630,8 +630,8 @@ go_bandit([](){
 
             // Select ids, where foreign key is equal to some value (?)
             psQuery(
-                "SELECT `id`, `f_id` FROM `psquery_test` WHERE `f_id` = ?",
                 connection,
+                "SELECT `id`, `f_id` FROM `psquery_test` WHERE `f_id` = ?",
                 [&](int &f_id) -> bool {
                     if (foreignKeysIterator == std::end(foreignKeys))
                     {
