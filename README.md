@@ -265,7 +265,7 @@ while (preparedStatement.fetch())
 
 Invokes psQuery with param setter only.
 ```c++
-psParamQuery("INSERT INTO ... (col1, col2, ...) VALUES (?, ?, ...)", connection, [&](T1 &col1, T2& col2, ...) -> bool {
+psParamQuery(connection, "INSERT INTO ... (col1, col2, ...) VALUES (?, ?, ...)", [&](T1 &col1, T2& col2, ...) -> bool {
     col1 = ...;
     col2 = ...;
     return true; // Or false, if we want to stop
@@ -273,16 +273,16 @@ psParamQuery("INSERT INTO ... (col1, col2, ...) VALUES (?, ?, ...)", connection,
 ```
 **psResultQuery**
 ```c++
-psResultQuery("SELECT ... FROM ...", connection, <Callable>);
+psResultQuery(connection, "SELECT ... FROM ...", <Callable>);
 ```
 Where callable can be C function, lambda, or member function, however in the last case you need to use
 wrapper, for example wrapMember function (located in *superior_mysqlpp/extras/member_wrapper.hpp*).
 ```c++
-psResultQuery("SELECT ... FROM ...", connection, [&](int arg1, int arg2){});
+psResultQuery(connection, "SELECT ... FROM ...", [&](int arg1, int arg2){});
 ```
 ```c++
 void processRow(int arg1, int arg2) {}
-psResultQuery("SELECT ... FROM ...", connection, &processRow);
+psResultQuery(connection, "SELECT ... FROM ...", &processRow);
 ```
 ```c++
 class ProcessingClass {
@@ -291,7 +291,7 @@ public:
 };
 
 ProcessingClass pc;
-psResultQuery("SELECT ... FROM ...", connection, wrapMember(&pc, &ProcessingClass::processRow));
+psResultQuery(connection, "SELECT ... FROM ...", wrapMember(&pc, &ProcessingClass::processRow));
 ```
 This method doesn't throw exceptions, however query execution and row fetching can still fail,
 resulting in exception.
@@ -316,8 +316,8 @@ an *UnexpectedRowCountError* exception is thrown.
 int myData = 0;
 
 psQuery(
-    "SELECT ?",
     connection,
+    "SELECT ?",
     [&](int &value) -> bool {
         value = myData;
         return (myData++) < 5; // Return true, if data are set, false otherwise (no more input data available)
