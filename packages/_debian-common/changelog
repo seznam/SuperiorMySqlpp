@@ -1,4 +1,4 @@
-libsuperiormysqlpp (0.4.1) UNRELEASED; urgency=medium
+libsuperiormysqlpp (0.5.0) UNRELEASED; urgency=medium
 
   [ Peter Opatril ]
   * refactor: Logging system (DRY)
