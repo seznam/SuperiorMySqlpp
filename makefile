@@ -98,7 +98,7 @@ clean:
 clean-all: clean packages-clean-all
 
 
-deb_packages := debian-stretch debian-jessie
+deb_packages := debian-buster debian-stretch debian-jessie
 rpm_packages := fedora-22
 packages := $(deb_packages) $(rpm_packages)
 
