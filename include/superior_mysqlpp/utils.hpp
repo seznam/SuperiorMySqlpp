@@ -295,4 +295,35 @@ namespace SuperiorMySqlpp
      */
     template<typename T>
     struct FunctionInfo : FunctionInfo<decltype(&std::decay_t<T>::operator())> {};
+
+    /**
+     * @brief Calls function if Evaluate is true
+     *
+     * @tparam Evaluate Flag if Invokable should be invoked
+     * @tparam NoExcept Mark this function as noexcept?
+     */
+    template<bool Evaluate, bool NoExcept>
+    struct AtCompileTime {
+        template<typename Invokable>
+        static inline void invoke(Invokable &&) noexcept(NoExcept)
+        {
+        }
+    };
+
+    /**
+     * @brief Calls function if Evaluate is true
+     *
+     * @tparam Evaluate Flag if Invokable should be invoked
+     * @tparam NoExcept Mark this function as noexcept?
+     *
+     * @overload
+     */
+    template<bool NoExcept>
+    struct AtCompileTime<true, NoExcept> {
+        template<typename Invokable>
+        static inline void invoke(Invokable &&invokable) noexcept(NoExcept)
+        {
+            invokable();
+        }
+    };
 }
