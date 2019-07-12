@@ -58,7 +58,7 @@ namespace Converters
             {
                 static constexpr T base = pow(10UL, length-1);
                 char c = *str;
-                AtCompileTime<validate, !validate>::invoke([c]()
+                AtCompileTime<validate>::invoke([c]()
                 {
                     if (c < '0' || c > '9')
                     {
@@ -92,7 +92,7 @@ namespace Converters
             static inline void call(T& result, const char*& str) noexcept(!validate)
             {
                 char c = *str;
-                AtCompileTime<validate, !validate>::invoke([c]()
+                AtCompileTime<validate>::invoke([c]()
                 {
                     if (c < '0' || c > '9')
                     {

@@ -300,12 +300,11 @@ namespace SuperiorMySqlpp
      * @brief Calls function if Evaluate is true
      *
      * @tparam Evaluate Flag if Invokable should be invoked
-     * @tparam NoExcept Mark this function as noexcept?
      */
-    template<bool Evaluate, bool NoExcept>
+    template<bool Evaluate>
     struct AtCompileTime {
         template<typename Invokable>
-        static inline void invoke(Invokable &&) noexcept(NoExcept)
+        static inline void invoke(Invokable &&) noexcept
         {
         }
     };
@@ -314,14 +313,13 @@ namespace SuperiorMySqlpp
      * @brief Calls function if Evaluate is true
      *
      * @tparam Evaluate Flag if Invokable should be invoked
-     * @tparam NoExcept Mark this function as noexcept?
      *
      * @overload
      */
-    template<bool NoExcept>
-    struct AtCompileTime<true, NoExcept> {
+    template<>
+    struct AtCompileTime<true> {
         template<typename Invokable>
-        static inline void invoke(Invokable &&invokable) noexcept(NoExcept)
+        static inline void invoke(Invokable &&invokable) noexcept(noexcept(std::declval<std::decay_t<Invokable>>()()))
         {
             invokable();
         }
