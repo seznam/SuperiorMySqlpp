@@ -16,6 +16,7 @@
 
 
 using namespace bandit;
+using namespace snowhouse;
 using namespace SuperiorMySqlpp;
 using namespace std::string_literals;
 using namespace std::chrono_literals;

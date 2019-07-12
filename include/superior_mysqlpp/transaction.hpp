@@ -5,6 +5,8 @@
 #pragma once
 
 
+#include <cassert>
+
 #include <superior_mysqlpp/connection_def.hpp>
 #include <superior_mysqlpp/query.hpp>
 #include <superior_mysqlpp/logging.hpp>

@@ -1,4 +1,7 @@
 #pragma once
+
+#include <cassert>
+
 #include <superior_mysqlpp/row.hpp>
 
 

@@ -12,6 +12,7 @@
 
 
 using namespace bandit;
+using namespace snowhouse;
 using namespace SuperiorMySqlpp;
 
 
@@ -228,7 +229,7 @@ go_bandit([](){
             preparedStatement.bindResult(0, id);
             AssertThrows(OutOfRange, preparedStatement.bindResult(1, id));
         });
-        
+
         it("can validate nullable value", [&](){
             int id = 666;
             std::string name{"Diablo"};
@@ -250,7 +251,7 @@ go_bandit([](){
                     );
                 preparedStatement.bindParam(0, id);
                 preparedStatement.updateParamBindings();
-                
+
                 preparedStatement.execute();
 
                 Nullable<Sql::Int> nullable_id;
@@ -260,10 +261,10 @@ go_bandit([](){
                 preparedStatement.updateResultBindings();
 
                 AssertThat(preparedStatement.fetch(), IsTrue());
-                
+
                 AssertThat(nullable_id.isValid(), IsTrue());
                 AssertThat(nullable_id.value(), Equals(id));
-                
+
                 AssertThat(nullable_name.isValid(), IsTrue());
                 AssertThat(nullable_name.value(), Equals(name));
             }

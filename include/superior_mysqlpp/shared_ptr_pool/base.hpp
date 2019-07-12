@@ -13,6 +13,7 @@
 #include <future>
 #include <memory>
 #include <algorithm>
+#include <cassert>
 
 #include <superior_mysqlpp/traits.hpp>
 #include <superior_mysqlpp/logging.hpp>
