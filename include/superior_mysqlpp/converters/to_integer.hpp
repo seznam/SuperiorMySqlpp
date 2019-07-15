@@ -9,6 +9,7 @@
 #include <utility>
 #include <limits>
 #include <stdexcept>
+#include <superior_mysqlpp/utils.hpp>
 
 namespace SuperiorMySqlpp { 
 /**
@@ -57,13 +58,13 @@ namespace Converters
             {
                 static constexpr T base = pow(10UL, length-1);
                 char c = *str;
-                if (validate)
+                CompileTimeIf<validate>::then([c]()
                 {
                     if (c < '0' || c > '9')
                     {
                         throw std::out_of_range("Character is not between 0 and 9!");
                     }
-                }
+                });
                 result += (c - '0') * base;
                 ++str;
                 ToIntegerParserImpl<T, length-1, validate>::call(result, str);
@@ -91,13 +92,13 @@ namespace Converters
             static inline void call(T& result, const char*& str) noexcept(!validate)
             {
                 char c = *str;
-                if (validate)
+                CompileTimeIf<validate>::then([c]()
                 {
                     if (c < '0' || c > '9')
                     {
                         throw std::out_of_range("Character is not between 0 and 9!");
                     }
-                }
+                });
                 result += (c - '0');
                 ++str;
             }
