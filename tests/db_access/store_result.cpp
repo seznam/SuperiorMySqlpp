@@ -12,6 +12,7 @@
 #include "settings.hpp"
 
 using namespace bandit;
+using namespace snowhouse;
 using namespace SuperiorMySqlpp;
 using namespace SuperiorMySqlpp::StringViewLiterals;
 using namespace std::string_literals;

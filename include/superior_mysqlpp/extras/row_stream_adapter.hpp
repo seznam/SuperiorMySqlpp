@@ -1,4 +1,5 @@
 #pragma once
+
 #include <superior_mysqlpp/row.hpp>
 
 
@@ -45,7 +46,6 @@ namespace SuperiorMySqlpp { namespace Extras
         template<typename T>
         RowStreamAdapter& operator>>(T& obj)
         {
-            assert (*this);
             if (!(*first).isNull()) {
                 obj = (*first).to<T>();
             } else {

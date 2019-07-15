@@ -9,6 +9,7 @@
 
 
 using namespace bandit;
+using namespace snowhouse;
 using namespace SuperiorMySqlpp;
 using namespace SuperiorMySqlpp::Traits;
 

@@ -11,6 +11,7 @@
 #include "settings.hpp"
 
 using namespace bandit;
+using namespace snowhouse;
 using namespace SuperiorMySqlpp;
 
 

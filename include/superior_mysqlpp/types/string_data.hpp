@@ -9,7 +9,6 @@
 #include <string>
 #include <utility>
 #include <cstring>
-#include <cassert>
 
 #include <superior_mysqlpp/types/array.hpp>
 #include <superior_mysqlpp/types/string_view.hpp>
