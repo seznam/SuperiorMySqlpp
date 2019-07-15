@@ -1,6 +1,7 @@
 libsuperiormysqlpp (0.5.1) UNRELEASED; urgency=medium
 
-  * 
+  [ Radek Smejdir ]
+  * chore: Update bandit submodule to current HEAD
 
  -- Peter Opatril <petr.opatril@firma.seznam.cz>  Thu, 20 Jun 2019 13:10:51 +0000
 
