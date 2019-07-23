@@ -3,6 +3,9 @@ libsuperiormysqlpp (0.5.1) UNRELEASED; urgency=medium
   [ Radek Smejdir ]
   * chore: Update bandit submodule to current HEAD
 
+  [ Adam Stepan ]
+  * fix: Make `uncaughtExceptions` compilable with libc++
+
  -- Peter Opatril <petr.opatril@firma.seznam.cz>  Thu, 20 Jun 2019 13:10:51 +0000
 
 libsuperiormysqlpp (0.5.0) unstable; urgency=medium
