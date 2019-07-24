@@ -1,4 +1,12 @@
-debian/
+**/debian/*
+!debian/control
+!debian/changelog
+!debian/rules
+!debian/compat
+!debian/libsuperiormysqlpp-dev.install
+!debian/libsuperiormysqlpp.install
+!debian/libsuperiormysqlpp.links
+
 *.deb
 *.changes
 
@@ -11,6 +19,7 @@ debian/
 
 *.d
 *.o
+*.swp
 
 odr_program
 tester
