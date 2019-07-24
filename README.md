@@ -51,6 +51,9 @@ We support several packages to be build by default:
 This can build packages in completely clean environment using docker.
 You might want to lower the `CONCURRENCY` in case you run out of memory.
 ```bash
+make CONCURRENCY=32 package-debian-buster-dbuild
+```
+```bash
 make CONCURRENCY=32 package-debian-stretch-dbuild
 ```
 ```bash
@@ -62,6 +65,9 @@ make CONCURRENCY=32 package-fedora-22-dbuild
 
 ## build
 Classic packaging.
+```bash
+make package-debian-buster-build
+```
 ```bash
 make package-debian-stretch-build
 ```
