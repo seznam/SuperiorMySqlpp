@@ -1,4 +1,4 @@
-libsuperiormysqlpp (0.5.1) UNRELEASED; urgency=medium
+libsuperiormysqlpp (0.5.1) unstable; urgency=medium
 
   [ Radek Smejdir ]
   * chore: Update bandit submodule to current HEAD
@@ -6,7 +6,7 @@ libsuperiormysqlpp (0.5.1) UNRELEASED; urgency=medium
   [ Adam Stepan ]
   * chore: Add support for debian buster
 
- -- Adam Stepan <adam.stepan@firma.seznam.cz>  Wed, 24 Jul 2019 10:43:14 +0200
+ -- Radek Smejdir <radek.smejdir@firma.seznam.cz>  Wed, 24 Jul 2019 14:15:56 +0200
 
 libsuperiormysqlpp (0.5.0) unstable; urgency=medium
 
