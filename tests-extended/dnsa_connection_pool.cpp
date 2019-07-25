@@ -120,14 +120,24 @@ go_bandit([]() {
 
         it("reconnects after dns change", [&]() {
 
+            auto&& standardLogger = DefaultLogger::getLoggerPtr();
+            auto&& silentLogger = std::make_shared<Loggers::Base>();
+
             HostnameGuard hostnameGuard{};
             // set "invalid" ip address, connections cannot be created
             setIpForHostname("1.1.1.1", hostname);
 
             auto settings = getSettingsRef();
+
+            // Silences logging, notably the logSharedPtrPoolResourceCountKeeperAddingResourcesException case
+            DefaultLogger::setLoggerPtr(silentLogger);
+
             auto pool = makeTestPool(settings, hostname);
 
             setupTestPool(pool);
+
+            // Recover conventional logging
+            DefaultLogger::setLoggerPtr(standardLogger);
 
             // check that we cannot create connections
             AssertThat(pool.poolState().available, Equals(0u));

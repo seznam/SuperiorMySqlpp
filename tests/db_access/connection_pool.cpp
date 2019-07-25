@@ -382,6 +382,16 @@ go_bandit([](){
         });
 
         it("can recover from restarting MySQL", [&](){
+            auto&& standardLogger = DefaultLogger::getLoggerPtr();
+            auto&& silentLogger = std::make_shared<Loggers::Base>();
+
+            auto restartServer = [&] {
+                DefaultLogger::setLoggerPtr(silentLogger);
+                restartMySql();
+                waitForMySql();
+                DefaultLogger::setLoggerPtr(standardLogger);
+            };
+
             auto&& connectionPool = makeConnectionPool([&](){
                 return std::async(std::launch::async, [&](){ return std::make_shared<Connection>(s.database, s.user, s.password, s.host, s.port); });
             });
@@ -395,8 +405,7 @@ go_bandit([](){
             AssertThat(connectionPool.get()->tryPing(), IsTrue());
             AssertThat(connectionPool.poolState().size, Equals(1u));
 
-            restartMySql();
-            waitForMySql();
+            restartServer();
 
             AssertThat(connectionPool.poolState().size, Equals(1u));
             backoffSleep(1000ms, 150ms, [&](){
@@ -426,8 +435,7 @@ go_bandit([](){
             AssertThat(connectionPool.get()->tryPing(), IsTrue());
             AssertThat(connectionPool.poolState().size, Equals(1u));
 
-            restartMySql();
-            waitForMySql();
+            restartServer();
 
             AssertThat(connectionPool.poolState().size, Equals(1u));
             backoffSleep(1000ms, [&](){
