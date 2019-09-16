@@ -124,6 +124,24 @@ namespace SuperiorMySqlpp
     }
 
     /**
+     * Returns true if field type uses is_unsigned field
+     */
+    inline bool fieldTypeHasSign(FieldTypes type)
+    {
+        if (type == FieldTypes::Timestamp)
+            return false;
+        return true;
+    }
+
+    /**
+     * Returns true, if both types matches their signedness or given type has no signedness
+     */
+    inline bool fieldSignsMatch(FieldTypes from, bool from_is_unsigned, FieldTypes to, bool to_is_unsigned)
+    {
+        return from_is_unsigned == to_is_unsigned || !(fieldTypeHasSign(from) || fieldTypeHasSign(to));
+    }
+
+    /**
      * @brief Tests whether one argument is convertible to the other
      * Implementation depends on selected validation strategy
      * @params from Input field type.
@@ -145,13 +163,13 @@ namespace SuperiorMySqlpp
     template<>
     inline bool isCompatible<ValidateMetadataMode::Strict>(FieldTypes from, bool from_is_unsigned, FieldTypes to, bool to_is_unsigned)
     {
-        return from==to && from_is_unsigned==to_is_unsigned;
+        return from==to && fieldSignsMatch(from, from_is_unsigned, to, to_is_unsigned);
     }
 
     template<>
     inline bool isCompatible<ValidateMetadataMode::Same>(FieldTypes from, bool from_is_unsigned, FieldTypes to, bool to_is_unsigned)
     {
-        if (from_is_unsigned != to_is_unsigned)
+        if (!fieldSignsMatch(from, from_is_unsigned, to, to_is_unsigned))
         {
             return false;
         }
@@ -169,7 +187,7 @@ namespace SuperiorMySqlpp
     template<>
     inline bool isCompatible<ValidateMetadataMode::ArithmeticPromotions>(FieldTypes from, bool from_is_unsigned, FieldTypes to, bool to_is_unsigned)
     {
-        if (!from_is_unsigned && to_is_unsigned)
+        if (!from_is_unsigned && to_is_unsigned && fieldTypeHasSign(from) && fieldTypeHasSign(to))
         {
             return false;
         }

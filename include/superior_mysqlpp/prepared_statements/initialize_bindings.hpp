@@ -4,7 +4,6 @@
 
 #pragma once
 
-
 #include <superior_mysqlpp/prepared_statements/get_binding_type.hpp>
 #include <superior_mysqlpp/prepared_statements/binding_types.hpp>
 #include <superior_mysqlpp/types/blob_data.hpp>
