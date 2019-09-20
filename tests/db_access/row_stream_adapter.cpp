@@ -2,10 +2,29 @@
 #include <string>
 #include <bandit/bandit.h>
 
+#include <superior_mysqlpp/converters.hpp>
 #include <superior_mysqlpp/extras/row_stream_adapter.hpp>
 #include <superior_mysqlpp.hpp>
 
 #include "settings.hpp"
+
+struct NonDefaultConstructible {
+    int intValue;
+    NonDefaultConstructible(int intValue) : intValue(intValue) {}
+
+    bool operator==(const NonDefaultConstructible &other) const {
+        return intValue == other.intValue;
+    }
+};
+
+namespace SuperiorMySqlpp { namespace Converters {
+    template<typename T>
+    struct To<T, std::enable_if_t<std::is_same<T, NonDefaultConstructible>::value>> {
+        T operator()(const char* str, unsigned int length) {
+            return to<int>(str, length);
+        }
+    };
+}}
 
 
 using namespace bandit;
@@ -46,6 +65,20 @@ go_bandit([](){
             std::string stringValue2 {"number of the beast"};
             rowStreamAdapter >> stringValue2;
             AssertThat(stringValue2, Equals(""));
+
+            Assert::That(static_cast<bool>(rowStreamAdapter));
+            NonDefaultConstructible ndcValue1 {0};
+            rowStreamAdapter >> ndcValue1;
+            AssertThat(ndcValue1, Equals(NonDefaultConstructible{42}));
+
+            Assert::That(static_cast<bool>(rowStreamAdapter));
+            NonDefaultConstructible ndcValue2 {666};
+            AssertThrows(LogicError, (rowStreamAdapter >> ndcValue2));
+
+            Assert::That(static_cast<bool>(rowStreamAdapter));
+            int ndcValue2b {666};
+            rowStreamAdapter >> ndcValue2b;
+            AssertThat(ndcValue2b, Equals(0));
 
             Assert::That(static_cast<bool>(!rowStreamAdapter));
         });

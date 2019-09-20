@@ -1,8 +1,9 @@
 libsuperiormysqlpp (0.6.0) UNRELEASED; urgency=medium
 
   * feat: use converter struct instead of converter function
+  * feat: Support non-default-constructible types with RowStreamAdapter
 
- -- Jan Kriho <jan.kriho@firma.seznam.cz>  Tue, 24 Sep 2019 11:08:31 +0200
+ -- Jan Kriho <jan.kriho@firma.seznam.cz>  Fri, 27 Sep 2019 12:57:13 +0200
 
 libsuperiormysqlpp (0.5.2) unstable; urgency=medium
 
