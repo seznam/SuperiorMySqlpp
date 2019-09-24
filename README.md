@@ -1,8 +1,8 @@
 SuperiorMySQL++
 ====================================================
-[![Build Status](https://travis-ci.org/seznam/SuperiorMySqlpp.svg?branch=master)](https://travis-ci.org/seznam/SuperiorMySqlpp) - master branch  
-[![Build Status](https://travis-ci.org/seznam/SuperiorMySqlpp.svg?branch=devel)](https://travis-ci.org/seznam/SuperiorMySqlpp) - devel branch  
-[![License: LGPL v3](https://img.shields.io/badge/License-LGPL%20v3-blue.svg)](LICENSE)  
+- master branch: [![Build Status](https://travis-ci.org/seznam/SuperiorMySqlpp.svg?branch=master)](https://travis-ci.org/seznam/SuperiorMySqlpp)
+- devel branch: [![Build Status](https://travis-ci.org/seznam/SuperiorMySqlpp.svg?branch=devel)](https://travis-ci.org/seznam/SuperiorMySqlpp)
+- [![License: LGPL v3](https://img.shields.io/badge/License-LGPL%20v3-blue.svg)](LICENSE)
 
 Modern C++ wrapper for MySQL C API
 
@@ -133,18 +133,26 @@ Connections are not thread-safe => use one connection per thread. If you intend 
 
 ## Connection pool
 ```c++
-auto connectionPool = makeConnectionPool([](){
-    return std::make_shared<Connection>("<database>", "<user>", "<password>", "<host>", "<port>");
+auto connectionPool = SuperiorMySqlpp::makeConnectionPool([](){
+    return std::async(std::launch::async,
+        [&]() {
+            uint16_t port = 3306;
+            return std::make_shared<SuperiorMySqlpp::Connection>(
+                "<database>", "<user>", "<password>", "<host>", port);
+        }
+    );
 });
 connectionPool.setMinSpare(10);  // optional
 connectionPool.setMaxSpare(20);  // optional
 
 // possibly set interval times and other things
 
-connectionPool.startManagementJob();  // optional
+// Starts the parallel job to keep the number of connections in given range
+connectionPool.startResourceCountKeeper();  // optional
+// Starts the parallel job to auto-restart broken connections
 connectionPool.startHealthCareJob();  // optional
 
-connectionSharedPtr = connectionPool.get();
+std::shared_ptr<SuperiorMySqlpp::Connection> connection = connectionPool.get();
 ```
 
 ## Queries
