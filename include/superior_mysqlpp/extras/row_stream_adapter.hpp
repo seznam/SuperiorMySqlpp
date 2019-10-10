@@ -1,6 +1,8 @@
 #pragma once
 
+#include <superior_mysqlpp/exceptions.hpp>
 #include <superior_mysqlpp/row.hpp>
+#include <type_traits>
 
 
 namespace SuperiorMySqlpp { namespace Extras
@@ -42,14 +44,29 @@ namespace SuperiorMySqlpp { namespace Extras
          *
          * If the value is SQL NULL, default-constructed value is assigned.
          * If it is not safe to extract value, behaviour is undefined.
+         *
+         * In the case of a non-default-constructible T, LogicError is thrown
+         * instead.
          */
         template<typename T>
-        RowStreamAdapter& operator>>(T& obj)
+        typename std::enable_if<std::is_default_constructible<T>::value, RowStreamAdapter>::type & operator>>(T& obj)
         {
             if (!(*first).isNull()) {
                 obj = (*first).to<T>();
             } else {
                 obj = T{};
+            }
+            ++first;
+            return *this;
+        }
+
+        template<typename T>
+        typename std::enable_if<!std::is_default_constructible<T>::value, RowStreamAdapter>::type & operator>>(T& obj)
+        {
+            if (!(*first).isNull()) {
+                obj = (*first).to<T>();
+            } else {
+                throw LogicError{"Trying to extract null to non-nullable type."};
             }
             ++first;
             return *this;

@@ -108,14 +108,18 @@ CREATE TABLE `row_stream_adapter` (
     `int_value_1` INT(11) NOT NULL,
     `int_value_2` INT(11),
     `string_value_1` VARCHAR(100) NOT NULL,
-    `string_value_2` VARCHAR(100)
+    `string_value_2` VARCHAR(100),
+    `int_value_3` INT(11) NOT NULL,
+    `int_value_4` INT(11)
 )  ENGINE=INNODB DEFAULT CHARSET=UTF8;
 INSERT INTO `row_stream_adapter`(
     `int_value_1`,
     `int_value_2`,
     `string_value_1`,
-    `string_value_2`)
-VALUES (42, NULL, 'answer', NULL);
+    `string_value_2`,
+    `int_value_3`,
+    `int_value_4`)
+VALUES (42, NULL, 'answer', NULL, 42, NULL);
 
 DROP TABLE IF EXISTS `nullable`;
 CREATE TABLE `nullable` (
