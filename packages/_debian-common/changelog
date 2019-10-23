@@ -9,6 +9,9 @@ libsuperiormysqlpp (0.6.0) UNRELEASED; urgency=medium
   * test: DRY in db_access/connection_pool test
   * fix: Return correct ID from SharedPtrPool.getPopulationId()
 
+  [ Tomas Prochazka ]
+  * fix: remove noexcept clause from Statement::close() 
+
  -- Jan Kriho <jan.kriho@firma.seznam.cz>  Fri, 27 Sep 2019 12:57:13 +0200
 
 libsuperiormysqlpp (0.5.2) unstable; urgency=medium
