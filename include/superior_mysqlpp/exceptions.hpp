@@ -6,6 +6,7 @@
 
 #include <string>
 #include <stdexcept>
+#include <superior_mysqlpp/types/string_view.hpp>
 
 namespace SuperiorMySqlpp
 {
@@ -25,11 +26,17 @@ namespace SuperiorMySqlpp
         using SuperiorMySqlppError::SuperiorMySqlppError;
 
         MysqlInternalError(const std::string& message,
-                           const char* mysqlError,
+                           const char* mysqlError_,
                            unsigned errorCode_)
-            : SuperiorMySqlppError(message + "\nMysql error: " + std::string(mysqlError))
+            : SuperiorMySqlppError(message + "\nMysql error: " + mysqlError_)
+            , mysqlError{mysqlError_}
             , errorCode{errorCode_}
         {
+        }
+
+        StringView getMysqlError() const
+        {
+            return mysqlError;
         }
 
         unsigned getErrorCode() const
@@ -38,6 +45,7 @@ namespace SuperiorMySqlpp
         }
 
     private:
+        std::string mysqlError;
         const unsigned errorCode {0};
     };
 

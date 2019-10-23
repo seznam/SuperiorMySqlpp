@@ -1139,10 +1139,10 @@ namespace SuperiorMySqlpp { namespace LowLevel
 
             /**
              * Closes the prepared statement and deallocates the statement handler.
-             * In case of error, std::terminate() is called.
+             * @throws MysqlInternalError If failed to close the statement.
              * @see https://dev.mysql.com/doc/refman/5.7/en/mysql-stmt-close.html
              */
-            void close() noexcept
+            void close()
             {
                 if (statementPtr != nullptr)
                 {
@@ -1150,8 +1150,8 @@ namespace SuperiorMySqlpp { namespace LowLevel
                     MYSQL* mysql = statementPtr->mysql;
                     if (mysql_stmt_close(statementPtr))
                     {
-                        loggerPtr->logMySqlStmtCloseError(driverId, id, StringView{mysql_error(mysql)});
-                        std::terminate();
+                        throw MysqlInternalError("Failed to close statement!",
+                            mysql_error(mysql), mysql_errno(mysql));
                     }
                 }
             }
@@ -1199,10 +1199,10 @@ namespace SuperiorMySqlpp { namespace LowLevel
              * Move assignment operator.
              * @param result Statement instance.
              * @return Reference to current instance.
+             * @throws MysqlInternalError If failed to close the statement.
              */
-            Statement& operator=(Statement&& other) noexcept
+            Statement& operator=(Statement&& other)
             {
-                static_assert(noexcept(close()), "close() must be noexcept!");
                 close();
                 statementPtr = other.statementPtr;
                 other.statementPtr = nullptr;
@@ -1215,7 +1215,14 @@ namespace SuperiorMySqlpp { namespace LowLevel
              */
             ~Statement()
             {
-                close();
+                try
+                {
+                    close();
+                }
+                catch (const MysqlInternalError& e)
+                {
+                    loggerPtr->logMySqlStmtCloseError(driverId, id, e.getMysqlError());
+                }
             }
 
             /**
