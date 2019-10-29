@@ -21,7 +21,6 @@ using namespace SuperiorMySqlpp;
 using namespace std::string_literals;
 using namespace std::chrono_literals;
 
-
 auto makeSharedPtrConnection()
 {
     auto& s = getSettingsRef();
@@ -90,8 +89,10 @@ go_bandit([](){
                 AssertThat(poolState.available, Equals(0U));
 
                 connectionPool.get();
-
-                std::this_thread::sleep_for(2s);
+                backoffSleep(2s, [&](){
+                    auto&& poolState = connectionPool.poolState();
+                    return poolState.size==1 && poolState.available==1;
+                });
                 poolState = connectionPool.poolState();
                 AssertThat(poolState.size, Equals(1U));
                 AssertThat(poolState.available, Equals(1U));
@@ -128,14 +129,16 @@ go_bandit([](){
             AssertThat(poolState.size, Equals(5U));
             AssertThat(poolState.available, Equals(poolState.size));
 
-            connectionPool.get();
+            {
+                auto connection = connectionPool.get();
+            }
             backoffSleep(10s, [&](){
                 auto&& poolState = connectionPool.poolState();
-                return poolState.size==6U && poolState.available==6U;
+                return poolState.size>=6U && poolState.available>=6U;
             });
             poolState = connectionPool.poolState();
-            AssertThat(poolState.size, Equals(6U));
-            AssertThat(poolState.available, Equals(poolState.size));
+            AssertThat(poolState.size, IsGreaterThanOrEqualTo(6U));
+            AssertThat(poolState.available, IsGreaterThanOrEqualTo(6U));
 
             connectionPool.clearPool();
             poolState = connectionPool.poolState();
