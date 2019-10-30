@@ -246,9 +246,9 @@ public:
         return id;
     }
 
-    auto getPopulationId() const
+    unsigned int getPopulationId() const
     {
-        return id;
+        return populationId;
     }
 
     void setPopulationId(unsigned int id) const
