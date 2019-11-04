@@ -6,6 +6,7 @@ libsuperiormysqlpp (0.6.0) UNRELEASED; urgency=medium
 
   [ Radek Smejdir ]
   * test: Fix intermittently failing test db_access/connection_pool
+  * test: DRY in db_access/connection_pool test
 
  -- Jan Kriho <jan.kriho@firma.seznam.cz>  Fri, 27 Sep 2019 12:57:13 +0200
 
