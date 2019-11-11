@@ -74,12 +74,8 @@ namespace SuperiorMySqlpp
             /**
              * Seeks to an arbitrary row in a statement result set.
              * @param index Row number of seeked target.
-             * @remark This function is templated, however single implementation
-             *        with std::size_t would suffice.
-             * EDIT: Reason why this function is templated is because private DBDriver::size_t is actually used.
              */
-            template<typename T>
-            void seekRow(T index)
+            void seekRow(LowLevel::DBDriver::RowIndex index)
             {
                 statement.seekRow(index);
             }
@@ -94,7 +90,11 @@ namespace SuperiorMySqlpp
                 statement.seekRowOffset(offset);
             }
 
-            auto tellRowOffset()
+            /**
+             * Returns MYSQL_ROW_OFFSET for current row.
+             * @return MYSQL_ROW_OFFSET pointing to current row.
+             */
+            MYSQL_ROW_OFFSET tellRowOffset()
             {
                 return statement.tellRowOffset();
             }
@@ -229,7 +229,13 @@ namespace SuperiorMySqlpp
                 return *resultMetadata;
             }
 
-            auto fetchWithStatus()
+            /**
+             * Perform fetch of next row of result set, returning status.
+             * Truncation is not an error.
+             * @return enum #FetchStatus - contains results of mysql_stmt_fetch except
+             *                            error ones - those are thrown.
+             */
+            LowLevel::DBDriver::Statement::FetchStatus fetchWithStatus()
             {
                 auto status = this->statement.fetchWithStatus();
 
@@ -270,12 +276,10 @@ namespace SuperiorMySqlpp
              * @param paramNumber Index of given parameter.
              * @param data C style string.
              * @param length Lenght of  data in bytes.
-             * @return void
-             * !!!!! Should return void, this form is misleading.
              */
-            auto sendLongData(unsigned int paramNumber, const char* data, unsigned long length)
+            void sendLongData(unsigned int paramNumber, const char* data, unsigned long length)
             {
-                return this->statement.sendLongData(paramNumber, data, length);
+                this->statement.sendLongData(paramNumber, data, length);
             }
 
             /**
@@ -284,12 +288,10 @@ namespace SuperiorMySqlpp
              * @param paramNumber Index of given parameter.
              * @param data String containing the new data.
              * @param length Lenght of data in bytes.
-             * @return void
-             * !!!!! Should return void, this form is misleading.
              */
-            auto sendLongData(unsigned int paramNumber, const std::string& data)
+            void sendLongData(unsigned int paramNumber, const std::string& data)
             {
-                return this->statement.sendLongData(paramNumber, data);
+                this->statement.sendLongData(paramNumber, data);
             }
 
             /**
@@ -495,4 +497,3 @@ namespace SuperiorMySqlpp
         };
     }
 }
-
