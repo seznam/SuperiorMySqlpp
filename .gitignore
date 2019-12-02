@@ -1,14 +1,13 @@
-**/debian/*
-!debian/control
-!debian/changelog
-!debian/rules
-!debian/compat
-!debian/libsuperiormysqlpp-dev.install
-!debian/libsuperiormysqlpp.install
-!debian/libsuperiormysqlpp.links
+**/debian/debhelper-build-stamp
+**/debian/files
+**/debian/*.log
+**/debian/*.substvars
+**/debian/libsuperiormysqlpp-dev/
+**/debian/tmp/
 
 *.deb
 *.changes
+*.buildinfo
 
 *.rpm
 

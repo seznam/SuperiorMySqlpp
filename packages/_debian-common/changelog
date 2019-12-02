@@ -1,3 +1,9 @@
+libsuperiormysqlpp (0.6.1) UNRELEASED; urgency=medium
+
+  *
+
+ -- Radek Smejdir <radek.smejdir@firma.seznam.cz>  Mon, 02 Dec 2019 13:52:26 +0100
+
 libsuperiormysqlpp (0.6.0) unstable; urgency=medium
 
   [ Jan Kriho ]
