@@ -1,4 +1,4 @@
-libsuperiormysqlpp (0.6.0) UNRELEASED; urgency=medium
+libsuperiormysqlpp (0.6.0) unstable; urgency=medium
 
   [ Jan Kriho ]
   * feat: use converter struct instead of converter function
@@ -10,9 +10,9 @@ libsuperiormysqlpp (0.6.0) UNRELEASED; urgency=medium
   * fix: Return correct ID from SharedPtrPool.getPopulationId()
 
   [ Tomas Prochazka ]
-  * fix: remove noexcept clause from Statement::close() 
+  * fix: remove noexcept clause from Statement::close()
 
- -- Jan Kriho <jan.kriho@firma.seznam.cz>  Fri, 27 Sep 2019 12:57:13 +0200
+ -- Radek Smejdir <radek.smejdir@firma.seznam.cz>  Mon, 02 Dec 2019 13:47:58 +0100
 
 libsuperiormysqlpp (0.5.2) unstable; urgency=medium
 
