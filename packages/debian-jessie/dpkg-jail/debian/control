@@ -1,7 +1,7 @@
 Source: libsuperiormysqlpp
 Section: unknown
 Priority: extra
-Maintainer: Tomas Nozicka, Seznam.cz
+Maintainer: Seznam.cz
 Build-Depends: debhelper(>=9),
                g++(>=4.9.2),
                docker-ce,
@@ -11,6 +11,7 @@ Build-Depends: debhelper(>=9),
 Standards-Version: 3.7.2
 
 Package: libsuperiormysqlpp-dev
+Homepage: https://github.com/seznam/SuperiorMySqlpp
 Architecture: any
 Depends: libmysqlclient-dev
 Suggests: libboost-system-dev(>=1.49.0)

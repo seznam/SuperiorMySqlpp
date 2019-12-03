@@ -11,6 +11,7 @@ Build-Depends: debhelper,
 Standards-Version: 3.7.2
 
 Package: libsuperiormysqlpp-dev
+Homepage: https://github.com/seznam/SuperiorMySqlpp
 Architecture: any
 Depends: libmysqlclient-dev | libmariadb-dev-compat (>= 10.2)
 Suggests: libboost-system-dev (>= 1.49.0)
