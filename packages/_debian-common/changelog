@@ -1,8 +1,9 @@
 libsuperiormysqlpp (0.6.1) UNRELEASED; urgency=medium
 
-  *
+  [ Peter Opatril ]
+  * fix: type validation not ignoring is_unsigned for types like float
 
- -- Radek Smejdir <radek.smejdir@firma.seznam.cz>  Mon, 02 Dec 2019 13:52:26 +0100
+ -- Peter Opatril <petr.opatril@firma.seznam.cz>  Thu, 30 Jul 2020 18:47:22 +0200
 
 libsuperiormysqlpp (0.6.0) unstable; urgency=medium
 
