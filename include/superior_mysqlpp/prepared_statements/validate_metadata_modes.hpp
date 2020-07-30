@@ -128,9 +128,38 @@ namespace SuperiorMySqlpp
      */
     inline bool fieldTypeHasSign(FieldTypes type)
     {
-        if (type == FieldTypes::Timestamp)
-            return false;
-        return true;
+        switch (type)
+        {
+            case FieldTypes::Tiny:
+            case FieldTypes::Short:
+            case FieldTypes::Int24:
+            case FieldTypes::Long:
+            case FieldTypes::LongLong:
+                return true;
+
+            case FieldTypes::Float:
+            case FieldTypes::Double:
+            case FieldTypes::Decimal:
+            case FieldTypes::NewDecimal:
+            case FieldTypes::Time:
+            case FieldTypes::Date:
+            case FieldTypes::Datetime:
+            case FieldTypes::Timestamp:
+            case FieldTypes::Year:
+            case FieldTypes::String:
+            case FieldTypes::VarString:
+            case FieldTypes::Enum:
+            case FieldTypes::Set:
+            case FieldTypes::Bit:
+            case FieldTypes::Blob:
+            case FieldTypes::TinyBlob:
+            case FieldTypes::MediumBlob:
+            case FieldTypes::LongBlob:
+            case FieldTypes::Geometry:
+            case FieldTypes::Null:
+            default:
+                return false;
+        }
     }
 
     /**
