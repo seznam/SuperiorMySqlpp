@@ -621,6 +621,12 @@ go_bandit([](){
                 [&](int , int, const BlobData &, const BlobData &) {}));
         });
 
+        it("can customize prepared statement helper psResultQuery (ignoreNullable)", [&](){
+            // This would throw exception on initialization if ignoreNullable wasn't true
+            psResultQuery<false, ValidateMetadataMode::Same, ValidateMetadataMode::Same, true>(connection, "SELECT `nullable_id`, `nullable_name` FROM `test_superior_sqlpp`.`nullable`",
+              [&](Sql::Int, const Sql::String &) {});
+        });
+
         it("can work with psQuery helper function", [&](){
             // Pretend that this is some kind of container on the function's input
             std::array<int, 4> foreignKeys = {{ 1, 2, 3, 4 }};
