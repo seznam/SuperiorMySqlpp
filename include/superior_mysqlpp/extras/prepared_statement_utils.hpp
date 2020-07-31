@@ -173,7 +173,7 @@ namespace SuperiorMySqlpp
              typename ConnType>
     [[deprecated("psReadQuery is deprecated, use psResultQuery")]] void psReadQuery(const std::string &query, ConnType &&connection, Callable &&processingFunction)
     {
-        psQuery(connection, query, EmptyParamCallback {}, processingFunction);
+        psQuery<storeResult, validateMode, warnMode, ignoreNullable>(connection, query, EmptyParamCallback {}, processingFunction);
     }
 
     /**
@@ -195,7 +195,7 @@ namespace SuperiorMySqlpp
              typename ConnType>
     void psResultQuery(ConnType &&connection, const std::string &query, Callable &&processingFunction)
     {
-        psQuery(connection, query, EmptyParamCallback {}, processingFunction);
+        psQuery<storeResult, validateMode, warnMode, ignoreNullable>(connection, query, EmptyParamCallback {}, processingFunction);
     }
 
     /**
@@ -216,7 +216,7 @@ namespace SuperiorMySqlpp
              typename ConnType>
     void psParamQuery(ConnType &&connection, const std::string &query, Callable &&paramsSetter)
     {
-        psQuery(connection, query, paramsSetter, EmptyResultCallback {});
+        psQuery<storeResult, validateMode, warnMode, ignoreNullable>(connection, query, paramsSetter, EmptyResultCallback {});
     }
 
     /**
