@@ -22,7 +22,7 @@ go_bandit([](){
              * Ensure that most of the functionality like begin, end, ... is tested in class ArrayBase.
              * (This doesn't exclude the possibility of hiding these methods, but it's simple and better than nothing.)
              */
-            AssertThat((std::is_base_of<ArrayBase<42>, DecimalDataBase<42>>::value), IsTrue());
+            AssertThat((std::is_base_of<ArrayBase<42, true>, DecimalDataBase<42>>::value), IsTrue());
 
             AssertThat((std::is_convertible<DecimalData, std::string>::value), IsTrue());
             AssertThat((std::is_convertible<const DecimalData&, std::string>::value), IsTrue());

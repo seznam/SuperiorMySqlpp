@@ -17,8 +17,8 @@
 
 namespace SuperiorMySqlpp
 {
-    template<std::size_t N>
-    class BlobDataBase : public ArrayBase<N>
+    template<std::size_t N, bool TerminatingZero = false>
+    class BlobDataBase : public ArrayBase<N, TerminatingZero>
     {
     private:
         void assign(const char* const& data, std::size_t size)
@@ -65,6 +65,9 @@ namespace SuperiorMySqlpp
             assign(source);
         }
 
+        /**
+         * Note: expects array to be zero terminated and thus discards last byte
+         */
         template<std::size_t L>
         BlobDataBase(const char (& source)[L])
         {
@@ -117,39 +120,39 @@ namespace SuperiorMySqlpp
     }
 
 
-    template<std::size_t N, std::size_t M>
-    bool operator==(const BlobDataBase<N>& lhs, const BlobDataBase<M>& rhs)
+    template<std::size_t N, bool N_TZ, std::size_t M, bool M_TZ>
+    bool operator==(const BlobDataBase<N, N_TZ>& lhs, const BlobDataBase<M, M_TZ>& rhs)
     {
         return lhs.getStringView() == rhs.getStringView();
     }
 
-    template<std::size_t N>
-    bool operator==(const std::string& lhs, const BlobDataBase<N>& rhs)
+    template<std::size_t N, bool N_TZ>
+    bool operator==(const std::string& lhs, const BlobDataBase<N, N_TZ>& rhs)
     {
         return lhs == rhs.getStringView();
     }
 
-    template<std::size_t N>
-    bool operator==(const BlobDataBase<N>& lhs, const std::string& rhs)
+    template<std::size_t N, bool N_TZ>
+    bool operator==(const BlobDataBase<N, N_TZ>& lhs, const std::string& rhs)
     {
         return lhs.getStringView() == rhs;
     }
 
 
-    template<std::size_t N, std::size_t M>
-    bool operator!=(const BlobDataBase<N>& lhs, const BlobDataBase<M>& rhs)
+    template<std::size_t N, bool N_TZ, std::size_t M, bool M_TZ>
+    bool operator!=(const BlobDataBase<N, N_TZ>& lhs, const BlobDataBase<M, M_TZ>& rhs)
     {
         return lhs.getStringView() != rhs.getStringView();
     }
 
-    template<std::size_t N>
-    bool operator!=(const std::string& lhs, const BlobDataBase<N>& rhs)
+    template<std::size_t N, bool N_TZ>
+    bool operator!=(const std::string& lhs, const BlobDataBase<N, N_TZ>& rhs)
     {
         return lhs == rhs.getStringView();
     }
 
-    template<std::size_t N>
-    bool operator!=(const BlobDataBase<N>& lhs, const std::string& rhs)
+    template<std::size_t N, bool N_TZ>
+    bool operator!=(const BlobDataBase<N, N_TZ>& lhs, const std::string& rhs)
     {
         return lhs.getStringView() != rhs;
     }

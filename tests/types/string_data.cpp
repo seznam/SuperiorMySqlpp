@@ -8,6 +8,8 @@
 
 #include <superior_mysqlpp.hpp>
 
+#include "../test_utils.hpp"
+
 
 using namespace bandit;
 using namespace snowhouse;
@@ -22,7 +24,7 @@ go_bandit([](){
              * Ensure that most of the functionality like begin, end, ... is tested in class ArrayBase.
              * (This doesn't exclude the possibility of hiding these methods, but it's simple and better than nothing.)
              */
-            AssertThat((std::is_base_of<ArrayBase<42>, StringDataBase<42>>::value), IsTrue());
+            AssertThat((std::is_base_of<ArrayBase<42, true>, StringDataBase<42>>::value), IsTrue());
 
             AssertThat((std::is_convertible<StringData, std::string>::value), IsTrue());
             AssertThat((std::is_convertible<const StringData&, std::string>::value), IsTrue());
@@ -86,15 +88,36 @@ go_bandit([](){
         });
 
         it("can do basic operators", [&](){
-            AssertThat(StringData{}==StringData{}, IsTrue());
-            AssertThat(StringData{}==StringData{""}, IsTrue());
-            AssertThat(StringData{}==StringData{"b"}, IsFalse());
-            AssertThat(StringData{"a"}==StringData{"b"}, IsFalse());
+            AssertThat(StringData{}, Equals(StringData{}));
+            AssertThat(StringData{},Equals(StringData{""}));
+            AssertThat(StringData{}, !Equals(StringData{"b"}));
+            AssertThat(StringData{"a"}, !Equals(StringData{"b"}));
 
+            // Explicit negation operator works
             AssertThat(StringData{}!=StringData{}, IsFalse());
-            AssertThat(StringData{}!=StringData{""}, IsFalse());
-            AssertThat(StringData{}!=StringData{"b"}, IsTrue());
-            AssertThat(StringData{"a"}!=StringData{"b"}, IsTrue());
+        });
+
+        it("has zero terminated content", [&](){
+            const std::string input{"123"};
+            std::array<unsigned char, sizeof(StringData)+2> storage;
+            storage.fill('0');
+            storage.back() = '\0';
+
+            {
+                auto ptr = PlacementPtr<StringData>(storage.data());
+                StringData& str = *ptr;
+                AssertThat(str, Equals(""));
+            }
+
+            {
+                auto ptr = PlacementPtr<StringData>(storage.data(), "123");
+                StringData& str = *ptr;
+                AssertThat(str, Equals("123"));
+
+                // Conversion shouldn't pick the zeroes after the string content
+                double number = str.to<double>();
+                AssertThat(number, EqualsWithDelta(123.0, 0.01));
+            }
         });
     });
 });
