@@ -4,8 +4,9 @@ libsuperiormysqlpp (0.7.0) UNRELEASED; urgency=medium
   * fix: type validation not ignoring is_unsigned for types like float
   * fix: psQuery subvariants ignoring template options
   * fix: ArrayBase front/back matches semantics of begin/end
+  * refactor: Better exception type in toFloatingPoint
 
- -- Peter Opatril <petr.opatril@firma.seznam.cz>  Mon, 03 Aug 2020 16:38:58 +0200
+ -- Peter Opatril <petr.opatril@firma.seznam.cz>  Mon, 03 Aug 2020 16:43:57 +0200
 
 libsuperiormysqlpp (0.6.0) unstable; urgency=medium
 
