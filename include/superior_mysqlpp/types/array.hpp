@@ -135,22 +135,34 @@ namespace SuperiorMySqlpp
 
         auto& front()
         {
-            return array.front();
+            if (count() == 0)
+                throw std::out_of_range{"SuperiorMySqlpp::ArrayBase::front"};
+            else
+                return array.front();
         }
 
         constexpr const auto& front() const
         {
-            return array.front();
+            if (count() == 0)
+                throw std::out_of_range{"SuperiorMySqlpp::ArrayBase::front"};
+            else
+                return array.front();
         }
 
         auto& back()
         {
-            return array.back();
+            if (count() == 0)
+                throw std::out_of_range{"SuperiorMySqlpp::ArrayBase::back"};
+            else
+                return *(array.begin() + count() - 1);
         }
 
         constexpr const auto& back() const
         {
-            return array.back();
+            if (count() == 0)
+                throw std::out_of_range{"SuperiorMySqlpp::ArrayBase::back"};
+            else
+                return *(array.begin() + count() - 1);
         }
 
         auto& operator[](std::size_t position)
