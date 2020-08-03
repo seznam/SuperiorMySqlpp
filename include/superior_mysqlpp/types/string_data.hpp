@@ -20,8 +20,11 @@
 
 namespace SuperiorMySqlpp
 {
+    /**
+     * Note: string types are always zero-terminated
+     */
     template<std::size_t N>
-    class StringDataBase : public BlobDataBase<N>
+    class StringDataBase : public BlobDataBase<N, true>
     {
     public:
         constexpr StringDataBase() = default;
@@ -31,7 +34,7 @@ namespace SuperiorMySqlpp
         StringDataBase& operator=(StringDataBase&&) = default;
         ~StringDataBase() = default;
 
-        using BlobDataBase<N>::BlobDataBase;
+        using BlobDataBase<N, true>::BlobDataBase;
 
 
         /*
