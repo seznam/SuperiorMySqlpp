@@ -45,8 +45,8 @@ go_bandit([](){
                 AssertThat(array.end()+arraySize==array.endOfStorage(), IsTrue());
                 AssertThat(array.cend()+arraySize==array.cendOfStorage(), IsTrue());
 
-                AssertThat(array.front(), Equals(*array.begin()));
-                AssertThat(array.back(), Equals(*(array.end())));
+                AssertThrows(std::out_of_range, array.front());
+                AssertThrows(std::out_of_range, array.back());
 
                 AssertThat(array.empty(), IsTrue());
                 AssertThat(array.size(), Equals(0u));

@@ -23,9 +23,13 @@ namespace SuperiorMySqlpp
     private:
         void assign(const char* const& data, std::size_t size)
         {
-            assert(size >= 0);
-            std::memcpy(this->array.data(), data, std::min(size, N));
-            this->itemsCount = size;
+            auto updateSize = std::min(size, N);
+            std::memcpy(this->array.data(), data, updateSize);
+            this->itemsCount = updateSize;
+            if (TerminatingZero)
+            {
+                *this->end() = '\0';
+            }
         }
 
         void assign(const char* const& data)
