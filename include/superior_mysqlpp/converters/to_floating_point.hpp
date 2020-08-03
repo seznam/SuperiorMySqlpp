@@ -28,7 +28,7 @@ namespace SuperiorMySqlpp { namespace Converters
     {
         if (length == 0)
         {
-            throw std::runtime_error{""};
+            throw std::domain_error{"SuperiorMysqlpp::toFloatingPoint"};
         }
         return std::strtof(str, nullptr);
     }
@@ -38,7 +38,7 @@ namespace SuperiorMySqlpp { namespace Converters
     {
         if (length == 0)
         {
-            throw std::runtime_error{""};
+            throw std::domain_error{"SuperiorMysqlpp::toFloatingPoint"};
         }
         return std::strtod(str, nullptr);
     }
@@ -48,7 +48,7 @@ namespace SuperiorMySqlpp { namespace Converters
     {
         if (length == 0)
         {
-            throw std::runtime_error{""};
+            throw std::domain_error{"SuperiorMysqlpp::toFloatingPoint"};
         }
         return std::strtold(str, nullptr);
     }
