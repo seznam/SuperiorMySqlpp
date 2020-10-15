@@ -1,10 +1,10 @@
-prefix=@PREFIX@
+prefix=@CMAKE_INSTALL_PREFIX@
 exec_prefix=${prefix}
 libdir=${exec_prefix}/lib
 includedir=${prefix}/include
 
 Name: SuperiorMySqlpp
 Description: SuperiorMySqlpp
-Version: @VERSION@
+Version: @SuperiorMySqlpp_VERSION@
 Libs: -lmysqlclient
 Cflags: -I${includedir}
