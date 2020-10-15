@@ -1,0 +1,28 @@
+ignore_regexps = [
+    r'Merge branch',
+    r'docs:',
+    r'[Bb]ump version'
+]
+
+section_regexps = [
+    ('New features', [
+        r'^[Ff]eat:(.*)'
+    ]),
+    ('Bug fixes', [
+        r'^[Ff]ix:'
+    ]),
+    ('Changes', [
+        r'^[Cc]hore:'
+    ]),
+    ('Other', None),
+]
+
+
+include_merges = False
+body_process = noop
+subject_process = (strip |
+    ReSub(r'^([Cc]hore|[Ff]ix|[Ff]eat)\s*:\s*(.*)$', r'\2') |
+    SetIfEmpty("No commit message.") | ucfirst | final_dot)
+
+tag_filter_regexp = r'^v[0-9]+\.[0-9]+(\.[0-9]+)?$'
+output_engine = mustache(".gitchangelog.tpl")

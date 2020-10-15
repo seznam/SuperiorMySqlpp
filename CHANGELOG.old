@@ -1,4 +1,6 @@
 libsuperiormysqlpp (0.7.0) UNRELEASED; urgency=medium
+  !!! NOTE: Changelog will no longer be used for generating release notes.
+            Commit messages will be used as source for release notes instead.
 
   [ Peter Opatril ]
   * feat: Zero terminated string types

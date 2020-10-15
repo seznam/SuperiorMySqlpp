@@ -74,7 +74,7 @@ namespace SuperiorMySqlpp
                 throw UnexpectedRowCountError("psReadValues() expected exactly one row, got " + std::to_string(ps.getRowsCount()) + " rows", ps.getRowsCount());
             }
 
-            std::tuple<Args&...>(values...) = ps.getResult();
+            std::forward_as_tuple(values...) = ps.getResult();
         }
     }
 
