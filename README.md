@@ -250,7 +250,7 @@ This type is for situations when you do not know which columns you are going to 
 auto preparedStatement = connection.makeDynamicPreparedStatement(
         "INSERT INTO ... VALUES (?)"
 );
-for (auto id=0; i<10; ++i)
+for (auto id=0; id<10; ++id)
 {
     preparedStatement.bindParam(0, id);
     preparedStatement.updateParamBindings();
