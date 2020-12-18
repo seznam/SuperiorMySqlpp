@@ -17,8 +17,7 @@
 
 namespace SuperiorMySqlpp
 {
-    template <typename T>
-    T& mapSecondGetter(T&& item) { return std::forward<T>(item).second; }
+    const auto mapSecondGetter = [](auto&& item) -> auto& { return std::forward<decltype(item)>(item).second; };
     
     template<
         typename SharedPtrPoolType,
