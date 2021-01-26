@@ -24,6 +24,9 @@ socat "UNIX-LISTEN:$LOCAL_TMP_SOCKET,fork,reuseaddr,unlink-early,mode=777" \
 $1 ${MYSQL_HOST} 3306 ${CONTAINER_NAME} ${LOCAL_TMP_SOCKET} --reporter=spec
 RESULT=$?
 
+# LD_LIBRARY_PATH has to be set for Debian Stretch
+export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:$(dirname `find / -type f -name 'libclang_rt.asan-x86_64.so' 2> /dev/null | head -n 1`)
+
 ## TODO Add option to run test in manual mode.
 ## It's needed to run docker in interactive mode to get `read` command working, just add `--interactive` option to docker run in main project's makefile.
 #echo
