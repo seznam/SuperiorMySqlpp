@@ -442,3 +442,10 @@ Older versions are not supported due to some issues, for instance:
 #### Known bugs
 
 MariaDB 10.2.8 has a broken MySQL compatibility symlink (libmysqlclient.so), therefore you need to link directly with MariaDB client lib (`-lmariadb`) instead of using usual symlink (`-lmysqlclient`).
+
+## Contribution notes
+
+Firstly, thank for your interest!
+
+We've using [semantic commit messages](https://gist.github.com/joshbuchea/6f47e86d2510bce28f8e7f42ae84c716) (format of `category: message`), notably for generating changelogs.
+Once your work is ready for merge, please rebase to latest version, as we strongly prefer to merge through fast-forward and keep the history clean.
