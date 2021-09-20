@@ -25,6 +25,7 @@ ADD supervisord.conf /etc/supervisor/supervisord.conf
 
 # Enable mysqld socket (for testing purposes)
 RUN echo "socket = /var/run/mysqld/mysqld.sock" >> /etc/mysql/conf.d/mysql.cnf
+RUN printf '\n[mysqld]\ntls_version=TLSv1.2\n' >> /etc/mysql/conf.d/mysql.cnf
 
 # Tunnel 3307 port to previously defined socket
 ADD mysql-socket-tunnel-3307 /usr/sbin/mysql-socket-tunnel-3307
