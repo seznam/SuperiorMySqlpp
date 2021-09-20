@@ -313,7 +313,7 @@ public:
         std::unique_lock<PoolMutex_t> lock{poolMutex};
         auto populationId = getPopulationId();
 
-        assert((pool.size()==0 && poolIndex==0) || (pool.size()>0 && (poolIndex>=0 && poolIndex<pool.size())));
+        assert((pool.size()==0 && poolIndex==0) || (pool.size()>0 && poolIndex<pool.size()));
 
         auto poolIndexIt = pool.begin() + poolIndex;
 
