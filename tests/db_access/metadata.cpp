@@ -88,6 +88,11 @@ go_bandit([](){
         auto& s = getSettingsRef();
         Connection connection{s.database, s.user, s.password, s.host, s.port};
 
+        {
+            auto query = connection.makeQuery("SET NAMES latin1");
+            query.execute();
+        }
+
         it("can do StoreQuery metadata", [&](){
             auto query = connection.makeQuery(queryString);
             query.execute();
