@@ -1,0 +1,34 @@
+name: Build & Test
+
+on: [push, pull_request]
+
+env:
+  BUILD_TYPE: Debug
+
+jobs:
+  build:
+    runs-on: ubuntu-18.04
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+          submodules: recursive
+
+    - name: Install dependencies
+      run: sudo apt-get install libboost-system-dev libmysqlclient-dev socat
+
+    - name: Configure CMake
+      run: |
+          mkdir ${{github.workspace}}/build
+          cd ${{github.workspace}}/build
+          cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DTEST_EXTENDED_ENABLED=ON ..
+
+    - name: Build
+      working-directory: ${{github.workspace}}/build
+      run: |
+        cmake --build . --parallel 6
+        cmake --build . --parallel 6 --target test_odr
+
+    - name: Test
+      working-directory: ${{github.workspace}}/build
+      run: ctest --output-on-failure
