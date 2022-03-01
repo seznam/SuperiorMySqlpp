@@ -1,0 +1,29 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  make_relase:
+    runs-on: ubuntu-18.04
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+          fetch-depth: 0
+
+    - name: Generate changelog
+      run: |
+        pip3 install setuptools
+        pip3 install pystache gitchangelog
+        CURRENT_TAG=$(git describe --tags --abbrev=0 HEAD)
+        PREV_TAG=$(git describe --tags --abbrev=0 "${CURRENT_TAG}~1")
+        gitchangelog ${PREV_TAG}..${CURRENT_TAG} > ${{ github.workspace }}-CHANGELOG.txt
+
+    - name: Release
+      uses: softprops/action-gh-release@v1
+      with:
+        body_path: ${{ github.workspace }}-CHANGELOG.txt
+        draft: true
