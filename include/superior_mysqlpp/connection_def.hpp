@@ -24,6 +24,7 @@ namespace SuperiorMySqlpp
     class Query;
 
     using ConnectionOptions = LowLevel::DBDriver::DriverOptions;
+    using ClientFlags = LowLevel::DBDriver::ClientFlags;
 
 
     class Connection
@@ -268,19 +269,36 @@ namespace SuperiorMySqlpp
             driver.setDriverOption(option, argumentPtr);
         }
 
+        void addClientFlag(ClientFlags flag)
+        {
+            driver.addClientFlag(flag);
+        }
+
+        struct OptionMaker
+        {
+            OptionMaker() = default;
+            template <class TP1, class TP2>
+            OptionMaker(Connection &connection, std::tuple<TP1, TP2> &input)
+            {
+                connection.setOption(std::get<0>(input), std::get<1>(input));
+            }
+            template <class TP1, class TP2>
+            OptionMaker(Connection &connection, std::pair<TP1, TP2> &input)
+            {
+                connection.setOption(input.first, input.second);
+            }
+            OptionMaker(Connection &connection, ClientFlags flag)
+            {
+                connection.addClientFlag(flag);
+            }
+        };
+
         template<typename... OptionTuples, std::size_t... I>
         void detail_setOptions(std::tuple<OptionTuples...> mainTuple, std::index_sequence<I...>)
         {
             static_cast<void>(mainTuple);  // this prevents unused variable error if mainTuple is empty
-            /*
-             * This magic is doing for each argument to call setOption.
-             * Order of evaluation is guaranteed by the standard.
-             */
-            using IntArray = int[];
-            static_cast<void>(IntArray{(setOption(
-                        std::get<0>(std::get<I>(mainTuple)),
-                        std::get<1>(std::get<I>(mainTuple))
-            ), 0)..., 0});
+            using OptionMakerArray = OptionMaker[];
+            OptionMakerArray{OptionMaker{}, OptionMaker{*this, std::get<I>(mainTuple)}...};
         }
 
         template<typename... OptionTuples>

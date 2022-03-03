@@ -102,6 +102,23 @@ go_bandit([](){
                         std::make_tuple(SuperiorMySqlpp::ConnectionOptions::reconnect, &reconnect)
                     )
                 };
+
+                Connection connection8{s.database, s.user, s.password, s.host, s.port,
+                    std::forward_as_tuple(
+                        std::forward_as_tuple(SuperiorMySqlpp::ConnectionOptions::connectTimeout, &timeout),
+                        std::make_tuple(SuperiorMySqlpp::ConnectionOptions::readTimeout, &timeout),
+                        std::forward_as_tuple(SuperiorMySqlpp::ConnectionOptions::writeTimeout, &timeout),
+                        std::make_tuple(SuperiorMySqlpp::ConnectionOptions::reconnect, &reconnect),
+                        SuperiorMySqlpp::ClientFlags::foundRows
+                    )
+                };
+
+                Connection connection9{s.database, s.user, s.password, s.host, s.port,
+                    std::forward_as_tuple(
+                        SuperiorMySqlpp::ClientFlags::foundRows,
+                        SuperiorMySqlpp::ClientFlags::compress
+                    )
+                };
         });
 
         it("can be moved between threads", [&](){

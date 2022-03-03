@@ -105,6 +105,8 @@ namespace SuperiorMySqlpp { namespace LowLevel
         /** Logger instance pointer. */
         Loggers::SharedPointer_t loggerPtr;
 
+        unsigned long clientFlags = 0;
+
         using size_t = unsigned long long;
 
     private:
@@ -404,6 +406,41 @@ namespace SuperiorMySqlpp { namespace LowLevel
             return mysql_character_set_name(getMysqlPtr());
         }
 
+        enum class ClientFlags : unsigned long
+        {
+            longPassword = CLIENT_LONG_PASSWORD,
+            foundRows = CLIENT_FOUND_ROWS,
+            longFlag = CLIENT_LONG_FLAG,
+            connectWithDB = CLIENT_CONNECT_WITH_DB,
+            noSchema = CLIENT_NO_SCHEMA,
+            compress = CLIENT_COMPRESS,
+            ODBC = CLIENT_ODBC,
+            localFiles = CLIENT_LOCAL_FILES,
+            ignoreSpace = CLIENT_IGNORE_SPACE,
+            protocol41 = CLIENT_PROTOCOL_41,
+            interactive = CLIENT_INTERACTIVE,
+            ssl = CLIENT_SSL,
+            ignoreSigPipe = CLIENT_IGNORE_SIGPIPE,
+            transactions = CLIENT_TRANSACTIONS,
+            multiStatements = CLIENT_MULTI_STATEMENTS,
+            multiResults = CLIENT_MULTI_RESULTS,
+            psMultiResults = CLIENT_PS_MULTI_RESULTS,
+            sslVerifyServerCert = CLIENT_SSL_VERIFY_SERVER_CERT,
+            rememberOptions = CLIENT_REMEMBER_OPTIONS,
+            pluginAuth = CLIENT_PLUGIN_AUTH,
+            connectAttrs = CLIENT_CONNECT_ATTRS,
+            pluginAuthLenEncClientData = CLIENT_PLUGIN_AUTH_LENENC_CLIENT_DATA,
+            canHandleExpiredPasswords = CLIENT_CAN_HANDLE_EXPIRED_PASSWORDS,
+            sessionTrack = CLIENT_SESSION_TRACK,
+            deprecateEOF = CLIENT_DEPRECATE_EOF,
+        };
+
+        void addClientFlag(ClientFlags flag) noexcept
+        {
+            using BaseType = std::underlying_type_t<ClientFlags>;
+            static_cast<BaseType &>(clientFlags) |= static_cast<BaseType>(flag);
+        }
+
         /**
          * Connect (or reconnect) to MySQL server.
          * @see https://dev.mysql.com/doc/refman/5.7/en/mysql-real-connect.html
@@ -433,7 +470,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
             id = getGlobalIdRef().fetch_add(1);
 
             getLogger()->logMySqlConnecting(id, host, user, database, port, socketName);
-            if (mysql_real_connect(getMysqlPtr(), host, user, password, database, port, socketName, CLIENT_MULTI_STATEMENTS) == nullptr)
+            if (mysql_real_connect(getMysqlPtr(), host, user, password, database, port, socketName, clientFlags | CLIENT_MULTI_STATEMENTS) == nullptr)
             {
                 std::stringstream message{};
                 message << "Failed to connect to MySQL. (Host: ";
