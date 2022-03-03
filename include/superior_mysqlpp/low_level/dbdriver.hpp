@@ -405,6 +405,19 @@ namespace SuperiorMySqlpp { namespace LowLevel
         }
 
         /**
+         * Describes client flag options of mysql_real_connect.
+         * See https://dev.mysql.com/doc/c-api/8.0/en/mysql-real-connect.html
+         */
+        struct ClientFlags {
+            unsigned long flags = 0;
+
+            // Implicit default ctor can't be used as we're constructing this
+            // in default argument of method of encapsulating class
+            ClientFlags() : flags{} {}
+            ClientFlags(unsigned long flags) : flags{flags} {}
+        };
+
+        /**
          * Connect (or reconnect) to MySQL server.
          * @see https://dev.mysql.com/doc/refman/5.7/en/mysql-real-connect.html
          *
@@ -421,7 +434,8 @@ namespace SuperiorMySqlpp { namespace LowLevel
                      const char* password,
                      const char* database,
                      unsigned int port,
-                     const char* socketName)
+                     const char* socketName,
+                     ClientFlags clientFlags = ClientFlags{})
         {
             using namespace std::string_literals;
 
@@ -433,7 +447,7 @@ namespace SuperiorMySqlpp { namespace LowLevel
             id = getGlobalIdRef().fetch_add(1);
 
             getLogger()->logMySqlConnecting(id, host, user, database, port, socketName);
-            if (mysql_real_connect(getMysqlPtr(), host, user, password, database, port, socketName, CLIENT_MULTI_STATEMENTS) == nullptr)
+            if (mysql_real_connect(getMysqlPtr(), host, user, password, database, port, socketName, clientFlags.flags | CLIENT_MULTI_STATEMENTS) == nullptr)
             {
                 std::stringstream message{};
                 message << "Failed to connect to MySQL. (Host: ";

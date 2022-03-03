@@ -30,7 +30,7 @@ go_bandit([](){
         });
 
 
-        it("will can have pre-connect arguments", [&](){
+        it("can have pre-connect arguments", [&](){
                 auto& s = getSettingsRef();
                 unsigned int timeout = 1;
                 bool reconnect = true;
@@ -102,6 +102,30 @@ go_bandit([](){
                         std::make_tuple(SuperiorMySqlpp::ConnectionOptions::reconnect, &reconnect)
                     )
                 };
+
+                Connection connectionClientFlags1{s.database, s.user, s.password, s.host, s.port,
+                    std::forward_as_tuple(
+                        std::make_tuple(SuperiorMySqlpp::ConnectionOptions::connectTimeout, &timeout),
+                        std::make_tuple(SuperiorMySqlpp::ConnectionOptions::readTimeout, &timeout),
+                        std::make_tuple(SuperiorMySqlpp::ConnectionOptions::writeTimeout, &timeout),
+                        std::make_tuple(SuperiorMySqlpp::ConnectionOptions::reconnect, &reconnect),
+                        SuperiorMySqlpp::ClientFlags{CLIENT_FOUND_ROWS}
+                    )
+                };
+
+                Connection connectionClientFlags2{s.database, s.user, s.password, s.host, s.port,
+                    std::forward_as_tuple(
+                        SuperiorMySqlpp::ClientFlags{CLIENT_FOUND_ROWS},
+                        SuperiorMySqlpp::ClientFlags{CLIENT_COMPRESS}
+                    )
+                };
+
+                Connection connectionClientFlags3{s.database, s.user, s.password, s.host, s.port,
+                    std::forward_as_tuple(
+                        SuperiorMySqlpp::ClientFlags{CLIENT_FOUND_ROWS|CLIENT_COMPRESS}
+                    )
+                };
+
         });
 
         it("can be moved between threads", [&](){

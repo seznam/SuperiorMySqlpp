@@ -23,6 +23,7 @@ namespace SuperiorMySqlpp
 {
     class Query;
 
+    using ClientFlags = LowLevel::DBDriver::ClientFlags;
     using ConnectionOptions = LowLevel::DBDriver::DriverOptions;
 
 
@@ -38,6 +39,66 @@ namespace SuperiorMySqlpp
                           sslConfig.trustedCertificateDirPath, sslConfig.allowableCiphers);
         }
 
+        /**
+         * Parses conection options.
+         * The option tuples are not stored in the structure and are instead
+         * directly passed into the callback
+         */
+        template <typename Callable>
+        class OptionParser
+        {
+            Callable&& onOption;
+
+            template <bool postConnect, typename TP1, typename TP2>
+            void option(std::integral_constant<bool, postConnect>, const std::tuple<TP1, TP2>& input)
+            {
+                onOption(std::get<0>(input), std::get<1>(input));
+            }
+
+            template <bool postConnect, class TP1, class TP2>
+            void option(std::integral_constant<bool, postConnect>, const std::pair<TP1, TP2>& input)
+            {
+                onOption(std::get<0>(input), std::get<1>(input));
+            }
+
+            template <bool postConnect>
+            void option(std::integral_constant<bool, postConnect>, ClientFlags flag)
+            {
+                static_assert(!postConnect, "Client flags may only be set in Connection constructor.");
+                clientFlags.flags |= flag.flags;
+            }
+
+            template<bool postConnect, typename... OptionTuples, std::size_t... I>
+            void apply(std::integral_constant<bool, postConnect>, const std::tuple<OptionTuples...>& mainTuple, std::index_sequence<I...>)
+            {
+                // Prevent unused variable error if mainTuple is empty
+                static_cast<void>(mainTuple);
+                // Wrapped in initializer list to enforce ordering
+                static_cast<void>(std::initializer_list<int>{(option(std::integral_constant<bool, postConnect>{}, std::get<I>(mainTuple)),0)...});
+            }
+
+        public:
+            ClientFlags clientFlags{};
+
+            template<bool postConnect, typename... OptionTuples>
+            OptionParser(std::integral_constant<bool, postConnect>, const std::tuple<OptionTuples...>& optTuples, Callable&& onOption)
+                : onOption{std::forward<Callable>(onOption)}
+            {
+                apply(std::integral_constant<bool, postConnect>{}, optTuples, std::index_sequence_for<OptionTuples...>{});
+            }
+        };
+
+        /**
+         * Helper because we can't autodeduce template params on OptionParser ctor.
+         *
+         * When postConnect flag is set to true, option setting happens after connection was opened
+         * and settings that cannot be changed at that time aren't allowed.
+         */
+        template<bool postConnect = false, typename... OptionTuples, typename Callable>
+        static OptionParser<Callable> makeOptionParser(const std::tuple<OptionTuples...>& optTuples, Callable&& onOption) {
+            return {std::integral_constant<bool, postConnect>{}, optTuples, std::forward<Callable>(onOption)};
+        }
+
     public:
         template<typename... OptionTuples>
         Connection(const std::string& database, const std::string& user, const std::string& password="",
@@ -46,8 +107,10 @@ namespace SuperiorMySqlpp
                    Loggers::SharedPointer_t loggerPtr=DefaultLogger::getLoggerPtr())
             : driver{std::move(loggerPtr)}
         {
-            setOptions(std::move(optionTuples));
-            driver.connect(host.c_str(), user.c_str(), password.c_str(), database.c_str(), port, nullptr);
+            auto parser = makeOptionParser(std::move(optionTuples), [&](auto key, auto value) {
+                this->setOption(key, value);
+            });
+            driver.connect(host.c_str(), user.c_str(), password.c_str(), database.c_str(), port, nullptr, parser.clientFlags);
         }
 
         template<typename... OptionTuples>
@@ -57,9 +120,11 @@ namespace SuperiorMySqlpp
                    Loggers::SharedPointer_t loggerPtr=DefaultLogger::getLoggerPtr())
             : driver{std::move(loggerPtr)}
         {
-            setOptions(std::move(optionTuples));
+            auto parser = makeOptionParser(std::move(optionTuples), [&](auto key, auto value) {
+                this->setOption(key, value);
+            });
             setSslConfiguration(sslConfig);
-            driver.connect(host.c_str(), user.c_str(), password.c_str(), database.c_str(), port, nullptr);
+            driver.connect(host.c_str(), user.c_str(), password.c_str(), database.c_str(), port, nullptr, parser.clientFlags);
         }
 
         template<typename... OptionTuples>
@@ -68,8 +133,10 @@ namespace SuperiorMySqlpp
                    Loggers::SharedPointer_t loggerPtr=DefaultLogger::getLoggerPtr())
             : driver{std::move(loggerPtr)}
         {
-            setOptions(std::move(optionTuples));
-            driver.connect(nullptr, user.c_str(), password.c_str(), database.c_str(), 0, socketPath.c_str());
+            auto parser = makeOptionParser(std::move(optionTuples), [&](auto key, auto value) {
+                this->setOption(key, value);
+            });
+            driver.connect(nullptr, user.c_str(), password.c_str(), database.c_str(), 0, socketPath.c_str(), parser.clientFlags);
         }
 
         template<typename... OptionTuples>
@@ -79,9 +146,11 @@ namespace SuperiorMySqlpp
                    Loggers::SharedPointer_t loggerPtr=DefaultLogger::getLoggerPtr())
             : driver{std::move(loggerPtr)}
         {
-            setOptions(std::move(optionTuples));
+            auto parser = makeOptionParser(std::move(optionTuples), [&](auto key, auto value) {
+                this->setOption(key, value);
+            });
             setSslConfiguration(sslConfig);
-            driver.connect(nullptr, user.c_str(), password.c_str(), database.c_str(), 0, socketPath.c_str());
+            driver.connect(nullptr, user.c_str(), password.c_str(), database.c_str(), 0, socketPath.c_str(), parser.clientFlags);
         }
 
         template<typename... OptionTuples>
@@ -90,7 +159,9 @@ namespace SuperiorMySqlpp
                    Loggers::SharedPointer_t loggerPtr=DefaultLogger::getLoggerPtr())
             : driver{std::move(loggerPtr)}
         {
-            setOptions(std::move(optionTuples));
+            auto parser = makeOptionParser(std::move(optionTuples), [&](auto key, auto value) {
+                this->setOption(key, value);
+            });
 
             if (config.sslConfig)
             {
@@ -99,11 +170,11 @@ namespace SuperiorMySqlpp
 
             if (config.usingSocket)
             {
-                driver.connect(nullptr, config.user.c_str(), config.password.c_str(), config.database.c_str(), 0, config.target.c_str());
+                driver.connect(nullptr, config.user.c_str(), config.password.c_str(), config.database.c_str(), 0, config.target.c_str(), parser.clientFlags);
             }
             else
             {
-                driver.connect(config.target.c_str(), config.user.c_str(), config.password.c_str(), config.database.c_str(), config.port, nullptr);
+                driver.connect(config.target.c_str(), config.user.c_str(), config.password.c_str(), config.database.c_str(), config.port, nullptr, parser.clientFlags);
             }
         }
 
@@ -268,25 +339,14 @@ namespace SuperiorMySqlpp
             driver.setDriverOption(option, argumentPtr);
         }
 
-        template<typename... OptionTuples, std::size_t... I>
-        void detail_setOptions(std::tuple<OptionTuples...> mainTuple, std::index_sequence<I...>)
-        {
-            static_cast<void>(mainTuple);  // this prevents unused variable error if mainTuple is empty
-            /*
-             * This magic is doing for each argument to call setOption.
-             * Order of evaluation is guaranteed by the standard.
-             */
-            using IntArray = int[];
-            static_cast<void>(IntArray{(setOption(
-                        std::get<0>(std::get<I>(mainTuple)),
-                        std::get<1>(std::get<I>(mainTuple))
-            ), 0)..., 0});
-        }
-
         template<typename... OptionTuples>
-        void setOptions(std::tuple<OptionTuples...> mainTuple)
+        void setOptions(std::tuple<OptionTuples...> optionTuples)
         {
-            detail_setOptions(std::move(mainTuple), std::index_sequence_for<OptionTuples...>{});
+            auto parser = makeOptionParser<false>(std::move(optionTuples), [&](auto key, auto value) {
+                this->setOption(key, value);
+            });
+            // Used for sideeffect
+            (void)parser;
         }
 
 
