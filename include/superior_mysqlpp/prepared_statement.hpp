@@ -147,7 +147,7 @@ namespace SuperiorMySqlpp
          */
         void update()
         {
-            detail::initializeBindings<IsParamBinding, Types...>(bindings, data);
+            detail::initializeBindings<IsParamBinding>(bindings, data);
         }
     };
 
