@@ -1,4 +1,4 @@
-133c133
-< exec "$@"
+431c431
+< 	exec "$@"
 ---
-> exec /usr/bin/supervisord
+> 	exec /usr/bin/supervisord

@@ -1,4 +1,4 @@
-FROM mysql:5.7.22
+FROM mysql:5.7.42-debian
 MAINTAINER Seznam.cz a.s.
 
 WORKDIR /
