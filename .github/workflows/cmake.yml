@@ -7,7 +7,7 @@ env:
 
 jobs:
   build:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
 
     steps:
     - uses: actions/checkout@v2
@@ -15,7 +15,7 @@ jobs:
           submodules: recursive
 
     - name: Install dependencies
-      run: sudo apt-get install libboost-system-dev libmysqlclient-dev socat
+      run: sudo apt-get install libboost-system-dev libmariadb-dev-compat socat
 
     - name: Configure CMake
       run: |
