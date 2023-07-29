@@ -449,6 +449,23 @@ namespace SuperiorMySqlpp
 
             this->storeOrUse();
         }
+
+        /**
+         * Fetches individual column from current result row.
+         * @remark Note that the current row must be already fetched and successive calls with same
+         *         row (without calling another fetch()) do not change the result.
+         * @param column Index of selected column.
+         * @param offset Columns can be fetched in chunks. Offset is the offset within the data value
+         *               at which to begin retrieving data.
+         */
+        void fetchColumn(unsigned int column, unsigned long offset = 0)
+        {
+            if (column >= resultBindings.bindings.size())
+            {
+                throw OutOfRange("Result column index " + std::to_string(column) + " >= bindings size " + std::to_string(resultBindings.bindings.size()));
+            }
+            detail::PreparedStatementBase<storeResult, validateMode, warnMode, ignoreNullable>::fetchColumn(&resultBindings.bindings[column], column, offset);
+        }
     };
 }
 
