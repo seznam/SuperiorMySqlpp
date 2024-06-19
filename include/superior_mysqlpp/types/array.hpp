@@ -8,6 +8,7 @@
 #include <array>
 #include <cmath>
 #include <cstring>
+#include <stdexcept>
 
 
 namespace SuperiorMySqlpp
