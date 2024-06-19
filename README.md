@@ -1,6 +1,6 @@
 # SuperiorMySQL++
 
-- [![Build Status](https://travis-ci.org/seznam/SuperiorMySqlpp.svg?branch=devel)](https://travis-ci.org/seznam/SuperiorMySqlpp)
+- [![Build Status](https://github.com/seznam/SuperiorMySqlpp/actions/workflows/cmake.yml/badge.svg)](https://github.com/seznam/SuperiorMySqlpp/actions/workflows/cmake.yml)
 - [![License: LGPL v3](https://img.shields.io/badge/License-LGPL%20v3-blue.svg)](LICENSE)
 
 Modern C++ wrapper for MySQL C API
