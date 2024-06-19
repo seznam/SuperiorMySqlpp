@@ -1,5 +1,5 @@
 FROM mysql:5.7.42-debian
-MAINTAINER Seznam.cz a.s.
+LABEL maintainer="Seznam.cz a.s."
 
 WORKDIR /
 ENV MYSQL_ROOT_PASSWORD password
@@ -7,6 +7,8 @@ ADD test_database.sql /docker-entrypoint-initdb.d/
 
 # Tests require us to restart running mysql instance. To this end, we will
 # install and configure supervisord.
+RUN apt-get update || apt-get install -y wget
+RUN wget -O - https://repo.mysql.com/RPM-GPG-KEY-mysql-2023 | gpg --dearmor > /etc/apt/keyrings/mysql.gpg
 RUN \
 apt-get update && apt-get install -y \
     patch \
