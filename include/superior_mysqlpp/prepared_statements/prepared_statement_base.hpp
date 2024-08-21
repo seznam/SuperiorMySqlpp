@@ -256,13 +256,6 @@ namespace SuperiorMySqlpp
                 return ok;
             }
 
-            bool fetchColumn()
-            {
-                this->statement.fetchColumn();
-                engageNullables();
-                return true;
-            }
-
         public:
             /**
              * Allows sending data for long enough parameters in multiple chunks (through successive calls).
