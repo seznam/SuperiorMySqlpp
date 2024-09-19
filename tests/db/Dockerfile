@@ -1,14 +1,13 @@
-FROM mysql:5.7.42-debian
-LABEL maintainer="Seznam.cz a.s."
+ARG TEST_MYSQL_DOCKER_IMAGE
+FROM ${TEST_MYSQL_DOCKER_IMAGE}
+LABEL org.opencontainers.image.authors="Seznam.cz a.s."
 
 WORKDIR /
-ENV MYSQL_ROOT_PASSWORD password
+ENV MYSQL_ROOT_PASSWORD=password
 ADD test_database.sql /docker-entrypoint-initdb.d/
 
 # Tests require us to restart running mysql instance. To this end, we will
 # install and configure supervisord.
-RUN apt-get update || apt-get install -y wget
-RUN wget -O - https://repo.mysql.com/RPM-GPG-KEY-mysql-2023 | gpg --dearmor > /etc/apt/keyrings/mysql.gpg
 RUN \
 apt-get update && apt-get install -y \
     patch \
