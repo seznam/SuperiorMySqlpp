@@ -24,6 +24,7 @@ struct Setting
     std::string database{"test_superior_sqlpp"};
     std::uint16_t port{0};
     std::string containerId{""};
+    bool verbose{false};
 };
 
 inline Setting& getSettingsRef()
@@ -35,6 +36,10 @@ inline Setting& getSettingsRef()
 
 inline void systemExecute(std::string command)
 {
+    if (getSettingsRef().verbose)
+    {
+        std::cout << "Executing: " << command << std::endl;
+    }
     auto returnCode = std::system(command.c_str());
     if (returnCode != 0)
     {
@@ -45,32 +50,36 @@ inline void systemExecute(std::string command)
 
 inline void startMySql()
 {
-    systemExecute("docker exec " + getSettingsRef().containerId + " supervisorctl start mysqld 1>/dev/null");
+    systemExecute("docker exec " + getSettingsRef().containerId + " supervisorctl start mysqld");
 }
 
 inline void stopMySql()
 {
-    systemExecute("docker exec " + getSettingsRef().containerId + " supervisorctl stop mysqld 1>/dev/null");
+    systemExecute("docker exec " + getSettingsRef().containerId + " supervisorctl stop mysqld");
 }
 
 inline void restartMySql()
 {
-    systemExecute("docker exec " + getSettingsRef().containerId + " supervisorctl restart mysqld 1>/dev/null");
+    systemExecute("docker exec " + getSettingsRef().containerId + " supervisorctl restart mysqld");
 }
 
 inline void waitForMySql()
 {
+    auto& s = getSettingsRef();
     while (true)
     {
         try
         {
-            auto& s = getSettingsRef();
             std::this_thread::sleep_for(std::chrono::milliseconds{100});
             SuperiorMySqlpp::Connection connection{"", s.user, s.password, s.host, s.port};
         }
         catch (std::exception& e)
         {
-            std::this_thread::sleep_for(std::chrono::milliseconds{50});
+            if (s.verbose)
+            {
+                std::cout << "Connecting to " << s.user << "@" << s.host << ":" << s.port << " failed: " << e.what() << std::endl;
+            }
+            std::this_thread::sleep_for(std::chrono::seconds{10});
             continue;
         }
 

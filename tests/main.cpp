@@ -35,7 +35,7 @@ public:
 
 void printUsage()
 {
-    std::cerr << "Usage: ./tester <MySqlIpAddress> <MySqlPort> <MySqlContainerId> <LocalFwdSocket> [bandit-options...]" << std::endl;
+    std::cerr << "Usage: [VERBOSE=1] ./tester <MySqlIpAddress> <MySqlPort> <MySqlContainerId> <LocalFwdSocket> [bandit-options...]" << std::endl;
 }
 
 int main(int argc, char* argv[])
@@ -48,6 +48,13 @@ int main(int argc, char* argv[])
     }
 
     auto& s = getSettingsRef();
+    s.verbose = []{
+        if (char* varText = std::getenv("VERBOSE"))
+        {
+            return std::stoi(varText) != 0;
+        }
+        return false;
+    };
     s.host = argv[1];
     try
     {
@@ -64,7 +71,10 @@ int main(int argc, char* argv[])
 
     Singleton::getInstance();
 
-//    SuperiorMySqlpp::DefaultLogger::getModifiableInstance().setLoggerPtr(std::make_shared<SuperiorMySqlpp::Loggers::Full>());
+    if (s.verbose)
+    {
+        SuperiorMySqlpp::DefaultLogger::getModifiableInstance().setLoggerPtr(std::make_shared<SuperiorMySqlpp::Loggers::Full>());
+    }
 
     std::cout << "Waiting for MySQL to become ready..." << std::endl;
     waitForMySql();
