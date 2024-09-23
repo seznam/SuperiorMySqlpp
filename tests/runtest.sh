@@ -13,6 +13,10 @@ TEST_MYSQL_DOCKER_IMAGE="${TEST_MYSQL_DOCKER_IMAGE:-mysql:8.0.39-debian}"
 docker build --pull --tag=${IMAGE_NAME} --build-arg=TEST_MYSQL_DOCKER_IMAGE="${TEST_MYSQL_DOCKER_IMAGE}" db
 docker rm --force ${CONTAINER_NAME} >/dev/null 2>&1 || true
 docker run --detach --publish-all --name ${CONTAINER_NAME} ${IMAGE_NAME}
+while [ -z "$(docker inspect --format='{{.NetworkSettings.IPAddress}}' ${CONTAINER_NAME})" ]; do
+  echo "Waiting for container ${CONTAINER_NAME} to start ..."
+  sleep 1
+done
 MYSQL_HOST=`docker inspect --format='{{.NetworkSettings.IPAddress}}' ${CONTAINER_NAME}`
 set +e
 
