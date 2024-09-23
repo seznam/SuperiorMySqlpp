@@ -6,6 +6,6 @@ target_compile_options(test_extended PRIVATE -Wno-deprecated-declarations)
 # TODO Remove sudo requirement
 add_test(
   NAME test_extended
-  COMMAND sudo ${CMAKE_CURRENT_SOURCE_DIR}/../runtest.sh
+  COMMAND sudo --preserve-env=TEST_MYSQL_DOCKER_IMAGE ${CMAKE_CURRENT_SOURCE_DIR}/../runtest.sh
           $<TARGET_FILE:test_extended>
   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/..)
