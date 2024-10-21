@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <cstdint>
 #include <string>
 
 #include <superior_mysqlpp/types/optional.hpp>
